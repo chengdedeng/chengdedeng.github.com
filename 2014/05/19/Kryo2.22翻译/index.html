@@ -1,0 +1,1141 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,序列化," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="在2.22版本修正了许多之前反馈的问题，提高稳定性和性能。 它还引入了许多新的功能，最主要的是，它可以使用Unsafe的方式的直接读取和写入对象的内存。 这中绝对是最快的方式序列化方式，特别是在操作大型原始数组的时候。Maven仓库中的JAR文件现在包含一个ObjectWeb的“阴影”版本ASM库，以避免与你项目中的ASM库出现兼容问题，从而导致你的应用程序粗线冲突。 这里不再需要一个单独的阴影">
+<meta name="keywords" content="Java,序列化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kryo2.22详解">
+<meta property="og:url" content="https://www.yangguo.info/2014/05/19/Kryo2.22翻译/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="在2.22版本修正了许多之前反馈的问题，提高稳定性和性能。 它还引入了许多新的功能，最主要的是，它可以使用Unsafe的方式的直接读取和写入对象的内存。 这中绝对是最快的方式序列化方式，特别是在操作大型原始数组的时候。Maven仓库中的JAR文件现在包含一个ObjectWeb的“阴影”版本ASM库，以避免与你项目中的ASM库出现兼容问题，从而导致你的应用程序粗线冲突。 这里不再需要一个单独的阴影">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kryo2.22详解">
+<meta name="twitter:description" content="在2.22版本修正了许多之前反馈的问题，提高稳定性和性能。 它还引入了许多新的功能，最主要的是，它可以使用Unsafe的方式的直接读取和写入对象的内存。 这中绝对是最快的方式序列化方式，特别是在操作大型原始数组的时候。Maven仓库中的JAR文件现在包含一个ObjectWeb的“阴影”版本ASM库，以避免与你项目中的ASM库出现兼容问题，从而导致你的应用程序粗线冲突。 这里不再需要一个单独的阴影">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2014/05/19/Kryo2.22翻译/"/>
+
+
+
+
+
+  <title> Kryo2.22详解 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2014/05/19/Kryo2.22翻译/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Kryo2.22详解
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-05-19T21:03:30+08:00">
+                2014-05-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2014/05/19/Kryo2.22翻译/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2014/05/19/Kryo2.22翻译/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>在2.22版本修正了许多之前反馈的问题，提高稳定性和性能。 它还引入了许多新的功能，最主要的是，它可以使用Unsafe的方式的直接读取和写入对象的内存。 这中绝对是最快的方式序列化方式，特别是在操作大型原始数组的时候。<br>Maven仓库中的JAR文件现在包含一个ObjectWeb的“阴影”版本ASM库，以避免与你项目中的ASM库出现兼容问题，从而导致你的应用程序粗线冲突。 这里不再需要一个单独的阴影jar了。</p>
+</blockquote>
+<p><code>由于本篇文章是之前翻译的，最后迁移到该博客。在迁移过程中可能出现某些地方出错，并且由于水平有限，如果发生上面的情况，请大家发邮件告诉我，谢谢！</code></p>
+<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p><strong>Kryo</strong>是一种快速，高效的对象图序列化的Java框架。 该项目的目标是速度，效率，以及一个易于使用的API。该项目对那些在任何时间，对象需要被持久化，无论是文件，数据库，或通过网络的项目都是适用的。Kryo还可以自动实现深浅的复制/克隆。 就是直接复制一个对象对象到例外一个对象，而不是对象-&gt;字节-&gt;对象。<br>本文档是Kryo的V2版本。如果V1版本感兴趣，见<a href="https://github.com/EsotericSoftware/kryo/wiki/Documentation-for-Kryo-version-1.x" target="_blank" rel="external">V1Documentation</a>。<br>如果您打算使用Kryo进行网络通信，该<a href="https://github.com/EsotericSoftware/kryonet" target="_blank" rel="external">KryoNet</a>项目可能对你有用。</p>
+<hr>
+<h3 id="内容"><a href="#内容" class="headerlink" title="内容"></a>内容</h3><ul>
+<li>Quickstart</li>
+<li>IO</li>
+<li>Unsafe-based IO</li>
+<li>Serializers</li>
+<li>Registration</li>
+<li>Default serializers</li>
+<li>FieldSerializer</li>
+<li>KryoSerializable</li>
+<li>Reading and writing</li>
+<li>References</li>
+<li>Object creation</li>
+<li>Copying/cloning</li>
+<li>Context</li>
+<li>Compression and encryption</li>
+<li>Chunked encoding</li>
+<li>Compatibility</li>
+<li>Interoperability</li>
+<li>Stack size</li>
+<li>Threading</li>
+<li>Logging</li>
+<li>Integration with Maven</li>
+<li>Projects using Kryo</li>
+</ul>
+<a id="more"></a>
+<hr>
+<h3 id="Quickstart快速入门"><a href="#Quickstart快速入门" class="headerlink" title="Quickstart快速入门"></a>Quickstart快速入门</h3><p>让我们从头开始来看看该库如何使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Kryokryo=newKryo();</span><br><span class="line">Outputoutput=newOutput(newFileOutputStream(<span class="string">"file.bin"</span>));</span><br><span class="line">SomeClasssomeObject=...</span><br><span class="line">kryo.writeObject(output,someObject);</span><br><span class="line">output.close();</span><br><span class="line">Inputinput=newInput(newFileInputStream(<span class="string">"file.bin"</span>));</span><br><span class="line">SomeClasssomeObject=kryo.readObject(input,SomeClass.class);</span><br><span class="line">input.close();</span><br></pre></td></tr></table></figure>
+<p>该Kryo类协调整个序列化。 输出和输入类处理缓冲字节和用可选的方式将其刷新到流。<br>本文档的其余部分详细介绍它是如何工作的和该库的高级用法。</p>
+<hr>
+<h3 id="IO"><a href="#IO" class="headerlink" title="IO"></a>IO</h3><p>输出类是OutputStream，它将数据写入一个字节数组缓冲区。 这个缓冲器中的内容可以直接获得和使用，如果一个字节数组是需要的。 如果输出是一个给定的OutputStream，当字节缓冲区满时会将其刷新到该输出流。 Output有很多方法能够高效地将原语和字符串转为字节。 它提供了类似DataOutputStream，BufferedOutputSteam，FilterOutputStream，和ByteArrayOutputStream类的功能。</p>
+<p>因为Output buffers写入到OutputStream时，一定要调用flush()或close()当写入完成后，从而使缓冲字节写入底层流。</p>
+<p>输入类是一个InputStream,它能够从一个字节数组缓冲区读取数据。这个buffer可以直接设置成缓冲区，如果需要从这个buffer中读取数据。 如果输入是一个给定的InputStream，这个buffer将会被填满直到buffer空间耗尽。Input有很多方法能够高效地读取原语和字符串通过字节的方式。  它提供了类似DataInputStream，BufferedInputStream，FilterInputStream，和ByteArrayInputStream类的功能。</p>
+<p>如果读取或者写入不是一个字节数组，只需提供相应的InputStream和OutputStream就行了。</p>
+<hr>
+<h3 id="Unsafe-based-IO-不安全型的IO"><a href="#Unsafe-based-IO-不安全型的IO" class="headerlink" title="Unsafe-based IO 不安全型的IO"></a>Unsafe-based IO 不安全型的IO</h3><p>Kryo提供了额外的IO类，它是基于sun.misc.Unsafe类公开的功能。 这些类是UnsafeInput，UnsafeOutput。对于来自Kryo的Input和Output，它们可以作为在那些支持sun.misc.Unsafe平台上的一种IO替换方案。</p>
+<p>对于那些需要在物理内存和堆外内存上直接序列化和反序列的情况，这里有两个专用类UnsafeMemoryInputUnsafeMemoryOutput，它们可以替换平常的Input和Output类来实现该功能。<br>使用Unsafe-based IO可能导致在一个相当显著的性能提升，这主要取决于你的应用程序。 特别是那些需要序列化大型原始数组作为你的对象图的一部分的情况。</p>
+<p><strong>关于使用Unsafe-based IO的免责申明 </strong></p>
+<p>Unsafe-based IO不能100%的与Kryo的Input和Output 流兼容，当涉及到序列化数据的二进制格式时！<br>这意味着它们是由Unsafe-based产生的输出流只能由Unsafe-based输入流读取，而不是被通常的input stream读取。 这同样适用于相反的方向：通常的输出流中的数据不能被Unsafe-based IO读取。</p>
+<p>只要序列化和反序列化两边都使用Unsafe IO或者在同样架构的处理器（更准确地说，如果字节顺序和内部表示整数和浮点类型是一样的）上使用，它们就是安全的。</p>
+<hr>
+<h3 id="Serializers"><a href="#Serializers" class="headerlink" title="Serializers"></a>Serializers</h3><p>Kryo是一个序列化框架。 它不会强求是否有一个schema或者关心数据到底是写入还是读取。 这是留给序列化器本身。 Serializers在默认情况下各种提供读取和写入数据的方式。 如果这些仍不符合特定的需要，它们可以部分或者全部被替换。 所提供的序列化器可以读写大多数对象，但是如果有必要，写一个新的序列化也是很容易。 序列化器的抽象类，定义了从对象到字节和字节到对象的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ColorSerializer</span> <span class="keyword">extends</span> <span class="title">Serializer</span>&lt;<span class="title">Color</span>&gt;</span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(Kryo kryo,Output output,Color object)</span></span>&#123;</span><br><span class="line">		output.writeInt(object.getRGB());</span><br><span class="line">	&#125;		</span><br><span class="line">	<span class="function"><span class="keyword">public</span> Color <span class="title">read</span><span class="params">(Kryo kryo,Input input,Class&lt;T&gt; type&#123;</span></span></span><br><span class="line"><span class="function"><span class="params">		return new Color(input.readInt()</span>,<span class="keyword">true</span>)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>序列化器具有可实现的两种方法。 write()将对象转化为字节。 read()创建该对象的一个新实例，并从输入中读取信息来填充它。</p>
+<p>Kryo实例可用于写入和读取嵌套对象。 如果Kryo在read()中读取了嵌套对象，那么kryo.reference()必须首先与父对象一起调用，假如该嵌套对象引用了该父对象。假如嵌套对象没有引用父对象，Kryo不处理嵌套对象或者对象引用不存在，那么kryo.reference()是没有必要被调用的。 如果嵌套的对象使用相同的序列化器，序列化器必须是可重入的（什么是可重入的对象序列化? 就是说对象任意时候都可以进行序列化,包括保存和载入,而且不会影响当前程序运行和对象状态的异常，也就是说该序列化器不应该有特定的状态）。</p>
+<p>代码不应该直接使用serializer，而是应该使用Kryo类的read和write方法来替代。 这样就能通过Kryo来编排序列化和处理新功能，如引用和空对象。</p>
+<p>默认情况下，序列化程序并不需要处理null对象。 Kryo会根据需要通过一个byte来表示null或not null。如果一个serializer希望更高效和能够处理null，它可以调用Serializer#setAcceptsNull(true) 。 这个方法同样可以用来避免写入表示null的字节，当你知道一种类型的所有实例将永远不会是空的时候。</p>
+<hr>
+<h3 id="Registration注册"><a href="#Registration注册" class="headerlink" title="Registration注册"></a>Registration注册</h3><p>当Kryo输出一个对象的实例时，它首先会输出该对象的Class的标识符。 默认情况下，类的完全限定名称会被写入，后面紧接的是对象的字节。 随后出现的是该对象图中的对象类型，它们通过可变长度的整数表示。 将类名写入序列化文件是有点效率低下的，因此类可以事先注册，从而避免写入类名：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">   kryo.register(SomeClass.class);</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">   Output output = ...</span><br><span class="line">   SomeClass someObject = ...</span><br><span class="line">   kryo.writeObject(output, someObject);</span><br></pre></td></tr></table></figure>
+<p>这里SomeClass的注册到了Kryo，该类与一个int型的ID相互关联。 当Kryo输出SomeClass实例时，它会输出这个整数ID。 这样比输出类的名称更高效，但要求被序列的类在序列化之前知道。 反序列化过程中，注册类id必须和序列化过程中的该类的id一致。 上面显示的注册方法分配下一个可用，最小的整数ID，这就意味着类的注册顺序非常重要。 该ID也可以明确指定，从而使顺序不重要：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">   kryo.register(SomeClass.class, <span class="number">0</span>);</span><br><span class="line">   kryo.register(AnotherClass.class, <span class="number">1</span>);</span><br><span class="line">   kryo.register(YetAnotherClass.class, <span class="number">2</span>);</span><br></pre></td></tr></table></figure>
+<p>该ID很小时特别是正整数时，是非常高效的。 负整数ID不能高效的序列化。 -1和-2是保留的，不能使用。</p>
+<p>已注册和未注册的类可以混合使用。 所有的基本数据类型，基础对象和String是默认注册的。</p>
+<p>Kryo#setRegistrationRequired可以设置为true，那么任何未注册的类在序列化和反序列化都会抛出一个异常。 这样可以防止一个应用程序意外地使用类名的字符串。</p>
+<p>如果使用未注册的类，缩短短包是一种优化方案。</p>
+<hr>
+<h3 id="Default-serializers-默认的序列化器"><a href="#Default-serializers-默认的序列化器" class="headerlink" title="Default serializers 默认的序列化器"></a>Default serializers 默认的序列化器</h3><p>写完类标识符之后，Kryo会使用序列化器将对象转化成字节写入。 当一个类被在注册时可以指定一个序列化方式的的实例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">kryo.register(SomeClass.class, <span class="keyword">new</span> SomeSerializer());</span><br><span class="line">kryo.register(AnotherClass.class, <span class="keyword">new</span> AnotherSerializer());</span><br></pre></td></tr></table></figure>
+<p>如果一个类没有注册或没有指定序列化器，会根据类的类型自动选择一个默认的序列化器。 下面的类含有一个默认的序列化器：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">boolean</th>
+<th style="text-align:left">Boolean</th>
+<th style="text-align:left">byte</th>
+<th style="text-align:left">Byte</th>
+<th style="text-align:left">char</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Character</td>
+<td style="text-align:left">short</td>
+<td style="text-align:left">Short</td>
+<td style="text-align:left">int</td>
+<td style="text-align:left">Integer</td>
+</tr>
+<tr>
+<td style="text-align:left">long</td>
+<td style="text-align:left">Long</td>
+<td style="text-align:left">float</td>
+<td style="text-align:left">Float</td>
+<td style="text-align:left">double</td>
+</tr>
+<tr>
+<td style="text-align:left">Double</td>
+<td style="text-align:left">byte[]</td>
+<td style="text-align:left">String</td>
+<td style="text-align:left">BigInteger</td>
+<td style="text-align:left">BigDecimal</td>
+</tr>
+<tr>
+<td style="text-align:left">Collection</td>
+<td style="text-align:left">Date</td>
+<td style="text-align:left">Collections.emptyList</td>
+<td style="text-align:left">Collections.singleton</td>
+<td style="text-align:left">Map</td>
+</tr>
+<tr>
+<td style="text-align:left">StringBuilder</td>
+<td style="text-align:left">TreeMap</td>
+<td style="text-align:left">Collections.emptyMap</td>
+<td style="text-align:left">Collections.emptySet</td>
+<td style="text-align:left">KryoSerializable</td>
+</tr>
+<tr>
+<td style="text-align:left">StringBuffer</td>
+<td style="text-align:left">Class</td>
+<td style="text-align:left">Collections.singletonList</td>
+<td style="text-align:left">Collections.singletonMap</td>
+<td style="text-align:left">Currency</td>
+</tr>
+<tr>
+<td style="text-align:left">Calendar</td>
+<td style="text-align:left">TimeZone</td>
+<td style="text-align:left">Enum</td>
+<td style="text-align:left">EnumSet</td>
+</tr>
+</tbody>
+</table>
+<p>可以为指定的类添加默认的序列化器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">   kryo.addDefaultSerializer(SomeClass.class, SomeSerializer.class);</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">   Output output = ...</span><br><span class="line">   SomeClass someObject = ...</span><br><span class="line">   kryo.writeObject(output, someObject);</span><br></pre></td></tr></table></figure>
+<p>也可以使用DefaultSerializer注解来添加默认的序列化器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@DefaultSerializer</span>(SomeClassSerializer.class)</span><br><span class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeClass</span> </span>&#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>如果一个类没有默认的序列化器与之相匹配，则默认情况下使用<a href="https://github.com/EsotericSoftware/kryo#FieldSerializer" target="_blank" rel="external">FieldSerializer</a>。 这也是可以改变：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">kryo.setDefaultSerializer(AnotherGenericSerializer.class);</span><br></pre></td></tr></table></figure>
+<p>一些序列化器允许提供额外的信息，从而减少字节的输出：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">   FieldSerializer someClassSerializer = <span class="keyword">new</span> FieldSerializer(kryo, SomeClass.class);</span><br><span class="line">   CollectionSerializer listSerializer = <span class="keyword">new</span> CollectionSerializer();</span><br><span class="line">   listSerializer.setElementClass(String.class);</span><br><span class="line">   listSerializer.setElementsCanBeNull(<span class="keyword">false</span>);</span><br><span class="line">   someClassSerializer.getField(<span class="string">"list"</span>).setClass(LinkedList.class, listSerializer);</span><br><span class="line">   kryo.register(SomeClass.class, someClassSerializer);</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">   SomeClass someObject = ...</span><br><span class="line">   someObject.list = <span class="keyword">new</span> LinkedList();</span><br><span class="line">   someObject.list.add(<span class="string">"thishitis"</span>);</span><br><span class="line">   someObject.list.add(<span class="string">"bananas"</span>);</span><br><span class="line">   kryo.writeObject(output, someObject);</span><br></pre></td></tr></table></figure>
+<p>在这个例子中，FieldSerializer序列化器将用于SomeClass的。 从FieldSerializer的配置可以看出，“list”字段将永远是一个LinkedList，并使用指定的CollectionSerializer。 该CollectionSerializer被配置成每个元素将是一个String，并没有任何元素都为null。 这使得序列化器更有效率。 在这种情况下，列表中的每个元素大概需要2〜3个字节。</p>
+<hr>
+<h3 id="FieldSerializer"><a href="#FieldSerializer" class="headerlink" title="FieldSerializer"></a>FieldSerializer</h3><p>默认情况下，大多数的类最终使用FieldSerializer。 它本质上是手写的序列化方式，但是它会自动执行。FieldSerializer直接对对象的字段进行转换。 如果字段是public，protected，或默认的访问（包私有），使用最快速度生成字节码（见<a href="https://github.com/EsotericSoftware/reflectasm" target="_blank" rel="external">ReflectASM</a> ）。 对于私有字段，setAccessible和缓存反射状态，速度还是相当快的。<br>还提供了其他用途的序列化器，如的BeanSerializer，TaggedFieldSerializer和CompatibleFieldSerializer。 额外的序列化器，在GitHub上是一个单独的项目，<a href="https://github.com/magro/kryo-serializers" target="_blank" rel="external">kryo-serializers</a>。</p>
+<hr>
+<h3 id="KryoSerializable"><a href="#KryoSerializable" class="headerlink" title="KryoSerializable"></a>KryoSerializable</h3><p>虽然FieldSerializer对于大多数类来说是理想的，但是有时你也想很方便的实现自己的序列化方式。 这可以通过实现KryoSerializable接口（类似于JDK的java.io.Externalizable接口）来完成。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeClass</span> <span class="keyword">implements</span> <span class="title">KryoSerializable</span> </span>&#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">write</span> <span class="params">(Kryo kryo, Output output)</span> </span>&#123;</span><br><span class="line">         <span class="comment">// ...</span></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">read</span> <span class="params">(Kryo kryo, Input input)</span> </span>&#123;</span><br><span class="line">         <span class="comment">// ...</span></span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="Reading-and-writing"><a href="#Reading-and-writing" class="headerlink" title="Reading and writing"></a>Reading and writing</h3><p>Kryo有三套方法集来读取和写入的对象。</p>
+<p>如果对象的具体类不知道且对象可能为null：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">kryo.writeClassAndObject(output, object);</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">   Object object = kryo.readClassAndObject(input);</span><br><span class="line">   <span class="keyword">if</span> (object <span class="keyword">instanceof</span> SomeClass) &#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>如果类是已知的且该对象可能为null：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kryo.writeObjectOrNull(output, someObject);</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">   SomeClass someObject = kryo.readObjectOrNull(input, SomeClass.class);</span><br></pre></td></tr></table></figure>
+<p>如果类是已知的，该对象不能为空：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kryo.writeObject(output, someObject);</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">   SomeClass someObject = kryo.readObject(input, SomeClass.class);</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>默认情况下，对象图中出现的对象会在首次已一个整数序号存储下来。 这样就能对多个引用指向同一个对象和循环图进行序列化。 这有一个小的开销，但是可以关闭以节省空间，如果你不需要保存引用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">   kryo.setReferences(<span class="keyword">false</span>);</span><br><span class="line">   <span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+<p>当使用Kryo对嵌套对象进行序列化时， kryo.reference()必须在read() 中被调用。 见<a href="https://github.com/EsotericSoftware/kryo#serializers" target="_blank" rel="external">Serializers</a>获取更多信息。</p>
+<hr>
+<h3 id="Object-creation"><a href="#Object-creation" class="headerlink" title="Object creation"></a>Object creation</h3><p>对于特定类型的序列化器，会使用Java代码来创建该类型的新实例。 如FieldSerializer序列化器，它是通用的能够创建任何类的实例。 默认情况下，如果一个类有一个无参数的构造函数，然后它是通过ReflectASM来实现invoke或反射，否则将引发异常。 如果无参数的构造函数是私有的，会调用setAccessible方法通过反射来访问它。 如果这是可以接受的，私人的无参数的构造函数是一个很好的方式，让Kryo创建一个类的实例，而不会影响公共API。</p>
+<p>当ReflectASM或反射不能用，Kryo可以被配置为使用InstantiatorStrategy来处理创建类的实例。 Objenesis 提供StdInstantiatorStrategy它使用JVM的特定API来创建一个类的实例，不需要调用任何构造函数都没有。 虽然这个作品多次在JVM上，一个无参的够着函数其实是更方便的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kryo.setInstantiatorStrategy(<span class="keyword">new</span> StdInstantiatorStrategy());</span><br></pre></td></tr></table></figure>
+<p>注意，类必须被设计为以这种方式创建的。 如果一个类希望它的构造函数能够被调用，通过这一机制建立的，它可能是处于未初始化状态。<br>Objenesis也可以使用Java内置的序列化机制创建新的对象。 利用这一点，该类必须实现java.io.Serializable，并且无参的构造函数应该在超类中被调用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kryo.setInstantiatorStrategy(newSerializingInstantiatorStrategy());</span><br></pre></td></tr></table></figure>
+<p>您也可以编写自己的InstantiatorStrategy。<br>要自定义创建特定类型的方式，一个ObjectInstantiator可以设置。 这将覆盖ReflectASM，reflection，以及InstantiatorStrategy。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Registrationregistration=kryo.register(SomeClass.class);</span><br><span class="line">registration.setObjectInstantiator(...);</span><br></pre></td></tr></table></figure>
+<p>另外，一些序列化器提供了可以被覆盖以自定义对象的创建方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kryo.register(SomeClass.class, <span class="keyword">new</span> FieldSerializer(kryo, SomeClass.class) &#123;</span><br><span class="line">      <span class="function"><span class="keyword">public</span> Object <span class="title">create</span> <span class="params">(Kryo kryo, Input input, Class type)</span> </span>&#123;</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">new</span> SomeClass(<span class="string">"some constructor arguments"</span>, <span class="number">1234</span>);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;);</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="Copying-cloning"><a href="#Copying-cloning" class="headerlink" title="Copying/cloning"></a>Copying/cloning</h3><p>序列化库需要特定的知识在如何创建新的实例，获取和设置值，操作对象图等。这所有的一切都需要支持copying objects，因此Kryo自动支持深浅拷贝是顺理成章的事情。 注意，Kryo的拷贝不是序列化和反序列化，而是直接分配。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">   SomeClass someObject = ...</span><br><span class="line">   SomeClass copy1 = kryo.copy(someObject);</span><br><span class="line">   SomeClass copy2 = kryo.copyShallow(someObject);</span><br></pre></td></tr></table></figure>
+<p>该序列化类有一个copy 方法来完成这项工作。这些方法能够被忽略，假如拷贝方法没有使用在实现应用程序中特定的序列化方式时。 Kryo的拷贝支持所有的序列化器。 多个引用指向同一个对象和循环引用会自动被框架理。</p>
+<p>类似read()序列化方法， kryo.reference()必须先于Kryo复制子对象被调用。 通过<a href="https://github.com/EsotericSoftware/kryo#Serializers" target="_blank" rel="external">Serializers</a>获取更多信息。</p>
+<p>类似KryoSerializable，可以实现KryoCopyable来实现自己的复制：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeClass</span> <span class="keyword">implements</span> <span class="title">KryoCopyable</span>&lt;<span class="title">SomeClass</span>&gt; </span>&#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">      <span class="function"><span class="keyword">public</span> SomeClass <span class="title">copy</span> <span class="params">(Kryo kryo)</span> </span>&#123;</span><br><span class="line">         <span class="comment">// Create new instance and copy values from this instance.</span></span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="Context"><a href="#Context" class="headerlink" title="Context"></a>Context</h3><p>Kryo有两个context方法。 getContext()返回一个map，用于存储用户数据 。 因为Kryo实例提供给所有的序列化器使用，这个数据是现成的。 getGraphContext()类似，但它会在每个对象图形序列化和反序列化之后被清除。 这可以很容易地管理每对象图的状态。</p>
+<hr>
+<h3 id="压缩和加密"><a href="#压缩和加密" class="headerlink" title="压缩和加密"></a>压缩和加密</h3><p>Kryo支持流，所以在序列化后字节上压缩和加密是非常简单的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">OutputStream outputStream = <span class="keyword">new</span> DeflaterOutputStream(<span class="keyword">new</span> 	FileOutputStream(<span class="string">"file.bin"</span>));</span><br><span class="line">   Output output = <span class="keyword">new</span> Output(outputStream);</span><br><span class="line">   Kryo kryo = <span class="keyword">new</span> Kryo();</span><br><span class="line">   kryo.writeObject(output, object);</span><br><span class="line">   output.close();</span><br></pre></td></tr></table></figure>
+<p>如果需要,可以使用序列化器只压缩或加密对象图字节的一个子集。 例如，请参见DeflateSerializer或BlowfishSerializer。 这些序列化包装其他序列化器来编码和解码的字节。</p>
+<hr>
+<h3 id="分块编码"><a href="#分块编码" class="headerlink" title="分块编码"></a>分块编码</h3><p>有时候先将数据的长度写入然后再将数据写入是有意义的。 如果不知道数据的长度，所有的数据将需要一个缓冲来确定其长度，以确定它的长度，则该长度可以被写入，然后才是数据。这种在防止流和潜在获取非常大的缓冲区方面不是很理想。<br>分块编码通过使用一个小缓冲解决这个问题。 当缓冲器满时，它的长度被写入，然后是数据。 这就是一个数据块。然后缓冲区被清除，这种情况持续下去，直到有没有更多的数据写入。 当一个长度为零的块表示所有块的结束。<br>Kryo提供了一些类，便于分块编码。 OutputChunked是用来写分块数据的。 它继承了Output，所以拥有所有方便的方法来写数据。 当OutputChunked缓冲区满时，它会将数据刷新到一个被包装过的OutputStream中。 该endChunks()方法用来标记一组块的结束。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">OutputStream outputStream = <span class="keyword">new</span> FileOutputStream(<span class="string">"file.bin"</span>);</span><br><span class="line">   OutputChunked output = <span class="keyword">new</span> OutputChunked(outputStream, <span class="number">1024</span>);</span><br><span class="line">   <span class="comment">// Write data to output...</span></span><br><span class="line">   output.endChunks();</span><br><span class="line">   <span class="comment">// Write more data to output...</span></span><br><span class="line">   output.endChunks();</span><br><span class="line">   <span class="comment">// Write even more data to output...</span></span><br><span class="line">   output.close();</span><br></pre></td></tr></table></figure>
+<p>要读取分块的数据，可以使用InputChunked。 它继承了Input，因此它具有所有读取数据的方便方法。 当读取数据时，InputChunked会准确找出数据结束的数据块。 nextChunks()方法的作用是前进到下一组块，即使不是所有的数据要从当前组块集合中读出。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">InputStream outputStream = <span class="keyword">new</span> FileInputStream(<span class="string">"file.bin"</span>);</span><br><span class="line">   InputChunked input = <span class="keyword">new</span> InputChunked(inputStream, <span class="number">1024</span>);</span><br><span class="line">   <span class="comment">// Read data from first set of chunks...</span></span><br><span class="line">   input.nextChunks();</span><br><span class="line">   <span class="comment">// Read data from second set of chunks...</span></span><br><span class="line">   input.nextChunks();</span><br><span class="line">   <span class="comment">// Read data from third set of chunks...</span></span><br><span class="line">   input.close();</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="兼容性"><a href="#兼容性" class="headerlink" title="兼容性"></a>兼容性</h3><p>对于某些需求，尤其是长期存储的序列化字节，如何处理那些已经更改类的序列化是非常重要的。 这被称为前向和后向兼容性。 默认情况下，大多数用户类将使用FieldSerializer，它不支持添加，删除或更改类型，对于之前的序列化字节来说是无效字段。 这是可以接受的在许多情况下，例如在网络上发送数据。 如果有必要，可以使用一个简单的序列化器来替换：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kryo.setDefaultSerializer(TaggedFieldSerializer.class);</span><br></pre></td></tr></table></figure>
+<p>TaggedFieldSerializer只序列化有一个@Tag注释的字段。 相比FieldSerializer不够灵活，因为它可以处理大多数类而无需注解，但允许TaggedFieldSerializer添加一个对之前序列化文件来说无效的字段。 如果一个字段被删除就会导致以前序列化的字节失效，所以字段应该用@Deprecated注解表示被删除。</p>
+<p>或者，可以使用CompatibleFieldSerializer，在序列化对象时，会将第一次碰见的class用一个schema来表示，并写入序列化文件。 像FieldSerializer，它可以无需注解序列所有类。 字段可以添加或删除，无需关心以前的序列化字节，但不支持改变一个字段的类型。 这具有一些额外的开销，无论是在速度和空间，相对于FieldSerializer。</p>
+<p>额外的具有向前和向后兼容序列化可能会被开发，例如使用一个外部的，手写模式的序列化程序。</p>
+<hr>
+<h3 id="互通性"><a href="#互通性" class="headerlink" title="互通性"></a>互通性</h3><p>Kryo序列化器默认假设Java将作为反序列化，所以他们并没有明确定义写入格式。 序列化器可以编写一个标准化的格式使别的语言更容易阅读,但这不是默认提供。</p>
+<hr>
+<h3 id="堆大小"><a href="#堆大小" class="headerlink" title="堆大小"></a>堆大小</h3><p>Kryo能够直接访问堆当序列化嵌套对象时。 Kryo确实减少堆栈调用，但是对于极深的对象图，堆溢出可能发生。 这是大多数序列化库，包括Java内置的序列化都面临该问题。 堆大小的调节可以使用-Xss ，但是请注意，这是针对所有线程。 堆太大并且线程很多会导致JVM使用大量内存。</p>
+<hr>
+<h3 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h3><p>Kryo不是线程安全的。 每个线程都应该有自己的Kryo，输入和输出的实例。 此外，byte []的输入用途可以被修改，然后反序列化过程返回到其原始状态，因此相同的字节不应该在多线程中并发使用。</p>
+<hr>
+<h3 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h3><p>Kryo利用了低开销，轻量级的MinLog logging library.。 记录级别可以通过下列方法之一来设置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Log.ERROR();</span><br><span class="line">   Log.WARN();</span><br><span class="line">   Log.INFO();</span><br><span class="line">   Log.DEBUG();</span><br><span class="line">   Log.TRACE();</span><br></pre></td></tr></table></figure>
+<p>Kryo不会输出INFO （默认值）及以上水平的日志。 DEBUG方便开发过程中使用。 TRACE好调试一个具体问题时使用，但这种级别一般会有太多的信息要输出。</p>
+<p>MinLog支持一个固定的日志级别，这会导致javac来在编译时去掉低于这一水平的日志记录语句。 在Kryo派发zip文件中，“debug”的JAR中被开启。 “production”JAR文件使用一个固定的日志记录级别NONE ，这意味着所有的日志代码已被删除。</p>
+<hr>
+<h3 id="使用Kryo的项目"><a href="#使用Kryo的项目" class="headerlink" title="使用Kryo的项目"></a>使用Kryo的项目</h3><ul>
+<li><a href="http://code.google.com/p/kryonet/" target="_blank" rel="external">KryoNet</a> (NIO networking)</li>
+<li><a href="https://github.com/twitter/scalding" target="_blank" rel="external">Twitter’s Scalding</a> (Scala API for Cascading)</li>
+<li><a href="https://github.com/twitter/chill" target="_blank" rel="external">Twitter’s Chill</a> (Kryo serializers for Scala)</li>
+<li><a href="http://hive.apache.org/" target="_blank" rel="external">Apache Hive</a> (query plan serialization)</li>
+<li><a href="https://github.com/datanucleus/type-converter-kryo" target="_blank" rel="external">DataNucleus</a> (JDO/JPA persistence framework)</li>
+<li><a href="http://www.cloudpelican.com/" target="_blank" rel="external">CloudPelican</a></li>
+<li><a href="http://www.s4.io/" target="_blank" rel="external">Yahoo’s S4</a> (distributed stream computing)</li>
+<li><a href="https://github.com/nathanmarz/storm/wiki/Serialization" target="_blank" rel="external">Storm</a> (distributed realtime computation system, in turn used by many others)</li>
+<li><a href="https://github.com/nathanmarz/cascalog" target="_blank" rel="external">Cascalog</a> (Clojure/Java data processing and querying details)</li>
+<li><a href="https://code.google.com/p/memcached-session-manager/" target="_blank" rel="external">memcached-session-manager</a> (Tomcat high-availability sessions)</li>
+<li><a href="http://code.google.com/p/mobility-rpc/" target="_blank" rel="external">Mobility-RPC</a> (RPC enabling distributed applications)</li>
+<li><a href="https://github.com/romix/akka-kryo-serialization" target="_blank" rel="external">akka-kryo-serialization</a> (Kryo serializers for Akka)</li>
+<li><a href="https://code.google.com/p/kryo/issues/detail?id=67" target="_blank" rel="external">Groupon</a></li>
+<li><a href="http://www.jivesoftware.com/jivespace/blogs/jivespace/2010/07/29/the-jive-sbs-cache-redesign-part-3" target="_blank" rel="external">Jive</a></li>
+<li><a href="https://code.google.com/p/destroyallhumans/" target="_blank" rel="external">DestroyAllHumans</a> (controls a <a href="http://www.youtube.com/watch?v=ZeZ3R38d3Cg" target="_blank" rel="external">robot</a>!)</li>
+<li><a href="https://github.com/magro/kryo-serializers" target="_blank" rel="external">kryo-serializers</a> (additional serializers)</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/序列化/" rel="tag"># 序列化</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2013/11/03/论技术选型/" rel="next" title="论技术选型">
+                <i class="fa fa-chevron-left"></i> 论技术选型
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/06/25/haproxy实现websocket负载均衡/" rel="prev" title="Haproxy之websocket的负载均衡方案">
+                Haproxy之websocket的负载均衡方案 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内容"><span class="nav-number">2.</span> <span class="nav-text">内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Quickstart快速入门"><span class="nav-number">3.</span> <span class="nav-text">Quickstart快速入门</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IO"><span class="nav-number">4.</span> <span class="nav-text">IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unsafe-based-IO-不安全型的IO"><span class="nav-number">5.</span> <span class="nav-text">Unsafe-based IO 不安全型的IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Serializers"><span class="nav-number">6.</span> <span class="nav-text">Serializers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Registration注册"><span class="nav-number">7.</span> <span class="nav-text">Registration注册</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Default-serializers-默认的序列化器"><span class="nav-number">8.</span> <span class="nav-text">Default serializers 默认的序列化器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FieldSerializer"><span class="nav-number">9.</span> <span class="nav-text">FieldSerializer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#KryoSerializable"><span class="nav-number">10.</span> <span class="nav-text">KryoSerializable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reading-and-writing"><span class="nav-number">11.</span> <span class="nav-text">Reading and writing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">12.</span> <span class="nav-text">References</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Object-creation"><span class="nav-number">13.</span> <span class="nav-text">Object creation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Copying-cloning"><span class="nav-number">14.</span> <span class="nav-text">Copying/cloning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Context"><span class="nav-number">15.</span> <span class="nav-text">Context</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩和加密"><span class="nav-number">16.</span> <span class="nav-text">压缩和加密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分块编码"><span class="nav-number">17.</span> <span class="nav-text">分块编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#兼容性"><span class="nav-number">18.</span> <span class="nav-text">兼容性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#互通性"><span class="nav-number">19.</span> <span class="nav-text">互通性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#堆大小"><span class="nav-number">20.</span> <span class="nav-text">堆大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程"><span class="nav-number">21.</span> <span class="nav-text">线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志"><span class="nav-number">22.</span> <span class="nav-text">日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用Kryo的项目"><span class="nav-number">23.</span> <span class="nav-text">使用Kryo的项目</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2014/05/19/Kryo2.22翻译/';
+
+      var disqus_title = "Kryo2.22详解";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

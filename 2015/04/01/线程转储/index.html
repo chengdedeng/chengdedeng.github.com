@@ -1,0 +1,1014 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Thread," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="最近好几个同事都向我问起过java线程转储方面的知识，都是些常见的问题，如：系统负载过高，系统吞吐率降低，系统挂起等等。这些问题的定位和解决都离不开线程转储，因为这些问题在测试环境复现的难度较大，只有在生产环境进行ThreadDump，才能快速定位问题。  线程状态在具体分析线程转储数据之前，我们首先要明确线程的状态。java.lang.Thread.State枚举类中定义了如下几种类型：  N">
+<meta name="keywords" content="Thread">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线程转储分析">
+<meta property="og:url" content="https://www.yangguo.info/2015/04/01/线程转储/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="最近好几个同事都向我问起过java线程转储方面的知识，都是些常见的问题，如：系统负载过高，系统吞吐率降低，系统挂起等等。这些问题的定位和解决都离不开线程转储，因为这些问题在测试环境复现的难度较大，只有在生产环境进行ThreadDump，才能快速定位问题。  线程状态在具体分析线程转储数据之前，我们首先要明确线程的状态。java.lang.Thread.State枚举类中定义了如下几种类型：  N">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://www.yangguo.info/images/thread_state.png">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="线程转储分析">
+<meta name="twitter:description" content="最近好几个同事都向我问起过java线程转储方面的知识，都是些常见的问题，如：系统负载过高，系统吞吐率降低，系统挂起等等。这些问题的定位和解决都离不开线程转储，因为这些问题在测试环境复现的难度较大，只有在生产环境进行ThreadDump，才能快速定位问题。  线程状态在具体分析线程转储数据之前，我们首先要明确线程的状态。java.lang.Thread.State枚举类中定义了如下几种类型：  N">
+<meta name="twitter:image" content="https://www.yangguo.info/images/thread_state.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2015/04/01/线程转储/"/>
+
+
+
+
+
+  <title> 线程转储分析 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/04/01/线程转储/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                线程转储分析
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-04-01T17:31:29+08:00">
+                2015-04-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2015/04/01/线程转储/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2015/04/01/线程转储/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>最近好几个同事都向我问起过java<strong>线程转储</strong>方面的知识，都是些常见的问题，如：系统负载过高，系统吞吐率降低，系统挂起等等。这些问题的定位和解决都离不开<strong>线程转储</strong>，因为这些问题在测试环境复现的难度较大，只有在生产环境进行<strong>ThreadDump</strong>，才能快速定位问题。</p>
+</blockquote>
+<h3 id="线程状态"><a href="#线程状态" class="headerlink" title="线程状态"></a>线程状态</h3><p>在具体分析线程转储数据之前，我们首先要明确线程的状态。<strong>java.lang.Thread.State</strong>枚举类中定义了如下几种类型：</p>
+<ol>
+<li><strong>NEW</strong>：线程创建尚未启动。</li>
+<li><strong>RUNNABLE</strong>：包括操作系统线程状态中的Ready和Running，可能在等待时间片或者正在执行。</li>
+<li><strong>BLOCKED</strong>：线程被阻塞。</li>
+<li><strong>WAITING</strong>：不会分配CPU执行时间，直到别的线程显式的唤醒，否则无限期等待。LockSupport.park()，没有设置Timeout参数的Object.wait()和Thread.join()，会导致此现象。</li>
+<li><strong>TIMED_WAITING</strong>：不会分配CPU执行时间，直到系统自动唤醒，不需要别的线程显示唤醒。Thread.sleep()，LockSupport.parkNanos()，LockSupport.parkUntil()，设置了超时时间的Object.wait()和Thread.join()，会让线程进入有限期等待。</li>
+<li><strong>TERMINATED</strong>：线程执行结束。</li>
+</ol>
+<a id="more"></a>
+<blockquote>
+<p>很多人分不清楚<strong>阻塞</strong>和<strong>等待</strong>的区别，导致在分析线程转储时出现偏差。阻塞状态与等待状态的区别是：阻塞状态的线程是在等待一个排它锁，直到别的线程释放该排它锁，该线程获取到该锁才能退出阻塞状态；而等待状态的线程则是等待一段时间，由系统唤醒或者别的线程唤醒，该线程便退出等待状态。</p>
+</blockquote>
+<p>线程状态转化见下图：<br><img src="/images/thread_state.png" alt="thread_state"></p>
+<p>在任意一个时刻，线程只能处于其中的一种状态。</p>
+<p>上面的状态颗粒度比较大，stackoverflow上有个哥们将状态定义为如下11种。在我们强制dump出来的转储中，更多的是表现为如下状态中的一种。至于这11种状态的是否权威，不敢妄下定论。原文<a href="http://stackoverflow.com/questions/1827543/java-threads-interpreting-thread-states-of-a-running-jvm" target="_blank" rel="external">见此</a></p>
+<ol>
+<li>NEW: Just starting up, i.e., in process of being initialized.</li>
+<li>NEW_TRANS: Corresponding transition state (not used, included for completness).</li>
+<li>IN_NATIVE: Running in native code.</li>
+<li>IN_NATIVE_TRANS: Corresponding transition state.</li>
+<li>IN_VM: Running in VM.</li>
+<li>IN_VM_TRANS: Corresponding transition state.</li>
+<li>IN_JAVA: Running in Java or in stub code.</li>
+<li>IN_JAVA_TRANS: Corresponding transition state (not used, included for completness).</li>
+<li>BLOCKED: Blocked in vm.</li>
+<li>BLOCKED_TRANS: Corresponding transition state.</li>
+<li>UNINITIALIZED</li>
+</ol>
+<p>java的线程转储指的是JVM中在某一个给定的时刻运行的所有线程的快照。一个线程转储可能包含一个单独的线程或者多个线程。在多线程环境中，如Java EE应用服务器，将会有许多线程和线程组。转储中的每一个线程都有一自己独立的逻辑，这些逻辑信息将会在堆栈信息中体现。</p>
+<p>线程转储可以通过如下的方式生成：</p>
+<ol>
+<li>Unix：kill -3 <pid>，输出到了/proc/<pid>/fd/1</pid></pid></li>
+<li>Windows：CTRL+BREAK</li>
+<li>jstack：jstack <pid> &gt;&gt; 输出文件</pid></li>
+</ol>
+<p>在Linux上，大家可能都碰见过这样的问题：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Unable to open socket file: target process not responding or HotSpot VM not loaded</span><br><span class="line">The -F option can be used when the target process is not responding</span><br></pre></td></tr></table></figure>
+<p>就是用jstack <pid>是拿不到thread dump的，必须加<strong>-F</strong>来强制dump。上面的问题是其实很简单，就是pid路径问题导致的，Google一下就清楚了。我想说的是，加<strong>-F</strong> dump出来的内容是不能用<a href="https://java.net/projects/tda" target="_blank" rel="external">TDA</a>分析的。如果不是真正的进程挂起，如果又想使用<strong>TDA</strong>进行分析的话，可以使用第一种方式进行dump。但有时候，的确必须要使用<strong>-F</strong>才能获得dump信息，比如程序挂起了。由于jstack -F/m就会使用到<strong>SA</strong>(The Serviceability Agent)，我们平常不加-F/-m的时候默认走的是<strong>Instrumentation</strong>的<strong>attach</strong>操作，知道这点非常重要。</pid></p>
+<h3 id="转储说明"><a href="#转储说明" class="headerlink" title="转储说明"></a>转储说明</h3><p>线程转储生成好之后，我们便可以开始着手分析转储信息了，下面会给出几个例子逐一分析。</p>
+<p><strong>例子1</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"http-bio-8080-exec-1-SendThread(192.168.161.36:2181)"</span> daemon prio=10 tid=0x00007f797425b800 nid=0x3884 runnable [0x00007f79795ac000]</span><br><span class="line">   java.lang.Thread.State: RUNNABLE</span><br><span class="line">	at sun.nio.ch.EPollArrayWrapper.epollWait(Native Method)</span><br><span class="line">	at sun.nio.ch.EPollArrayWrapper.poll(EPollArrayWrapper.java:228)</span><br><span class="line">	at sun.nio.ch.EPollSelectorImpl.doSelect(EPollSelectorImpl.java:81)</span><br><span class="line">	at sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:87)</span><br><span class="line">	- locked &lt;0x00000000f2bf18e0&gt; (a sun.nio.ch.Util<span class="variable">$2</span>)</span><br><span class="line">	- locked &lt;0x00000000f2bf18f0&gt; (a java.util.Collections<span class="variable">$UnmodifiableSet</span>)</span><br><span class="line">	- locked &lt;0x00000000f2bf1898&gt; (a sun.nio.ch.EPollSelectorImpl)</span><br><span class="line">	at sun.nio.ch.SelectorImpl.select(SelectorImpl.java:98)</span><br><span class="line">	at org.apache.zookeeper.ClientCnxnSocketNIO.doTransport(ClientCnxnSocketNIO.java:349)</span><br><span class="line">	at org.apache.zookeeper.ClientCnxn<span class="variable">$SendThread</span>.run(ClientCnxn.java:1081)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>http-bio-8080-exec-1-SendThread(192.168.161.36:2181)：线程的名字</li>
+<li>daemon：守护线程</li>
+<li>prio=10：线程的优先级（默认是5）</li>
+<li>tid：Java的线程Id（线程在当前虚拟机中的唯一标识）</li>
+<li>nid：线程本地标识</li>
+<li>runnable：线程的状态</li>
+<li>[0x00007f79795ac000]：当前运行的线程在堆中的地址范围</li>
+</ul>
+<p>这个线程转储的剩余部分是调用堆栈，这个线程（http-bio-8080-exec-1-SendThread(192.168.161.36:2181)）是操作系统守护线程，当前正在执行一个本地方法epollWait。该native线程正处于RUNNABLE的状态，</p>
+<p><strong>例子2</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"http-bio-8080-exec-1"</span> daemon prio=10 tid=0x0000000002172800 nid=0x3882 waiting on condition [0x00007f798c292000]</span><br><span class="line">   java.lang.Thread.State: WAITING (parking)</span><br><span class="line">	at sun.misc.Unsafe.park(Native Method)</span><br><span class="line">	- parking to <span class="built_in">wait</span> <span class="keyword">for</span>  &lt;0x00000000f2a44710&gt; (a java.util.concurrent.locks.AbstractQueuedSynchronizer<span class="variable">$ConditionObject</span>)</span><br><span class="line">	at java.util.concurrent.locks.LockSupport.park(LockSupport.java:186)</span><br><span class="line">	at java.util.concurrent.locks.AbstractQueuedSynchronizer<span class="variable">$ConditionObject</span>.await(AbstractQueuedSynchronizer.java:2043)</span><br><span class="line">	at java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:442)</span><br><span class="line">	at org.apache.tomcat.util.threads.TaskQueue.take(TaskQueue.java:104)</span><br><span class="line">	at org.apache.tomcat.util.threads.TaskQueue.take(TaskQueue.java:32)</span><br><span class="line">	at java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1068)</span><br><span class="line">	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)</span><br><span class="line">	at java.util.concurrent.ThreadPoolExecutor<span class="variable">$Worker</span>.run(ThreadPoolExecutor.java:615)</span><br><span class="line">	at java.lang.Thread.run(Thread.java:722)</span><br></pre></td></tr></table></figure>
+<p>该转储表示守护线程<strong>http-bio-8080-exec-1</strong>会一直等待，直到ThreadPoolExecutor上有需要执行的任务分配给该线程执行(LockSupport.unpark)，它才能从LockSupport.park中解脱出来。</p>
+<p><strong>例子3</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"RMI Scheduler(0)"</span> daemon prio=9 tid=7f94661c1800 nid=0x11b479000 waiting on condition [11b478000]</span><br><span class="line">   java.lang.Thread.State: TIMED_WAITING (parking)</span><br><span class="line">	at sun.misc.Unsafe.park(Native Method)</span><br><span class="line">	- parking to <span class="built_in">wait</span> <span class="keyword">for</span>  &lt;7f40deae0&gt; (a java.util.concurrent.locks.AbstractQueuedSynchronizer<span class="variable">$ConditionObject</span>)</span><br><span class="line">	at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:196)</span><br><span class="line">	at java.util.concurrent.locks.AbstractQueuedSynchronizer<span class="variable">$ConditionObject</span>.awaitNanos(AbstractQueuedSynchronizer.java:2025)</span><br><span class="line">	at java.util.concurrent.DelayQueue.take(DelayQueue.java:164)</span><br><span class="line">	at java.util.concurrent.ScheduledThreadPoolExecutor<span class="variable">$DelayedWorkQueue</span>.take(ScheduledThreadPoolExecutor.java:609)</span><br><span class="line">	at java.util.concurrent.ScheduledThreadPoolExecutor<span class="variable">$DelayedWorkQueue</span>.take(ScheduledThreadPoolExecutor.java:602)</span><br><span class="line">	at java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:957)</span><br><span class="line">	at java.util.concurrent.ThreadPoolExecutor<span class="variable">$Worker</span>.run(ThreadPoolExecutor.java:917)</span><br><span class="line">	at java.lang.Thread.run(Thread.java:695)</span><br><span class="line"></span><br><span class="line">   Locked ownable synchronizers:</span><br><span class="line">	- None</span><br></pre></td></tr></table></figure>
+<p>线程<strong>RMI Scheduler</strong>不会分配CPU执行时间，直到系统自动唤醒，不需要别的线程显示唤醒。它由于调用了LockSupport.parkNanos()进入了有限期等待。</p>
+<hr>
+<h3 id="案例分析"><a href="#案例分析" class="headerlink" title="案例分析"></a>案例分析</h3><h4 id="CPU负载高"><a href="#CPU负载高" class="headerlink" title="CPU负载高"></a>CPU负载高</h4><p>Java进程CPU占用率居高不下，导致系统吞吐率下降，这种问题对很多初级码农来说简直就是梦魇。如果想快速的定位CPU高的原因，线程转储绝对是第一选择。CPU过高一般原因分为CPU密集型和死循环，这两种情况我们分开来分析。</p>
+<p>死循环分析非常简单，步骤如下：</p>
+<ol>
+<li>在CPU占用率高的时候，通过<strong>top -H</strong>或者<strong>ps H -eo user,pid,ppid,tid,time,%cpu,cmd –sort=%cpu</strong>将CPU占用率高的线程的tid给找出来，并即时线程转储。</li>
+<li>将上面的找到的tid进行转化为16进制，然后在线程转储中查找对应的线程号，都会找到对应的nid标示。</li>
+<li>定位之后，通过转储中的精确的行号，可以定位到代码中相应的位置，便可以迅速确定原因。</li>
+</ol>
+<p>死循环一般是逻辑错误导致的，我们在代码中应该慎用自旋。在一些带有状态机逻辑的代码中，加入次数限制，防止程序跑飞。</p>
+<p>CPU密集型分析跟死循环不一样，因为你通过查看线程的CPU使用率，你会发现每个线程都不是很高，但是多个加起来之后就不容乐观。这类问题，步骤如下：</p>
+<ol>
+<li>在CPU占用率高的时候，通过<strong>top -H</strong>或者<strong>ps H -eo user,pid,ppid,tid,time,%cpu,cmd –sort=%cpu</strong>将CPU占用率高的前10个线程的tid给找出来，并即时线程转储。</li>
+<li>将上面的找到的tid进行转化为16进制，然后在线程转储中查找对应的线程号，将能够找到的部分标记出来。</li>
+<li>然后在标记出来的线程转储中寻找共性。如果通过所有的线程转储，发现线程正在执行同一个方法（同样的行号），几乎就可以确定这就是罪魁祸首了。那就可以查看代码，来做代码级别的分析了，问题便迎刃而解了。</li>
+</ol>
+<p>CPU密集型，一般原因是算法效率低导致的。例如，正则表达式写的差，该用Map或者Set结构的却用了List来遍历。</p>
+<p>线程占用CPU的类型可以分为如下两种：</p>
+<p>us:用户空间占用CPU百分比</p>
+<p>sy:内核空间占用CPU百分比</p>
+<p>在linux下可以通过top命令查看详细，示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Cpu(s):  0.2%us,  0.2%sy,  0.0%ni, 99.3%id,  0.3%wa,  0.0%hi,  0.0%si,  0.0%st</span><br></pre></td></tr></table></figure>
+<p>CPU us高的原因主要是执行线程不需要任何挂起动作，且一直执行，导致CPU没有机会去调度执行其他的线程，我们上面分析的都属于这类情况。</p>
+<p>CPU sy高的原因主要是线程的运行状态要经常切换，对于这种情况，常见的一种优化方法是减少线程数。</p>
+<hr>
+<h4 id="响应慢-低负载"><a href="#响应慢-低负载" class="headerlink" title="响应慢(低负载)"></a>响应慢(低负载)</h4><p>相应时间长，一般出现在高负载的机器上。如果在CPU的占用率很低，只有几个线程在消耗CPU的时间片，然而应用的响应时间却很长，我们首先要想到的是IO操作出现问题，至于到底是网络IO还是本地IO，我们就可以通过线程转储来定位。定位到位置之后，可以使用缓存或者减少IO操作来提升系统响应速度。</p>
+<hr>
+<h4 id="应用-服务宕机"><a href="#应用-服务宕机" class="headerlink" title="应用/服务宕机"></a>应用/服务宕机</h4><p>当一个应用活着却不能完成任何响应的时候，表明该服务已经宕机。</p>
+<p>此时分析线程转储，会发现大量的线程在同一个操作中罢工了，没有任何一个线程能够完成自己的操作，从而导致该JVM再没有可用的线程。很多时候都是由于死锁导致的，当一个线程持有一个对象锁而不释放，而别的线程都在等待该锁的时候便会发生死锁现象。幸运的是JVM通常会检测死锁，通过工具分析转储能够更快的定位到原因。如果想避免复杂的死锁，我们需要尽可能减小同步块的大小，并且在进行资源的访问时设置合理的超时时间，避免死等现象。</p>
+<p>综上所述，如果能够熟练分析线程转储，就可以在较短时间内识别，诊断，检测和解决生产环境的问题，这对于需要7*24服务的应用来说必备的技能之一。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Thread/" rel="tag"># Thread</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/03/10/高性能编程术语/" rel="next" title="高性能编程术语">
+                <i class="fa fa-chevron-left"></i> 高性能编程术语
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/06/08/btrace笔记/" rel="prev" title="BTrace笔记">
+                BTrace笔记 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#线程状态"><span class="nav-number">1.</span> <span class="nav-text">线程状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#转储说明"><span class="nav-number">2.</span> <span class="nav-text">转储说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#案例分析"><span class="nav-number">3.</span> <span class="nav-text">案例分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU负载高"><span class="nav-number">3.1.</span> <span class="nav-text">CPU负载高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#响应慢-低负载"><span class="nav-number">3.2.</span> <span class="nav-text">响应慢(低负载)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#应用-服务宕机"><span class="nav-number">3.3.</span> <span class="nav-text">应用/服务宕机</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2015/04/01/线程转储/';
+
+      var disqus_title = "线程转储分析";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

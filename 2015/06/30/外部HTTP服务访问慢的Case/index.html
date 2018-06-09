@@ -1,0 +1,968 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="HTTP," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="问题现象最近由于业务需求，重写了一套访问中航信IBE+的代理层。由于机票业务分为国内和国际两部分，这两部分都需要访问IBE+，之前是各自为战，各自都有一套访问逻辑。这样做的后果就是在流控(IBE+对QPS有一定的限制)和接口管理方面得不到很好的控制，因此才写了这样的一个代理层。这样的设计其实没有任何问题，在微服务和SOA大行其道的今天这都是主流设计思路。该系统很快便上线了，但是很快我就发现IBE+">
+<meta name="keywords" content="HTTP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="外部HTTP服务访问慢的Case">
+<meta property="og:url" content="https://www.yangguo.info/2015/06/30/外部HTTP服务访问慢的Case/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="问题现象最近由于业务需求，重写了一套访问中航信IBE+的代理层。由于机票业务分为国内和国际两部分，这两部分都需要访问IBE+，之前是各自为战，各自都有一套访问逻辑。这样做的后果就是在流控(IBE+对QPS有一定的限制)和接口管理方面得不到很好的控制，因此才写了这样的一个代理层。这样的设计其实没有任何问题，在微服务和SOA大行其道的今天这都是主流设计思路。该系统很快便上线了，但是很快我就发现IBE+">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="外部HTTP服务访问慢的Case">
+<meta name="twitter:description" content="问题现象最近由于业务需求，重写了一套访问中航信IBE+的代理层。由于机票业务分为国内和国际两部分，这两部分都需要访问IBE+，之前是各自为战，各自都有一套访问逻辑。这样做的后果就是在流控(IBE+对QPS有一定的限制)和接口管理方面得不到很好的控制，因此才写了这样的一个代理层。这样的设计其实没有任何问题，在微服务和SOA大行其道的今天这都是主流设计思路。该系统很快便上线了，但是很快我就发现IBE+">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2015/06/30/外部HTTP服务访问慢的Case/"/>
+
+
+
+
+
+  <title> 外部HTTP服务访问慢的Case | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/06/30/外部HTTP服务访问慢的Case/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                外部HTTP服务访问慢的Case
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-06-30T18:32:29+08:00">
+                2015-06-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2015/06/30/外部HTTP服务访问慢的Case/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2015/06/30/外部HTTP服务访问慢的Case/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h3><p>最近由于业务需求，重写了一套访问中航信IBE+的代理层。由于机票业务分为国内和国际两部分，这两部分都需要访问IBE+，之前是各自为战，各自都有一套访问逻辑。这样做的后果就是在流控(<code>IBE+对QPS有一定的限制</code>)和接口管理方面得不到很好的控制，因此才写了这样的一个代理层。这样的设计其实没有任何问题，在微服务和SOA大行其道的今天这都是主流设计思路。该系统很快便上线了，但是很快我就发现IBE+的服务访问都非常慢，因为之前我没有涉及到这块，我就问了下之前负责这块的同事，他们说的确比较慢，我也就没有太上心。突然有天我打开生产环境的监控，我便发现了问题，大概30秒左右便有一次非常慢的操作。关于30秒的问题，之前我通过tcpdump抓包分析过，以为是Http Basic鉴权导致的，在新写的代理层中已经对此处进行了优化，但是结果看来不是很理想，然后便有了这个Case。</p>
+<a id="more"></a>
+<hr>
+<h3 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h3><h4 id="猜测-初步验证"><a href="#猜测-初步验证" class="headerlink" title="猜测+初步验证"></a>猜测+初步验证</h4><p>30秒左右就会慢一次，思来想去就只有DNS的问题，因为Java的DNS默认缓存大概就是30秒。然后我迅速写了如下的一段测试代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.net.Inet4Address;</span><br><span class="line"><span class="keyword">import</span> java.net.InetAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.UnknownHostException;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by IntelliJ IDEA</span></span><br><span class="line"><span class="comment"> * User:杨果</span></span><br><span class="line"><span class="comment"> * Date:15/6/18</span></span><br><span class="line"><span class="comment"> * Time:下午2:55</span></span><br><span class="line"><span class="comment"> * &lt;p/&gt;</span></span><br><span class="line"><span class="comment"> * Description:DNS解析速度测试</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span> <span class="keyword">throws</span> UnknownHostException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">            String host = <span class="string">"agibe.travelsky.com"</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> begin1 = <span class="keyword">new</span> Date().getTime();</span><br><span class="line">            Inet4Address.getByName(host);</span><br><span class="line">            <span class="keyword">long</span> end1 = <span class="keyword">new</span> Date().getTime();</span><br><span class="line">            System.out.println(end1 - begin1);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> begin2 = <span class="keyword">new</span> Date().getTime();</span><br><span class="line">            InetAddress.getAllByName(host);</span><br><span class="line">            <span class="keyword">long</span> end2 = <span class="keyword">new</span> Date().getTime();</span><br><span class="line">            System.out.println(end2 - begin2);</span><br><span class="line"></span><br><span class="line">			System.out.println(<span class="string">"----"</span>);</span><br><span class="line">            Thread.sleep(<span class="number">1000</span>*<span class="number">5</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>放到生产环境的服务器一测，果然每个30秒便巨慢一次，大概每次解析在5秒钟左右。网上还有一套通过反射来获取Java DNS缓存时间的测试代码，代码非常简单如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;</span><br><span class="line"><span class="keyword">import</span> java.net.InetAddress;</span><br><span class="line"><span class="keyword">import</span> java.text.SimpleDateFormat;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by IntelliJ IDEA</span></span><br><span class="line"><span class="comment"> * User:杨果</span></span><br><span class="line"><span class="comment"> * Date:15/5/7</span></span><br><span class="line"><span class="comment"> * Time:下午5:10</span></span><br><span class="line"><span class="comment"> * &lt;p/&gt;</span></span><br><span class="line"><span class="comment"> * Description:</span></span><br><span class="line"><span class="comment"> * &lt;p/&gt;</span></span><br><span class="line"><span class="comment"> * dns缓存时间测试</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DnsTester</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"start loop\n\n"</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">30</span>; ++i) &#123;</span><br><span class="line">            Date d = <span class="keyword">new</span> Date();</span><br><span class="line">            SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(<span class="string">"yyyy-MM-dd HH:mm:ss"</span>);</span><br><span class="line">            System.out.println(<span class="string">"current time:"</span> + sdf.format(d));</span><br><span class="line">            InetAddress addr1 = InetAddress.getByName(<span class="string">"www.baidu.com"</span>);</span><br><span class="line">            String addressCache = <span class="string">"addressCache"</span>;</span><br><span class="line">            System.out.println(addressCache);</span><br><span class="line">            printDNSCache(addressCache);</span><br><span class="line">            System.out.println(<span class="string">"getHostAddress:"</span> + addr1.getHostAddress());</span><br><span class="line">            System.out.println(<span class="string">"*******************************************"</span>);</span><br><span class="line">            System.out.println(<span class="string">"\n"</span>);</span><br><span class="line">            java.lang.Thread.sleep(<span class="number">10000</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"end loop"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printDNSCache</span><span class="params">(String cacheName)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Class&lt;InetAddress&gt; klass = InetAddress.class;</span><br><span class="line">        Field acf = klass.getDeclaredField(cacheName);</span><br><span class="line">        acf.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">        Object addressCache = acf.get(<span class="keyword">null</span>);</span><br><span class="line">        Class cacheKlass = addressCache.getClass();</span><br><span class="line">        Field cf = cacheKlass.getDeclaredField(<span class="string">"cache"</span>);</span><br><span class="line">        cf.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">        Map&lt;String, Object&gt; cache = (Map&lt;String, Object&gt;) cf.get(addressCache);</span><br><span class="line">        <span class="keyword">for</span> (Map.Entry&lt;String, Object&gt; hi : cache.entrySet()) &#123;</span><br><span class="line">            Object cacheEntry = hi.getValue();</span><br><span class="line">            Class cacheEntryKlass = cacheEntry.getClass();</span><br><span class="line">            Field expf = cacheEntryKlass.getDeclaredField(<span class="string">"expiration"</span>);</span><br><span class="line">            expf.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">            <span class="keyword">long</span> expires = (Long) expf.get(cacheEntry);</span><br><span class="line"></span><br><span class="line">            System.out.println(hi.getKey() + <span class="string">" "</span> + <span class="keyword">new</span> Date(expires) + <span class="string">" "</span> + hi.getValue());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="深入代码分析-测试"><a href="#深入代码分析-测试" class="headerlink" title="深入代码分析+测试"></a>深入代码分析+测试</h4><p>经过初步的分析和测试，我已经找到问题的所在，现在就要深入代码进行分析看看是否跟我的猜想吻合。由于我的代码使用的是HTTP Client4.3.2，没有配置<strong>DnsResolver</strong>，那么肯定使用的是<strong>SystemDefaultDnsResolver</strong>。这点确认之后，便可以证明第一步的验证逻辑没有偏离方向。然后我便写了如下的一段<strong>Btrace</strong>脚本，看看线上的服务究竟慢在哪里，脚本如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpClientSystemDefaultDnsResolverTracer</span> </span>&#123;</span><br><span class="line">    <span class="meta">@TLS</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">long</span> beginTime;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"org.apache.http.impl.conn.SystemDefaultDnsResolver"</span>,</span><br><span class="line">            method = <span class="string">"resolve"</span></span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">traceGetByNameBegin</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        beginTime = timeMillis();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"org.apache.http.impl.conn.SystemDefaultDnsResolver"</span>,</span><br><span class="line">            method = <span class="string">"resolve"</span>,</span><br><span class="line">            location = <span class="meta">@Location</span>(Kind.RETURN)</span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">traceGetByNameEnd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        println(strcat(strcat(<span class="string">"org.apache.http.impl.conn.SystemDefaultDnsResolver.resolve 耗时:"</span>, str(timeMillis() - beginTime)), <span class="string">"ms"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>虽然<strong>BTrace</strong>比较安全，但是我将一台机器的流量切走了大部分，只留下很少的部分来做测试，测试下来果然跟我第一步吻合。</p>
+<hr>
+<h3 id="寻找修复方案"><a href="#寻找修复方案" class="headerlink" title="寻找修复方案"></a>寻找修复方案</h3><p>做了上面充足的测试之后，我拿着手上的数据找到复杂网络的同学，开始跟他定位问题。当我看见<strong>/etc/resolv.conf</strong>下面的<strong>nameserver 114.114.114.114</strong>的时候，我心中一震。我马上让他切换到我们的DNS之后，再一运行第一步的测试代码，速度果然马上提升了好几个数量级。我心中一喜，马上让他将机器的DNS切成我们自己的DNS。然后开始开始观察，经过两个小时之后，我发现速度还是没有提升起来。我就开始纳闷了，这是什么问题呢，我们问题不是已经定位到了嘛？我开始怀疑是不是进程没有重启的原因，我马上找了一台没有修改成我们自己DNS的机器将第一个程序跑起来。然后我开始修改DNS，果然修改之后程序的解析速度没有提升，重启进程问题解决。</p>
+<p>看着<strong>QPS</strong>的缓慢爬升以及<strong>Average Response Time</strong>的缓慢下降，心中暗爽。你可能以为这个Case已经结束，的确当时我也是这样认为的。</p>
+<hr>
+<h3 id="DNS解析真的慢？"><a href="#DNS解析真的慢？" class="headerlink" title="DNS解析真的慢？"></a>DNS解析真的慢？</h3><p>大概过了两天，我突然觉得意识到，在这个Case中我遗漏掉了什么。114真的有这慢吗？虽然作为一个经常被吐槽最容易被污染DNS，114的速度我记得还是相当靠谱的啊。Google了一圈，在Stack OverFlow上找到一些讨论，说是IPV6的原因导致的。</p>
+<p>我马上进行了尝试，首先我不指定ipv4，例子如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@centos87 ~]<span class="comment"># wget agibe.travelsky.com</span></span><br><span class="line">--2015-07-01 17:56:13--  http://agibe.travelsky.com/</span><br><span class="line">Resolving agibe.travelsky.com... 122.119.122.38</span><br><span class="line">Connecting to agibe.travelsky.com|122.119.122.38|:80... connected.</span><br><span class="line">HTTP request sent, awaiting response... 200 OK</span><br><span class="line">Length: 239 [text/html]</span><br><span class="line">Saving to: “index.html.3”</span><br><span class="line"></span><br><span class="line">100%[=============================================================================================&gt;] 239         --.-K/s   <span class="keyword">in</span> 0s</span><br><span class="line"></span><br><span class="line">2015-07-01 17:56:18 (21.4 MB/s) - “index.html.3” saved [239/239]</span><br></pre></td></tr></table></figure>
+<p>然后我再指定ipv4试了一把，如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">root@centos87 ~]<span class="comment"># wget -4 agibe.travelsky.com</span></span><br><span class="line">--2015-07-01 17:57:20--  http://agibe.travelsky.com/</span><br><span class="line">Resolving agibe.travelsky.com... 122.119.122.38</span><br><span class="line">Connecting to agibe.travelsky.com|122.119.122.38|:80... connected.</span><br><span class="line">HTTP request sent, awaiting response... 200 OK</span><br><span class="line">Length: 239 [text/html]</span><br><span class="line">Saving to: “index.html.4”</span><br><span class="line"></span><br><span class="line">100%[=============================================================================================&gt;] 239         --.-K/s   <span class="keyword">in</span> 0s</span><br><span class="line"></span><br><span class="line">2015-07-01 17:57:20 (21.3 MB/s) - “index.html.4” saved [239/239]</span><br></pre></td></tr></table></figure>
+<p>结果相当清晰，罪魁祸首就是ipv6。那为啥我换成我们自己的DNS就好了，我又跟负责网络的同学进行了沟通，原来他在DNS服务器上将IPV6的转发进行了关闭，所以可以很快返回。为了证明我的猜想是正确的，我又找了一台DNS为修改的服务器，让运维的同学将ipv6给禁用，经过测试果然奏效。至于如何关闭ipv6，网上有太多教程了。我在测试时候用了下面的方式，个人觉得太暴力，不推荐使用，不过应急可以试试。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv6/conf/all/disable_ipv6</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="Java-DNS-Lookup"><a href="#Java-DNS-Lookup" class="headerlink" title="Java  DNS Lookup"></a>Java  DNS Lookup</h3><p>上面通过DNS和系统层面都可以解决该问题，现在便到我们代码层面了。我们知道并非所有操作系统都支持 ipv6 协议，Java networking stack优先尝试检测ipv6 。当然你也可以利用系统属性禁用它。</p>
+<h4 id="解析步骤如下："><a href="#解析步骤如下：" class="headerlink" title="解析步骤如下："></a>解析步骤如下：</h4><ol>
+<li>Java networking stack 先确认底层操作系统是否支持ipv6。如果支持ipv6，Java将尝试使用ipv6 stack。</li>
+<li>在双堆栈（dual-stack，指ipv4 stack+ipv6 stack）系统上，将创建一个ipv6 socket。在 separate-stack 系统上，事情要复杂得多，Java 将创建两个socket，一个给ipv4 一个给ipv6。</li>
+<li>对于客户端TCP应用，一旦socket连上了，那 internet-protocol family type 就固定了，多余的那个socket就关闭了。对于服务器端TCP应用，由于不知道下一个客户端请求用什么ip family type，所以这两个 sockets 将继续保留。对于UDP应用，这两个sockets始终都需要保留。</li>
+</ol>
+<h4 id="java-ipv6-相关的系统参数"><a href="#java-ipv6-相关的系统参数" class="headerlink" title="java ipv6 相关的系统参数"></a>java ipv6 相关的系统参数</h4><ol>
+<li>首选的协议栈：ipv4还是ipv6；</li>
+<li>首选的地址族（address family type）：inet4 还是 inet6。</li>
+</ol>
+<p>由于在一个双堆栈系统上，ipv6 socket 能与 ipv4 和 ipv6 对端交互，所以 ipv6 stack 是默认首选项。你可以通过如下系统参数修改配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.net.preferIPv4Stack=&lt;true|false&gt;</span><br></pre></td></tr></table></figure>
+<p>对应的 java 代码是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.System.setProperty(<span class="string">"java.net.preferIPv4Stack"</span>, <span class="string">"true"</span>);</span><br></pre></td></tr></table></figure>
+<p>默认我们首选 ipv4 地址族，也可以通过如下系统参数修改配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.net.preferIPv6Addresses=&lt;true|false&gt;</span><br></pre></td></tr></table></figure>
+<p>对应的 java 代码是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.System.setProperty(<span class="string">"java.net.preferIPv6Addresses"</span>, <span class="string">"false"</span>);</span><br></pre></td></tr></table></figure>
+<p>然后我又用下面的代码进行了尝试，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.net.Inet4Address;</span><br><span class="line"><span class="keyword">import</span> java.net.InetAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.UnknownHostException;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by IntelliJ IDEA</span></span><br><span class="line"><span class="comment"> * User:杨果</span></span><br><span class="line"><span class="comment"> * Date:15/6/18</span></span><br><span class="line"><span class="comment"> * Time:下午2:55</span></span><br><span class="line"><span class="comment"> * &lt;p/&gt;</span></span><br><span class="line"><span class="comment"> * Description:IPV4 DNS解析速度测试</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span> <span class="keyword">throws</span> UnknownHostException, InterruptedException </span>&#123;</span><br><span class="line">        java.lang.System.setProperty(<span class="string">"java.net.preferIPv4Stack"</span>, <span class="string">"true"</span>);</span><br><span class="line">        java.lang.System.setProperty(<span class="string">"java.net.preferIPv6Addresses"</span>, <span class="string">"false"</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">            String host = <span class="string">"agibe.travelsky.com"</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> begin1 = <span class="keyword">new</span> Date().getTime();</span><br><span class="line">            Inet4Address.getByName(host);</span><br><span class="line">            <span class="keyword">long</span> end1 = <span class="keyword">new</span> Date().getTime();</span><br><span class="line">            System.out.println(end1 - begin1);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> begin2 = <span class="keyword">new</span> Date().getTime();</span><br><span class="line">            InetAddress.getAllByName(host);</span><br><span class="line">            <span class="keyword">long</span> end2 = <span class="keyword">new</span> Date().getTime();</span><br><span class="line">            System.out.println(end2 - begin2);</span><br><span class="line"></span><br><span class="line">			System.out.println(<span class="string">"----"</span>);</span><br><span class="line">            Thread.sleep(<span class="number">1000</span>*<span class="number">5</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><blockquote>
+<p>看似简单的结论背后，如果去深挖，总会发现很多有趣的东西，enjoy yourself。</p>
+</blockquote>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/HTTP/" rel="tag"># HTTP</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/06/25/生产环境调试难题解决方案/" rel="next" title="生产环境难题解决方案">
+                <i class="fa fa-chevron-left"></i> 生产环境难题解决方案
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/18/JavaAgent的一点思路/" rel="prev" title="Java agent笔记">
+                Java agent笔记 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题现象"><span class="nav-number">1.</span> <span class="nav-text">问题现象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#问题定位"><span class="nav-number">2.</span> <span class="nav-text">问题定位</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#猜测-初步验证"><span class="nav-number">2.1.</span> <span class="nav-text">猜测+初步验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#深入代码分析-测试"><span class="nav-number">2.2.</span> <span class="nav-text">深入代码分析+测试</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#寻找修复方案"><span class="nav-number">3.</span> <span class="nav-text">寻找修复方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS解析真的慢？"><span class="nav-number">4.</span> <span class="nav-text">DNS解析真的慢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-DNS-Lookup"><span class="nav-number">5.</span> <span class="nav-text">Java  DNS Lookup</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#解析步骤如下："><span class="nav-number">5.1.</span> <span class="nav-text">解析步骤如下：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#java-ipv6-相关的系统参数"><span class="nav-number">5.2.</span> <span class="nav-text">java ipv6 相关的系统参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结论"><span class="nav-number">6.</span> <span class="nav-text">结论</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2015/06/30/外部HTTP服务访问慢的Case/';
+
+      var disqus_title = "外部HTTP服务访问慢的Case";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

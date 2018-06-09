@@ -1,0 +1,1637 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,IM,Tigase," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="该文档主要是描述Tigase整体架构和一些配置说明，整体架构我们采用config-type=—-genconfig-def的server加config-type=—-genconfig-comp的外部component。同时还会对SM的插件和错误代码进行说明，方便大家在开发及配置时参考。由于外部component较多，此处选择了较为复杂的MUC作为配置案例。pubsub，proxy，messag">
+<meta name="keywords" content="Java,IM,Tigase">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tigase集群方案及配置说明">
+<meta property="og:url" content="https://www.yangguo.info/2014/09/20/tigase集群方案及配置说明文档/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="该文档主要是描述Tigase整体架构和一些配置说明，整体架构我们采用config-type=—-genconfig-def的server加config-type=—-genconfig-comp的外部component。同时还会对SM的插件和错误代码进行说明，方便大家在开发及配置时参考。由于外部component较多，此处选择了较为复杂的MUC作为配置案例。pubsub，proxy，messag">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://www.yangguo.info/images/ExternalCompClustering.003_0.png">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tigase集群方案及配置说明">
+<meta name="twitter:description" content="该文档主要是描述Tigase整体架构和一些配置说明，整体架构我们采用config-type=—-genconfig-def的server加config-type=—-genconfig-comp的外部component。同时还会对SM的插件和错误代码进行说明，方便大家在开发及配置时参考。由于外部component较多，此处选择了较为复杂的MUC作为配置案例。pubsub，proxy，messag">
+<meta name="twitter:image" content="https://www.yangguo.info/images/ExternalCompClustering.003_0.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2014/09/20/tigase集群方案及配置说明文档/"/>
+
+
+
+
+
+  <title> Tigase集群方案及配置说明 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2014/09/20/tigase集群方案及配置说明文档/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Tigase集群方案及配置说明
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-09-20T22:14:34+08:00">
+                2014-09-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2014/09/20/tigase集群方案及配置说明文档/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2014/09/20/tigase集群方案及配置说明文档/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>该文档主要是描述Tigase整体架构和一些配置说明，整体架构我们采用<strong>config-type=—-genconfig-def</strong>的server加<strong>config-type=—-genconfig-comp</strong>的外部component。同时还会对SM的插件和错误代码进行说明，方便大家在开发及配置时参考。由于外部component较多，此处选择了较为复杂的MUC作为配置案例。pubsub，proxy，message-archive，msn，自己开发的componet，配置都的思想都基本一样。但是限于本人认识有限，如果有任何错误或者歧义，请大家及时指正。</p>
+</blockquote>
+<h3 id="Server-c2s-s2s-sm-ext2s-集群-MUC-comp-集群"><a href="#Server-c2s-s2s-sm-ext2s-集群-MUC-comp-集群" class="headerlink" title="Server(c2s+s2s+sm+ext2s)集群+MUC(comp)集群"></a>Server(c2s+s2s+sm+ext2s)集群+MUC(comp)集群</h3><h4 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h4><p><img src="/images/ExternalCompClustering.003_0.png" alt="tigase架构图"></p>
+<a id="more"></a>
+<h4 id="Server1-hostname-vm-128-157-配置"><a href="#Server1-hostname-vm-128-157-配置" class="headerlink" title="Server1(hostname: vm-128-157)配置"></a>Server1(hostname: vm-128-157)配置</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">--debug = server,cluster,xmpp.impl</span><br><span class="line"> --virt-hosts = xmpp.dev.pajkdc.com</span><br><span class="line">--user-db-uri = jdbc:mysql://10.0.128.115:3307/tigase?user=pajk&amp;password=qawsed123</span><br><span class="line">--user-db = mysql</span><br><span class="line">--admins = admin@xmpp.dev.pajkdc.com</span><br><span class="line">config-type = --gen-config-def</span><br><span class="line">--cluster-mode = true</span><br><span class="line">--cluster-connect-all = true</span><br><span class="line">--cluster-nodes=vm-128-157:yangguo:5277,vm-128-158:yangguo:5277</span><br><span class="line">--sm-plugins =-starttls,+urn:ietf:params:xml:ns:messageConsumeACK,+urn:ietf:params:xml:ns:xmpp-user,-message-archive-xep-0136,-jabber:iq:register,-presence,-http://jabber.org/protocol/stats,-vcard-temp,-jabber:iq:roster,-pep</span><br><span class="line">--comp-name-1 = ext</span><br><span class="line">--comp-class-1 = tigase.server.ext.ComponentProtocol</span><br><span class="line">--external = muc.xmpp.dev.pajkdc.com:yangguo:listen:5270:vm-128-157:accept:ReceiverBareJidLB</span><br><span class="line">--auth-domain-repo-pool=com.pajk.im.repository.ExtraAuthRepositoryMDImpl</span><br><span class="line">--user-domain-repo-pool=com.pajk.im.repository.ExtraUserRepositoryMDImpl</span><br><span class="line">--comp-name-2 = ChannelMsgExtComponent</span><br><span class="line">--comp-class-2 = com.pajk.im.cmp.ChannelMsgExtComponent</span><br><span class="line">--cm-ht-traffic-throttling = xmpp:250k:0:disc,bin:1024m:0:disc</span><br><span class="line">--cm-traffic-throttling=xmpp:2500:0:disc,bin:10m:0:disc</span><br><span class="line">--new-connections-throttling=5222:500,5223:50,5269:100,5280:1000,5290:100</span><br><span class="line">--net-buff-high-throughput=256k</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="Server2-hostname-vm-128-158-配置"><a href="#Server2-hostname-vm-128-158-配置" class="headerlink" title="Server2(hostname: vm-128-158)配置"></a>Server2(hostname: vm-128-158)配置</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">--debug = server,cluster,xmpp.impl</span><br><span class="line">--virt-hosts = xmpp.dev.pajkdc.com</span><br><span class="line">--user-db-uri = jdbc:mysql://10.0.128.115:3307/tigase?user=pajk&amp;password=qawsed123</span><br><span class="line">--user-db = mysql</span><br><span class="line">--admins = admin@xmpp.dev.pajkdc.com</span><br><span class="line">config-type = --gen-config-def</span><br><span class="line">--cluster-mode = true</span><br><span class="line">--cluster-connect-all = true</span><br><span class="line">--cluster-nodes=vm-128-157:yangguo:5277,vm-128-158:yangguo:5277</span><br><span class="line">--sm-plugins =-starttls,+urn:ietf:params:xml:ns:messageConsumeACK,+urn:ietf:params:xml:ns:xmpp-user,-message-archive-xep-0136,-jabber:iq:register,-presence,-http://jabber.org/protocol/stats,-vcard-temp,-jabber:iq:roster,-pep</span><br><span class="line">--comp-name-1 = ext</span><br><span class="line">--comp-class-1 = tigase.server.ext.ComponentProtocol</span><br><span class="line">--external = muc.xmpp.dev.pajkdc.com:yangguo:listen:5270:vm-128-158:accept:ReceiverBareJidLB</span><br><span class="line">--auth-domain-repo-pool=com.pajk.im.repository.ExtraAuthRepositoryMDImpl</span><br><span class="line">--user-domain-repo-pool=com.pajk.im.repository.ExtraUserRepositoryMDImpl</span><br><span class="line">--comp-name-2 = ChannelMsgExtComponent</span><br><span class="line">--comp-class-2 = com.pajk.im.cmp.ChannelMsgExtComponent</span><br><span class="line">--cm-ht-traffic-throttling = xmpp:250k:0:disc,bin:1024m:0:disc</span><br><span class="line">--cm-traffic-throttling=xmpp:2500:0:disc,bin:10m:0:disc</span><br><span class="line">--new-connections-throttling=5222:500,5223:50,5269:100,5280:1000,5290:100</span><br><span class="line">--net-buff-high-throughput=256k</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="muc1配置"><a href="#muc1配置" class="headerlink" title="muc1配置"></a>muc1配置</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">config-type = --gen-config-comp</span><br><span class="line">--user-db = mysql</span><br><span class="line">--admins = admin@xmpp.dev.pajkdc.com</span><br><span class="line">--user-db-uri = jdbc:mysql://10.0.128.115:3307/tigase?user=pajk&amp;password=qawsed123</span><br><span class="line">--virt-hosts = xmpp.dev.pajkdc.com</span><br><span class="line">--comp-name-1 = muc</span><br><span class="line">--debug = server</span><br><span class="line">--comp-class-1 = tigase.muc.MUCComponent</span><br><span class="line">--external = muc.xmpp.dev.pajkdc.com:yangguo:connect:5270:xmpp.dev.pajkdc.com;vm-128-157;vm-128-158:accept</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="muc2配置"><a href="#muc2配置" class="headerlink" title="muc2配置"></a>muc2配置</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">config-type = --gen-config-comp</span><br><span class="line">--user-db = mysql</span><br><span class="line">--admins = admin@xmpp.dev.pajkdc.com</span><br><span class="line">--user-db-uri = jdbc:mysql://10.0.128.115:3307/tigase?user=pajk&amp;password=qawsed123</span><br><span class="line">--virt-hosts = xmpp.dev.pajkdc.com</span><br><span class="line">--comp-name-1 = muc</span><br><span class="line">--debug = server</span><br><span class="line">--comp-class-1 = tigase.muc.MUCComponent</span><br><span class="line">--external = muc.xmpp.dev.pajkdc.com:yangguo:connect:5270:xmpp.dev.pajkdc.com;vm-128-157;vm-128-158:accept</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="Tigase-MUC思路-引用于Tigase作者Kobit"><a href="#Tigase-MUC思路-引用于Tigase作者Kobit" class="headerlink" title="Tigase MUC思路(引用于Tigase作者Kobit)"></a>Tigase MUC思路(引用于Tigase作者Kobit)</h3><blockquote>
+<p>As far as I know there is no such thing like a persistent member of the MUC room. This is not a part of the protocol hence it is not implemented anywhere. Even if we had created something like that in our MUC server it would not work with any XMPP client.<br>The whole idea behind MUC is to allow for communication between ONLINE users. Therefore, once the user logs off it is removed from the MUC.<br>However, most of the XMPP clients have a feature to save a MUC bookmark and automatically join the room after login to the XMPP Server.<br>The MUC room has quite extensive configuration settings, you can list users who are allowed to join the room, you can make the room password protected, you can assign different roles to different users. All of this is supported by our MUC.</p>
+</blockquote>
+<hr>
+<p><code>注意事项</code>:上面的配置，由于是一个完整的分布式环境，所以特别需要注意网络状况。特别是在server端开启本地端口，监听外部component服务链接的时候。尤其是使用无线网络的笔记本电脑，有时候无线网络会导致里面的java代码不能绑定本地端口的情况。面对这种情况，请大家将无线网络断开重连。</p>
+<hr>
+<h3 id="Tigase-XMPP-Server-configuration-properties"><a href="#Tigase-XMPP-Server-configuration-properties" class="headerlink" title="Tigase XMPP Server configuration properties"></a>Tigase XMPP Server configuration properties</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>参考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>–admins</td>
+<td>管理员账号,管理可以disco插件对server进行管理</td>
+<td></td>
+</tr>
+<tr>
+<td>–auth-db</td>
+<td>权限认证的db,支持mysql/pgsql/ldap/drupal/tigase-auth/tigase-custom/class name</td>
+<td></td>
+</tr>
+<tr>
+<td>–auth-db-uri</td>
+<td>权限认证db的uri</td>
+<td></td>
+</tr>
+<tr>
+<td>–auth-domain-repo-pool</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–auth-repo-pool</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–auth-repo-pool-size</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–bind-ext-hostnames</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–bosh-close-connection</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–bosh-extra-headers-file</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–cl-conn-repo-class</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–client-access-policy-file</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–cluster-connect-all</td>
+<td>动态的将不在集群配置中的节点加入到集群中，默认为false</td>
+<td></td>
+</tr>
+<tr>
+<td>–cluster-mode</td>
+<td>是否开启集群</td>
+<td></td>
+</tr>
+<tr>
+<td>–cluster-nodes</td>
+<td>在集群每台机器上确保每个hostname能够正常被DNS解析</td>
+<td><a href="http://www.tigase.org/content/cluster-nodes" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>–cm-ht-traffic-throttling</td>
+<td>s2s,external component流控</td>
+<td></td>
+</tr>
+<tr>
+<td>–cm-see-other-host</td>
+<td>xmpp提供的load balance方案</td>
+<td><a href="http://wiki.jabbercn.org/RFC6120#see-other-host" target="_blank" rel="external">参考1</a>,<a href="http://www.tigase.org/content/tigase-load-balancing" target="_blank" rel="external">参考2</a>,<a href="http://www.tigase.org/content/xep-0280-message-carbons" target="_blank" rel="external">参考3</a></td>
+</tr>
+<tr>
+<td>–cm-traffic-throttling</td>
+<td>c2s的流控，每分钟xmpp包为2500个，整个生命周期没有限制;每分钟的流量为20m，整个生命周期没有限制</td>
+<td></td>
+</tr>
+<tr>
+<td>–cmpname-ports</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–comp-class</td>
+<td>需要加载到server的额外的component，特别是使用了config-type分离了各个component的应用中</td>
+<td><a href="http://www.tigase.org/content/comp-class" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>–comp-name</td>
+<td>非独立的component(需要被server加载)名称</td>
+<td><a href="http://www.tigase.org/content/comp-name" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>–cross-domain-policy-file</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–data-repo-pool-size</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–debug</td>
+<td>开启调试模式</td>
+<td><a href="http://www.tigase.org/tigase-debuging" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>–debug-packages</td>
+<td>输出指定包路径的日志，多个包用逗号分隔</td>
+<td></td>
+</tr>
+<tr>
+<td>–domain-filter-policy</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–elements-number-limit</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–ext-comp</td>
+<td>弃用，建议使用–external来加载外部component(如:MUC/PubSub/IM transort)，内部component还只能使用这个，如CS和SM分离</td>
+<td><a href="http://www.tigase.org/content/ext-comp" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>–extcomp-repo-class</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–external</td>
+<td>监听外部component或者将component连接到server</td>
+<td><a href="http://www.tigase.org/content/external" target="_blank" rel="external">参考1</a>，<a href="http://www.tigase.org/content/basic-configuration-options-external-component" target="_blank" rel="external">参考2</a></td>
+</tr>
+<tr>
+<td>–hardened-mode</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–max-queue-size</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–monitoring</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–net-buff-high-throughput</td>
+<td>默认为64k，服务器之间通信如果流量较大，可以适度调大该值，线上调为256k</td>
+<td></td>
+</tr>
+<tr>
+<td>–net-buff-standard</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–new-connections-throttling</td>
+<td>各个端口每秒新建连接的流控，主要是防止机器重启时，大量连接打死server</td>
+<td></td>
+</tr>
+<tr>
+<td>–nonpriority-queue</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–queue-implementation</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–roster-implementation</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–s2s-ejabberd-bug-workaround-active</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–s2s-secret</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–s2s-skip-tls-hostnames</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–script-dir</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–sm-cluster-strategy-class</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–sm-plugins</td>
+<td>很多无用的plugin建议不加载，特别是正式环境中</td>
+<td></td>
+</tr>
+<tr>
+<td>–sm-threads-pool</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–ssl-certs-location</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–ssl-container-class</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–ssl-def-cert-domain</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–stats-archiv</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–stats-history</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–stringprep-processor</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–test</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–tigase-config-repo-class</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–tigase-config-repo-uri</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–tls-jdk-nss-bug-workaround-active</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–trusted</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–user-db</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–user-db-uri</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–user-domain-repo-pool</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–user-repo-pool</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–user-repo-pool-size</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–vhost-anonymous-enabled</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–vhost-max-users</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–vhost-message-forward-jid</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–vhost-presence-forward-jid</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–vhost-register-enabled</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–vhost-tls-required</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>–virt-hosts</td>
+<td>虚拟域设置</td>
+<td></td>
+</tr>
+<tr>
+<td>–watchdog_delay</td>
+<td>心跳检测间隔时间，写检测，默认值10分钟，现在修改为30秒</td>
+<td></td>
+</tr>
+<tr>
+<td>–watchdog_ping_type</td>
+<td>watchdog ping包类型，写操作，whitespace和xmpp</td>
+<td></td>
+</tr>
+<tr>
+<td>–watchdog_timeout</td>
+<td>读检测，默认1740000毫秒</td>
+<td></td>
+</tr>
+<tr>
+<td>config-type</td>
+<td>选择启动的方式，CM和SM分离就是此处配置</td>
+<td><a href="http://www.tigase.org/content/config-type" target="_blank" rel="external">参考</a></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="sm-plugin说明"><a href="#sm-plugin说明" class="headerlink" title="sm-plugin说明"></a>sm-plugin说明</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>参考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>jabber:iq:register</td>
+<td>注册服务</td>
+<td></td>
+</tr>
+<tr>
+<td>message-archive-xep-0136</td>
+<td>消息归档</td>
+<td></td>
+</tr>
+<tr>
+<td>jabber:iq:auth</td>
+<td>简单用户认证</td>
+<td></td>
+</tr>
+<tr>
+<td>urn:ietf:params:xml:ns:xmpp-sasl</td>
+<td>SASL协商</td>
+<td><a href="http://wiki.jabbercn.org/RFC6120#SASL.E5.8D.8F.E5.95.86" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>urn:ietf:params:xml:ns:xmpp-bind</td>
+<td>资源绑定</td>
+<td></td>
+</tr>
+<tr>
+<td>urn:ietf:params:xml:ns:xmpp-session</td>
+<td>session绑定</td>
+<td></td>
+</tr>
+<tr>
+<td>jabber:iq:roster</td>
+<td>联系人名单管理</td>
+<td></td>
+</tr>
+<tr>
+<td>presence</td>
+<td>xmpp顶级元素，上线广播</td>
+<td></td>
+</tr>
+<tr>
+<td>jabber:iq:privacy</td>
+<td>隐身协议</td>
+<td></td>
+</tr>
+<tr>
+<td>jabber:iq:version</td>
+<td>客户端版本</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="http://jabber.org/protocol/stats" target="_blank" rel="external">http://jabber.org/protocol/stats</a></td>
+<td>是否发送统计信息，指向jabber.org发送</td>
+<td></td>
+</tr>
+<tr>
+<td>startls</td>
+<td>tls加密</td>
+<td></td>
+</tr>
+<tr>
+<td>msgoffline</td>
+<td>离线消息</td>
+<td></td>
+</tr>
+<tr>
+<td>vcard-temp</td>
+<td>临时的vCard</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="http://jabber.org/protocol/commands" target="_blank" rel="external">http://jabber.org/protocol/commands</a></td>
+<td>管理virtual domains的特别命令</td>
+<td><a href="http://www.tigase.org/content/specification-ad-hoc-commands-used-manage-virtual-domains" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>jabber:iq:private</td>
+<td>私有数据存储</td>
+<td></td>
+</tr>
+<tr>
+<td>urn:xmpp:ping</td>
+<td>心跳检测</td>
+<td></td>
+</tr>
+<tr>
+<td>pep</td>
+<td>发布订阅插件</td>
+<td><a href="http://www.tigase.org/content/extending-pep-plugin" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>domain-filter(basic-filter)</td>
+<td>domain拦截器</td>
+<td><a href="http://www.tigase.org/content/domain-filter-policy" target="_blank" rel="external">参考</a></td>
+</tr>
+<tr>
+<td>amp(basic-filter)</td>
+<td>高级消息处理</td>
+<td><a href="http://wiki.jabbercn.org/XEP-0079" target="_blank" rel="external">参考1</a>，<a href="http://www.tigase.org/content/advanced-message-processing-amp-xep-0079" target="_blank" rel="external">参考2</a></td>
+</tr>
+<tr>
+<td>zlib(basic-filter)</td>
+<td>zlib压缩</td>
+<td></td>
+</tr>
+<tr>
+<td>message-carbons(basic-filter)</td>
+<td>将stanzas投递到用户指定的资源</td>
+<td></td>
+</tr>
+<tr>
+<td>disco(basic-filter)</td>
+<td>服务发现</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="标准错误代码"><a href="#标准错误代码" class="headerlink" title="标准错误代码"></a>标准错误代码</h3><table>
+<thead>
+<tr>
+<th>代码</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>302</td>
+<td>重定向，尽管HTTP规定中包含八种不同代码来表示重定向，Jabber只用了其中一个（用来代替所有的重定向错误）。不过Jabber代码302是为以后的功能预留的，目前还没有用到。</td>
+</tr>
+<tr>
+<td>400</td>
+<td>坏请求，Jabber代码400用来通知Jabber客户端，一个请求因为其糟糕的语法不能被识别。例如，当一个Jabber客户端发送一个的订阅请求给它自己活发送一条没有包含“to”属性的消息，Jabber代码400就会产生。</td>
+</tr>
+<tr>
+<td>401</td>
+<td>未授权的，Jabber代码401用来通知Jabber客户端它们提供的是错误的认证信息，如，在登陆一个Jabber服务器时使用一个错误的密码，或未知的用户名。</td>
+</tr>
+<tr>
+<td>402</td>
+<td>所需的费用，Jabber代码402为未来使用进行保留，目前还不用到。</td>
+</tr>
+<tr>
+<td>403</td>
+<td>禁止，Jabber代码403被Jabber服务器用来通知Jabber客户端该客户端的请求可以识别，但服务器拒绝执行。目前只用在注册过程中的密码存储失败。</td>
+</tr>
+<tr>
+<td>404</td>
+<td>没有找到，Jabber代码404用来表明Jabber服务器找不到任何与JabberID匹配的内容，该JabberID是一个Jabber客户端发送消息的目的地。如，一个用户打算向一个不存在的JabberID发送一条消息。如果接受者的Jabber服务器无法到达，将发送一个来自500级数的错误代码。</td>
+</tr>
+<tr>
+<td>405</td>
+<td>不允许的，Jabber代码405用在不允许操作被’from’地址标识的JabberID。例如，它可能产生在，一个非管理员用户试图在服务器上发送一条管理员级别的消息，或者一个用户试图发送一台Jabber服务器的时间或版本，或者发送一个不同的JabberID的vCard。</td>
+</tr>
+<tr>
+<td>406</td>
+<td>不被接受的，Jabber代码406用于服务器因为某些理由不接受一个包。例如，这个可能发生在，一个Jabber客户端试图使用jabber:iq:private在服务器上存储信息，但当前的用于存储的名字空间用”jabber:”开头（在Jabber里是一个被存的XML开头）。另一种可能产生406错误的情况是当一个Jabber客户端试图用一个空密码注册到一台Jabber服务器上。</td>
+</tr>
+<tr>
+<td>407</td>
+<td>必须注册，Jabber代码407当前不被使用</td>
+</tr>
+<tr>
+<td>408</td>
+<td>注册超时，当一个Jabber客户端不能在服务器准备好的时间内发起一个请求时，Jabber服务器生成Jabber代码408。这个代码当前只用于Jabber会话管理器使用的零度认证模式中。</td>
+</tr>
+<tr>
+<td>409</td>
+<td><a href="http://wiki.jabbercn.org/RFC6120#.E8.B5.84.E6.BA.90.E7.BB.91.E5.AE.9A" target="_blank" rel="external">冲突</a></td>
+</tr>
+<tr>
+<td>500</td>
+<td>服务器内部错误，当一台Jabber服务器遇到一种预期外的条件，该条件阻止服务器处理来自Jabber客户端的包，这是将用到Jabber代码500。现在，唯一会引发500错误代码的时间是当一个Jabber客户端试图通过服务器认证，而该认证因为某些原因没有被处理（如无法保存密码）。</td>
+</tr>
+<tr>
+<td>501</td>
+<td>不可执行，当服务器不支持Jabber客户端请求的功能，使用Jabber代码501。例如，该代码只当Jabber客户端发送一个认证请求，而该认证请求不包含服务器配置中定义的任何一种认证方式时，服务器发送Jabber代码501。这个代码还被用于，当一个Jabber客户端试图注册一个不允许注册的服务器。</td>
+</tr>
+<tr>
+<td>502</td>
+<td>远程服务器错误，当因为无法到达远程服务器导致转发一个包失败时，使用Jabber代码502。该代码发送的特殊例子包括一个远程服务器的连接的失败，无法获取远程服务器的主机名，以及远程服务器错误导致的外部时间过期。</td>
+</tr>
+<tr>
+<td>503</td>
+<td>服务无法获得，当一个Jabber客户端请求一个服务，而Jabber服务器通常由于一些临时原因无法提供该服务时，使用Jabber代码503。例如，一个Jabber客户端试图发送一条消息给另一个用户，该用户不在线，但它的服务器不提供离线存储服务，服务器将返回一个503错误代码给发送消息的JabberID。当为vcard-temp和jabber:iq:private名字空间设置信息时，出现通过xdb进行数据存储的写入错误，也使用该代码。</td>
+</tr>
+<tr>
+<td>504</td>
+<td>远程服务器超时，Jabber代码504用于下列情况:试图连接一台服务器发生超时，错误的服务器名。</td>
+</tr>
+<tr>
+<td>510</td>
+<td>连接失败，Jabber代码510目前还没有使用。</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>扩展code(XMPPErrorCodeExtension枚举)，如果大家定义了，请加在此处。<br>ERROR_TH(4031, “cancel”, “登陆过于频繁或者流量过大”)</p>
+</blockquote>
+<hr>
+<h3 id="MUC相关技术"><a href="#MUC相关技术" class="headerlink" title="MUC相关技术"></a>MUC相关技术</h3><ul>
+<li><a href="http://wiki.jabbercn.org/XEP-0004" target="_blank" rel="external">XEP-0004</a>: 数据表单，用来交换数据。</li>
+</ul>
+<hr>
+<h3 id="CS和SM分离"><a href="#CS和SM分离" class="headerlink" title="CS和SM分离"></a>CS和SM分离</h3><ul>
+<li>tigase中是可行的，但是目前架构没有这样做。这样做会增加网络开销，目前此方案，不是很好，待尝试。</li>
+</ul>
+<hr>
+<h3 id="使用到得XEP"><a href="#使用到得XEP" class="headerlink" title="使用到得XEP"></a>使用到得XEP</h3><ul>
+<li><a href="http://www.xmpp.org/extensions/xep-0184.html" target="_blank" rel="external">XEP-0184</a>: Message Delivery  Receipts，该扩展对server没有任何要求，只要client端支持就行。</li>
+<li><a href="http://wiki.jabbercn.org/XEP-0004" target="_blank" rel="external">XEP-0004</a>:表单数据，用来交换数据，form类型[<a href="http://xmpp.org/registrar/formtypes.html" target="_blank" rel="external">http://xmpp.org/registrar/formtypes.html</a>]</li>
+<li><a href="http://xmpp.org/extensions/xep-0198.html" target="_blank" rel="external">XEP-0198</a>:server端的消息确认，<a href="http://www.tigase.org/content/stream-management" target="_blank" rel="external">tigase中的配置</a>，它的存在的意义在<a href="http://op-co.de/blog/posts/XEP-0198" target="_blank" rel="external">http://op-co.de/blog/posts/XEP-0198</a>中已经描述的非常详细。</li>
+<li>XEP-199</li>
+<li><a href="http://wiki.jabbercn.org/XEP-0114" target="_blank" rel="external">XEP-0114</a>:Jabber组件协议</li>
+</ul>
+<hr>
+<h3 id="群聊室的属性"><a href="#群聊室的属性" class="headerlink" title="群聊室的属性"></a>群聊室的属性</h3><blockquote>
+<p>我们设计的群已经不是标准的xmpp群了，下面的属性是对于smack或者标准的xmpp群有意义的。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>说明</th>
+<th>配置项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 房间名称</td>
+<td>muc#roomconfig_roomname</td>
+</tr>
+<tr>
+<td> 描述</td>
+<td>muc#roomconfig_roomdesc</td>
+</tr>
+<tr>
+<td> 允许占有者更改主题</td>
+<td>muc#roomconfig_changesubject</td>
+</tr>
+<tr>
+<td> 最大房间占有者人数</td>
+<td>muc#roomconfig_maxusers</td>
+</tr>
+<tr>
+<td> 其 Presence 是 Broadcast 的角色</td>
+<td>muc#roomconfig_presencebroadcast</td>
+</tr>
+<tr>
+<td> 列出目录中的房间</td>
+<td>muc#roomconfig_publicroom</td>
+</tr>
+<tr>
+<td> 房间是持久的</td>
+<td>muc#roomconfig_persistentroom</td>
+</tr>
+<tr>
+<td> 房间是适度的</td>
+<td>muc#roomconfig_moderatedroom</td>
+</tr>
+<tr>
+<td> 房间仅对成员开放</td>
+<td>muc#roomconfig_membersonly</td>
+</tr>
+<tr>
+<td> 允许占有者邀请其他人</td>
+<td>muc#roomconfig_allowinvites</td>
+</tr>
+<tr>
+<td> 需要密码才能进入房间</td>
+<td>muc#roomconfig_passwordprotectedroom</td>
+</tr>
+<tr>
+<td> 密码</td>
+<td>muc#roomconfig_roomsecret</td>
+</tr>
+<tr>
+<td> 能够发现占有者真实 JID 的角色</td>
+<td>muc#roomconfig_whois</td>
+</tr>
+<tr>
+<td> 登录房间对话</td>
+<td>muc#roomconfig_enablelogging</td>
+</tr>
+<tr>
+<td> 仅允许注册的昵称登录</td>
+<td>x-muc#roomconfig_reservednick</td>
+</tr>
+<tr>
+<td> 允许使用者修改昵称</td>
+<td>x-muc#roomconfig_canchangenick</td>
+</tr>
+<tr>
+<td> 允许用户注册房间</td>
+<td>x-muc#roomconfig_registration</td>
+</tr>
+<tr>
+<td> 房间管理员</td>
+<td>muc#roomconfig_roomadmins</td>
+</tr>
+<tr>
+<td> 房间拥有者</td>
+<td>muc#roomconfig_roomowners</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="线上服务器环境配置"><a href="#线上服务器环境配置" class="headerlink" title="线上服务器环境配置"></a>线上服务器环境配置</h3><blockquote>
+<p>tcp调优参考我之前的文章<a href="/2013/10/30/TCP参数调整">Linux TCP参数调整</a></p>
+</blockquote>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/IM/" rel="tag"># IM</a>
+          
+            <a href="/tags/Tigase/" rel="tag"># Tigase</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/09/10/Tigase_Watchdog分析及优化/" rel="next" title="Tigase Watchdog分析及优化">
+                <i class="fa fa-chevron-left"></i> Tigase Watchdog分析及优化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/12/13/编译原理-Javacc使用/" rel="prev" title="编译原理之Javacc使用">
+                编译原理之Javacc使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Server-c2s-s2s-sm-ext2s-集群-MUC-comp-集群"><span class="nav-number">1.</span> <span class="nav-text">Server(c2s+s2s+sm+ext2s)集群+MUC(comp)集群</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#架构图"><span class="nav-number">1.1.</span> <span class="nav-text">架构图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Server1-hostname-vm-128-157-配置"><span class="nav-number">1.2.</span> <span class="nav-text">Server1(hostname: vm-128-157)配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Server2-hostname-vm-128-158-配置"><span class="nav-number">1.3.</span> <span class="nav-text">Server2(hostname: vm-128-158)配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#muc1配置"><span class="nav-number">1.4.</span> <span class="nav-text">muc1配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#muc2配置"><span class="nav-number">1.5.</span> <span class="nav-text">muc2配置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tigase-MUC思路-引用于Tigase作者Kobit"><span class="nav-number">2.</span> <span class="nav-text">Tigase MUC思路(引用于Tigase作者Kobit)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tigase-XMPP-Server-configuration-properties"><span class="nav-number">3.</span> <span class="nav-text">Tigase XMPP Server configuration properties</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sm-plugin说明"><span class="nav-number">4.</span> <span class="nav-text">sm-plugin说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标准错误代码"><span class="nav-number">5.</span> <span class="nav-text">标准错误代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MUC相关技术"><span class="nav-number">6.</span> <span class="nav-text">MUC相关技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CS和SM分离"><span class="nav-number">7.</span> <span class="nav-text">CS和SM分离</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用到得XEP"><span class="nav-number">8.</span> <span class="nav-text">使用到得XEP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#群聊室的属性"><span class="nav-number">9.</span> <span class="nav-text">群聊室的属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线上服务器环境配置"><span class="nav-number">10.</span> <span class="nav-text">线上服务器环境配置</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2014/09/20/tigase集群方案及配置说明文档/';
+
+      var disqus_title = "Tigase集群方案及配置说明";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

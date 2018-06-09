@@ -1,0 +1,965 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Thread," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="BTrace作为线上问题定位神器，它在侵入、安全、资源占用等方面表现的都非常出色。本文记录了作者平时工作中使用Btrace的场景，以供大家参考。  BTrace限制关于BTrace的安装配置使用，网络上有太多的教程了，本文就不再重复造轮子了，但是还是非常有必要再次重申BTrace的限制。因为不正当的使用Btrace可能根本拿不到自己想要的结果，甚至导致JVM崩溃，建议脚本使用之前先经过验证，然后">
+<meta name="keywords" content="Thread">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BTrace笔记">
+<meta property="og:url" content="https://www.yangguo.info/2015/06/08/btrace笔记/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="BTrace作为线上问题定位神器，它在侵入、安全、资源占用等方面表现的都非常出色。本文记录了作者平时工作中使用Btrace的场景，以供大家参考。  BTrace限制关于BTrace的安装配置使用，网络上有太多的教程了，本文就不再重复造轮子了，但是还是非常有必要再次重申BTrace的限制。因为不正当的使用Btrace可能根本拿不到自己想要的结果，甚至导致JVM崩溃，建议脚本使用之前先经过验证，然后">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BTrace笔记">
+<meta name="twitter:description" content="BTrace作为线上问题定位神器，它在侵入、安全、资源占用等方面表现的都非常出色。本文记录了作者平时工作中使用Btrace的场景，以供大家参考。  BTrace限制关于BTrace的安装配置使用，网络上有太多的教程了，本文就不再重复造轮子了，但是还是非常有必要再次重申BTrace的限制。因为不正当的使用Btrace可能根本拿不到自己想要的结果，甚至导致JVM崩溃，建议脚本使用之前先经过验证，然后">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2015/06/08/btrace笔记/"/>
+
+
+
+
+
+  <title> BTrace笔记 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/06/08/btrace笔记/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                BTrace笔记
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-06-08T19:31:29+08:00">
+                2015-06-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2015/06/08/btrace笔记/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2015/06/08/btrace笔记/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>BTrace作为线上问题定位神器，它在侵入、安全、资源占用等方面表现的都非常出色。本文记录了作者平时工作中使用Btrace的场景，以供大家参考。</p>
+</blockquote>
+<h3 id="BTrace限制"><a href="#BTrace限制" class="headerlink" title="BTrace限制"></a>BTrace限制</h3><p>关于BTrace的安装配置使用，网络上有太多的教程了，本文就不再重复造轮子了，但是还是非常有必要再次重申BTrace的限制。因为不正当的使用Btrace可能根本拿不到自己想要的结果，甚至导致JVM崩溃，建议脚本使用之前先经过验证，然后再使用到线上环境。</p>
+<p>使用Btrace时，需要确保追踪的行动是只读的（即：追踪行动不能修改程序的状态）和有限的（即：追踪行动需要在有限的时间内终止），一个追踪行为需要满足如下的限制：</p>
+<ul>
+<li>不能创建新的对象</li>
+<li>不能创建新的数组</li>
+<li>不能抛出异常</li>
+<li>不能捕获异常</li>
+<li>不能对实例和静态方法随意调用，只有<strong>com.sun.btrace.BTraceUtils</strong>中的public static方法或者当前脚本中申明的方法，可以被BTrace程序调用。</li>
+<li>(1.2之前)不能存在实例字段和方法。BTrace类只允许静态公共void返回方法，并且所有字段必须是静态的。</li>
+<li>不能将目标程序中的类和对象中的静态或者实例字段指派给BTrace程序。但是，可以将BTrace类自己的静态字段（“trace state”是可以改变的）指派给自己。因为引用的传递可能导致目标程序别修改，而BTrace自身的跟踪字段只有BTrace自己在使用，所以不怕修改。</li>
+<li>不能有外部，内部，嵌套或者本地的类。</li>
+<li>不能有<strong>synchronized</strong>块和方法。</li>
+<li>不能有循环（for，while，do…..while）。</li>
+<li>不能继承抽象类（父类只能为java.lang.Object）。</li>
+<li>不能实现接口。</li>
+<li>不能有断言语句。</li>
+<li>不能使用<strong>class</strong>保留字。</li>
+</ul>
+<a id="more"></a>
+<p>以上的限制可以通过通过<strong>unsafe</strong>模式绕过。追踪脚本和引擎都必须设置为<strong>unsafe</strong>模式。脚本需要使用注解为<strong>@BTrace(unsafe = true)</strong>，需要修改BTrace安装目录下bin中btrace脚本将<strong>-Dcom.sun.btrace.unsafe=false</strong>改为<strong>-Dcom.sun.btrace.unsafe=true</strong>。</p>
+<p>注：关于<strong>unsafe</strong>的使用，如果你的程序一旦被btrace追踪过，那么unsafe的设置会一直伴随该进程的整个生命周期。如果你修改了<strong>unsafe</strong>的设置，只有通过重启目标进程，才能获得想要的结果。所以该用法不是很好使用，如果你的应用不能随便重启，那么你在第一次使用btrace最终目标进程之前，先想好到底使用那种模式来启动引擎。</p>
+<hr>
+<h3 id="性能分析"><a href="#性能分析" class="headerlink" title="性能分析"></a>性能分析</h3><p>大家经常会发现自己某一个服务变慢，但是由于这个服务背后由很多的业务逻辑或者方法块构成，这个时候就不好定位到底慢在哪个地方。<strong>Profiling</strong>就可以很好的解决该问题，我们只需要大概的定位问题可能存在的地方，通过包路径的模糊匹配，就可以很快找到问题所在。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Profiling</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Property</span></span><br><span class="line">    Profiler profiler = BTraceUtils.Profiling.newProfiler();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">entry</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordEntry(profiler, probeMethod);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>, location = <span class="meta">@Location</span>(value = Kind.RETURN))</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod, @Duration <span class="keyword">long</span> duration) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordExit(profiler, probeMethod, duration);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnTimer</span>(<span class="number">5000</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">timer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.printSnapshot(<span class="string">"Performance profile"</span>, profiler);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然如果你怀疑一个类的某一个方法，也可以采用精准定位的方式来进行追踪。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpClientSystemDefaultDnsResolverTracer</span> </span>&#123;</span><br><span class="line">    <span class="meta">@TLS</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">long</span> beginTime;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"org.apache.http.impl.conn.SystemDefaultDnsResolver"</span>,</span><br><span class="line">            method = <span class="string">"resolve"</span></span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">traceGetByNameBegin</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        beginTime = timeMillis();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"org.apache.http.impl.conn.SystemDefaultDnsResolver"</span>,</span><br><span class="line">            method = <span class="string">"resolve"</span>,</span><br><span class="line">            location = <span class="meta">@Location</span>(Kind.RETURN)</span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">traceGetByNameEnd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        println(strcat(strcat(<span class="string">"org.apache.http.impl.conn.SystemDefaultDnsResolver.resolve 耗时:"</span>, str(timeMillis() - beginTime)), <span class="string">"ms"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果你只想定位执行时间超过某个阀值的函数，也可以使用<strong>@Duration</strong>来解决。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DurationTracer</span> </span>&#123;</span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"/info\\.yangguo\\.demo\\..*/"</span>,</span><br><span class="line">            method = <span class="string">"/.*/"</span>,</span><br><span class="line">            location = <span class="meta">@Location</span>(Kind.RETURN)</span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">trace</span><span class="params">(@ProbeClassName String pcn,</span></span></span><br><span class="line"><span class="function"><span class="params">                             @ProbeMethodName String pmn,</span></span></span><br><span class="line"><span class="function"><span class="params">                             @Duration <span class="keyword">long</span> duration)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//duration的单位是纳秒</span></span><br><span class="line">        <span class="keyword">if</span> (duration &gt; <span class="number">1000</span> * <span class="number">1000</span> * <span class="number">3</span>) &#123;</span><br><span class="line">            print(Strings.strcat(Strings.strcat(pcn, <span class="string">"."</span>), pmn));</span><br><span class="line">            print(<span class="string">" 耗时:"</span>);</span><br><span class="line">            print(duration);</span><br><span class="line">            println(<span class="string">"纳秒,堆栈信息如下"</span>);</span><br><span class="line">            jstack();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="异常分析"><a href="#异常分析" class="headerlink" title="异常分析"></a>异常分析</h3><p>有时候，开发人员对异常的处理不合理，导致某些重要异常别人为吃掉，并且没有任何日志或者日志不详细，导致问题定位困难，那么我们可以使用下面的Tracer来处理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OnThrow</span> </span>&#123;</span><br><span class="line">    <span class="comment">// store current exception in a thread local</span></span><br><span class="line"><span class="comment">// variable (@TLS annotation). Note that we can't</span></span><br><span class="line"><span class="comment">// store it in a global variable!</span></span><br><span class="line">    <span class="meta">@TLS</span></span><br><span class="line">    <span class="keyword">static</span> Throwable currentException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// introduce probe into every constructor of java.lang.Throwable</span></span><br><span class="line"><span class="comment">// class and store "this" in the thread local variable.</span></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"java.lang.Throwable"</span>,</span><br><span class="line">            method = <span class="string">"&lt;init&gt;"</span></span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onthrow</span><span class="params">(@Self Throwable self)</span> </span>&#123;</span><br><span class="line">        currentException = self;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"java.lang.Throwable"</span>,</span><br><span class="line">            method = <span class="string">"&lt;init&gt;"</span></span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onthrow1</span><span class="params">(@Self Throwable self, String s)</span> </span>&#123;</span><br><span class="line">        currentException = self;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"java.lang.Throwable"</span>,</span><br><span class="line">            method = <span class="string">"&lt;init&gt;"</span></span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onthrow1</span><span class="params">(@Self Throwable self, String s, Throwable cause)</span> </span>&#123;</span><br><span class="line">        currentException = self;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"java.lang.Throwable"</span>,</span><br><span class="line">            method = <span class="string">"&lt;init&gt;"</span></span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onthrow2</span><span class="params">(@Self Throwable self, Throwable cause)</span> </span>&#123;</span><br><span class="line">        currentException = self;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// when any constructor of java.lang.Throwable returns</span></span><br><span class="line"><span class="comment">// print the currentException's stack trace.</span></span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"java.lang.Throwable"</span>,</span><br><span class="line">            method = <span class="string">"&lt;init&gt;"</span>,</span><br><span class="line">            location = <span class="meta">@Location</span>(Kind.RETURN)</span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onthrowreturn</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (currentException != <span class="keyword">null</span>) &#123;</span><br><span class="line">            Threads.jstack(currentException);</span><br><span class="line">            println(<span class="string">"====================="</span>);</span><br><span class="line">            currentException = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="参数及返回结果"><a href="#参数及返回结果" class="headerlink" title="参数及返回结果"></a>参数及返回结果</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MethodArgsAndReturnTracer</span> </span>&#123;</span><br><span class="line">    <span class="meta">@OnMethod</span>(</span><br><span class="line">            clazz = <span class="string">"info.yangguo.demo.btrace.Adder"</span>,</span><br><span class="line">            method = <span class="string">"execute"</span>,</span><br><span class="line">            location = <span class="meta">@Location</span>(Kind.RETURN)</span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">traceExecute</span><span class="params">(@Self Adder instance, <span class="keyword">int</span> arg1,<span class="keyword">int</span> arg2, @Return <span class="keyword">int</span> result)</span> </span>&#123;</span><br><span class="line">        println(<span class="string">"Adder.execute"</span>);</span><br><span class="line">        println(strcat(<span class="string">"arg1 is:"</span>, str(arg1)));</span><br><span class="line">        println(strcat(<span class="string">"arg2 is:"</span>, str(arg2)));</span><br><span class="line">        println(strcat(<span class="string">"maxResult is:"</span>, str(get(field(<span class="string">"info.yangguo.demo.btrace.Adder"</span>, <span class="string">"maxResult"</span>), instance))));</span><br><span class="line">        println(strcat(<span class="string">"return value is:"</span>, str(result)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="jdbc问题追踪"><a href="#jdbc问题追踪" class="headerlink" title="jdbc问题追踪"></a>jdbc问题追踪</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JdbcQueries</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Map&lt;Statement, String&gt; preparedStatementDescriptions = Collections.newWeakMap();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Aggregation histogram = Aggregations.newAggregation(AggregationFunction.QUANTIZE);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Aggregation average = Aggregations.newAggregation(AggregationFunction.AVERAGE);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Aggregation max = Aggregations.newAggregation(AggregationFunction.MAXIMUM);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Aggregation min = Aggregations.newAggregation(AggregationFunction.MINIMUM);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Aggregation sum = Aggregations.newAggregation(AggregationFunction.SUM);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Aggregation count = Aggregations.newAggregation(AggregationFunction.COUNT);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Aggregation globalCount = Aggregations.newAggregation(AggregationFunction.COUNT);</span><br><span class="line">    <span class="meta">@TLS</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> String preparingStatement;</span><br><span class="line">    <span class="meta">@TLS</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> String executingStatement;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * If "--stack" is passed on command line, print the Java stack trace of the JDBC statement.</span></span><br><span class="line"><span class="comment">     * &lt;p/&gt;</span></span><br><span class="line"><span class="comment">     * Otherwise we print the SQL.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> useStackTrace = Sys.$(<span class="number">2</span>) != <span class="keyword">null</span> &amp;&amp; Strings.strcmp(<span class="string">"--stack"</span>, Sys.$(<span class="number">2</span>)) == <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// The first couple of probes capture whenever prepared statement and callable statements are</span></span><br><span class="line">    <span class="comment">// instantiated, in order to let us track what SQL they contain.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Capture SQL used to create prepared statements.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> args the list of method parameters. args[1] is the SQL.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"+java.sql.Connection"</span>, method = <span class="string">"/prepare.*/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onPrepare</span><span class="params">(AnyType[] args)</span> </span>&#123;</span><br><span class="line">        preparingStatement = useStackTrace ? Threads.jstackStr() : str(args[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Cache SQL associated with a prepared statement.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> preparedStatement the return value from the prepareXxx() method.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"+java.sql.Connection"</span>, method = <span class="string">"/prepare.*/"</span>, location = <span class="meta">@Location</span>(Kind.RETURN))</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onPrepareReturn</span><span class="params">(@Return Statement preparedStatement)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (preparingStatement != <span class="keyword">null</span>) &#123;</span><br><span class="line">            print(<span class="string">"P"</span>); <span class="comment">// Debug Prepared</span></span><br><span class="line">            Collections.put(preparedStatementDescriptions, preparedStatement, preparingStatement);</span><br><span class="line">            preparingStatement = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// The next couple of probes intercept the execution of a statement. If it execute with no-args,</span></span><br><span class="line">    <span class="comment">// then it must be a prepared statement or callable statement. Get the SQL from the probes up above.</span></span><br><span class="line">    <span class="comment">// Otherwise the SQL is in the first argument.</span></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"+java.sql.Statement"</span>, method = <span class="string">"/execute.*/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onExecute</span><span class="params">(@Self Object currentStatement, AnyType[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (args.length == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// No SQL argument; lookup the SQL from the prepared statement</span></span><br><span class="line">            executingStatement = Collections.get(preparedStatementDescriptions, currentStatement);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// Direct SQL in the first argument</span></span><br><span class="line">            executingStatement = useStackTrace ? Threads.jstackStr() : str(args[<span class="number">0</span>]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"+java.sql.Statement"</span>, method = <span class="string">"/execute.*/"</span>, location = <span class="meta">@Location</span>(Kind.RETURN))</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onExecuteReturn</span><span class="params">(@Duration <span class="keyword">long</span> durationL)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (executingStatement == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        print(<span class="string">"X"</span>); <span class="comment">// Debug Executed</span></span><br><span class="line"></span><br><span class="line">        AggregationKey key = Aggregations.newAggregationKey(executingStatement);</span><br><span class="line">        <span class="keyword">int</span> duration = (<span class="keyword">int</span>) durationL / <span class="number">1000</span>;</span><br><span class="line"></span><br><span class="line">        Aggregations.addToAggregation(histogram, key, duration);</span><br><span class="line">        Aggregations.addToAggregation(average, key, duration);</span><br><span class="line">        Aggregations.addToAggregation(max, key, duration);</span><br><span class="line">        Aggregations.addToAggregation(min, key, duration);</span><br><span class="line">        Aggregations.addToAggregation(sum, key, duration);</span><br><span class="line">        Aggregations.addToAggregation(count, key, duration);</span><br><span class="line">        Aggregations.addToAggregation(globalCount, duration);</span><br><span class="line"></span><br><span class="line">        executingStatement = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnEvent</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onEvent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Top 10 queries only</span></span><br><span class="line">        Aggregations.truncateAggregation(histogram, <span class="number">10</span>);</span><br><span class="line">        println(<span class="string">"---------------------------------------------"</span>);</span><br><span class="line">        Aggregations.printAggregation(<span class="string">"Count"</span>, count);</span><br><span class="line">        Aggregations.printAggregation(<span class="string">"Min"</span>, min);</span><br><span class="line">        Aggregations.printAggregation(<span class="string">"Max"</span>, max);</span><br><span class="line">        Aggregations.printAggregation(<span class="string">"Average"</span>, average);</span><br><span class="line">        Aggregations.printAggregation(<span class="string">"Sum"</span>, sum);</span><br><span class="line">        Aggregations.printAggregation(<span class="string">"Histogram"</span>, histogram);</span><br><span class="line">        Aggregations.printAggregation(<span class="string">"Global Count"</span>, globalCount);</span><br><span class="line">        println(<span class="string">"---------------------------------------------"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="死锁排查"><a href="#死锁排查" class="headerlink" title="死锁排查"></a>死锁排查</h3><p>很多时候，我们怀疑程序是否有死锁，可以用下面的脚本扫描下，非常简单方便。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Deadlock</span> </span>&#123;</span><br><span class="line">    <span class="meta">@OnTimer</span>(<span class="number">4000</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        deadlocks();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我只是将我工作中经常用到的一些列举出来了，还有很多没有列举，可以详见<a href="https://kenai.com/projects/btrace/pages/UserGuide" target="_blank" rel="external">链接</a>。</p>
+<p>参考文章：<br><a href="http://agapple.iteye.com/blog/1005918" target="_blank" rel="external">Btrace一些你不知道的事</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Thread/" rel="tag"># Thread</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/04/01/线程转储/" rel="next" title="线程转储分析">
+                <i class="fa fa-chevron-left"></i> 线程转储分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/06/25/生产环境调试难题解决方案/" rel="prev" title="生产环境难题解决方案">
+                生产环境难题解决方案 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#BTrace限制"><span class="nav-number">1.</span> <span class="nav-text">BTrace限制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能分析"><span class="nav-number">2.</span> <span class="nav-text">性能分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异常分析"><span class="nav-number">3.</span> <span class="nav-text">异常分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参数及返回结果"><span class="nav-number">4.</span> <span class="nav-text">参数及返回结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jdbc问题追踪"><span class="nav-number">5.</span> <span class="nav-text">jdbc问题追踪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#死锁排查"><span class="nav-number">6.</span> <span class="nav-text">死锁排查</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2015/06/08/btrace笔记/';
+
+      var disqus_title = "BTrace笔记";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

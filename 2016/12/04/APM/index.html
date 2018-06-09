@@ -1,0 +1,955 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="APM,Pinpoint,Dapper," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="APM(Application Performance Management)经过2-3年的发展早已经被大家所熟悉了，当Google的Dapper刚发表的时候，就有一大批的公司和组织进行了产品化，大家熟悉的淘宝的鹰眼、点评的Cat、OneAPM等都是这方面的先行者。随着SOA和微服务的普及，越来越多的公司采用了这样的分布式架构，因此对APM的需求更是越来越强烈。本篇文章首先会简单阐述下Dapper">
+<meta name="keywords" content="APM,Pinpoint,Dapper">
+<meta property="og:type" content="article">
+<meta property="og:title" content="APM技术总结">
+<meta property="og:url" content="https://www.yangguo.info/2016/12/04/APM/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="APM(Application Performance Management)经过2-3年的发展早已经被大家所熟悉了，当Google的Dapper刚发表的时候，就有一大批的公司和组织进行了产品化，大家熟悉的淘宝的鹰眼、点评的Cat、OneAPM等都是这方面的先行者。随着SOA和微服务的普及，越来越多的公司采用了这样的分布式架构，因此对APM的需求更是越来越强烈。本篇文章首先会简单阐述下Dapper">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon1.png">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon2.png">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon3.png">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon4.png">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon5.png">
+<meta property="og:image" content="https://www.yangguo.info/images/pinpoint1.png">
+<meta property="og:image" content="https://www.yangguo.info/images/pinpoint2.png">
+<meta property="og:image" content="https://www.yangguo.info/images/pinpoint3.png">
+<meta property="og:image" content="https://www.yangguo.info/images/pinpoint4.png">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="APM技术总结">
+<meta name="twitter:description" content="APM(Application Performance Management)经过2-3年的发展早已经被大家所熟悉了，当Google的Dapper刚发表的时候，就有一大批的公司和组织进行了产品化，大家熟悉的淘宝的鹰眼、点评的Cat、OneAPM等都是这方面的先行者。随着SOA和微服务的普及，越来越多的公司采用了这样的分布式架构，因此对APM的需求更是越来越强烈。本篇文章首先会简单阐述下Dapper">
+<meta name="twitter:image" content="https://www.yangguo.info/images/dragon1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2016/12/04/APM/"/>
+
+
+
+
+
+  <title> APM技术总结 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2016/12/04/APM/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                APM技术总结
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-12-04T14:00:00+08:00">
+                2016-12-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2016/12/04/APM/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/12/04/APM/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>APM(Application Performance Management)经过2-3年的发展早已经被大家所熟悉了，当Google的Dapper刚发表的时候，就有一大批的公司和组织进行了产品化，大家熟悉的淘宝的鹰眼、点评的Cat、OneAPM等都是这方面的先行者。随着SOA和微服务的普及，越来越多的公司采用了这样的分布式架构，因此对APM的需求更是越来越强烈。本篇文章首先会简单阐述下Dapper的思想，然后会简单阐述下笔者自研的Dragon和放弃它的原因，最后阐述下Pinpoint架构。这篇文章主要的目的，一是记录研发的心路历程，二是希望为那些未做但想做的同行提供一点经验教训。</p>
+<a id="more"></a>
+<h3 id="Dapper"><a href="#Dapper" class="headerlink" title="Dapper"></a>Dapper</h3><p><strong>分布式系统</strong> 演变到现在，用户的一次点击事件，导致后端几十次甚至上百次的同步或异步调用，这已经不再仅仅是Google、阿里、Facebook等级别的公司才会出现的情况。随着用户对产品的体验要求越来要高，任何的延迟或者抖动都会导致用户的流失，这对于任何的商业公司来说都是不能够被接收的现实。所以监控并且是7x24小时的不间断监控，是互联网企业的标配。Dapper的核心在于Call Tree模型，它抽象出了Trace、Span、Annotation，用简单的3个模型就将整个调用串起来了。Dapper的思想是非常简单明了的，但是Dapper却又提出了低损耗、应用透明、可扩展。个人觉得应用透明应该是非常难做的一件事情，不同的程序语言、不同的RPC框架、不同的线程调用模型，都是必须考虑的因素，当然采样率的控制、跟踪数据的收集存储、带外数据的携带、安全和隐私等等也都不是容易的事情。Dapper虽然代码没有开源，但是它的思想却为我们提供了非常高的起点，所以才有APM市场百花齐放的景象。</p>
+<hr>
+<h3 id="Dragon"><a href="#Dragon" class="headerlink" title="Dragon"></a>Dragon</h3><p><strong><a href="https://github.com/chengdedeng/dragon" target="_blank" rel="external">Dragon</a></strong> 是我读完Dapper简单看了下Cat源码之后，针对使用Dubbo作为RPC的系统研发的一套调用链追踪系统。首先我不是一个非常喜欢造轮子的人，一是因为在当时没有针对Dubbo的调用链追踪工具，点评的Cat是基于点评内部的RPC框架Pigeon来研发的，二是Pinpoint我当时觉得是韩国人开发的，文档是一个问题，所以打算自己写了一套。当然这套东西最后被我放弃了，其实原因很简单因为我发现Pinpoint已经做的非常不错了，虽然文档还是比较烂，不过好在代码还比较靠谱，不懂的直接看代码，并且Dubbo的扩展也已经支持。之前凭借个人的判断，没有去仔细了解这个项目导致自己花了很多精力自研，如果当时就基于Pinpoint去实现Dubbo的扩展点就更完美了。关于自研和开源方案，笔者经常犯难，也做过很多错误的决定，但是任何事情都具有两面性，所以我能告诉你的就是大胆去做，及时改正。</p>
+<p>虽然Dragon被我放弃了，但是不代表这是一个失败的项目或者说没有可取之处，正式由于Dragon的研发让我明白Pinpoint中的很多闪光之处和不足之处。Dragon在公司稳定运行了大概半年之久，发现和解决了不少的问题。Dragon的架构非常简单，实现了Dubbo Filter的扩展点，做了一个轻量级的AOP。Trace Id、Span Id都作为Dubbo Protocol的Attachment参数携带给RPC的下一跳。本跳的Trace数据被异步发送给Collector，Collector首先发送到消息队列，然后再入库。存储我选择了Mysql，当然是经过分库分表的，同时每晚有定时任务删除过期的数据保证数据量不至于太大。Web端根据时间和接口名去查询数据，最后绘制成调用链。当然异常数据会作为带外数据被收集起来，这个地方还可以作为插件的形式收集别的带外数据。最后如果用户发现一条Trace链路很慢，想看跨系统的所有的日志，只要将TraceId输入到我们kibana中就可以把所有的日志按时间序串起来。因为我修改了LOG4J的MDC，将TraceId放入到了线程的上下文中。为了形象的说明系统的样子，用图来讲比较方便说明。图中红色的都是表示有问题的，绿色表示正常。线上的时间表示网络耗时，左边的表示下行耗时，右边的表示上行耗时。每一个节点都可以点击，进去之后有该节点的地址和调用总耗时。</p>
+<p><img src="/images/dragon1.png" alt="dragon1"></p>
+<p><img src="/images/dragon2.png" alt="dragon2"></p>
+<p><img src="/images/dragon3.png" alt="dragon3"></p>
+<p><img src="/images/dragon4.png" alt="dragon4"></p>
+<p><img src="/images/dragon5.png" alt="dragon5"></p>
+<p>有人可能看完这个之后，可能会问你这个只能查询微观粒度的，我怎么从宏观的角度去判断我的系统在这段时间不是很稳定或者慢了。其实我们还有一套Metrics系统，它是从宏观层面来反应我们所有系统的状态，如果它反应有问题并报警，再结合Dragon来定位就能够解决问题。</p>
+<hr>
+<h3 id="Pinpoint"><a href="#Pinpoint" class="headerlink" title="Pinpoint"></a>Pinpoint</h3><p><a href="https://github.com/naver/pinpoint" target="_blank" rel="external">Pinpoint</a>通过Java Agent技术通过Attachment的方式进行了代码的织入，其实这并不是多高深的技术，可以详见我的文章《<a href="http://www.yangguo.info/2015/07/18/JavaAgent%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%B7%AF/">JavaAgent的一点思路</a>》。Pinpoint的架构和设计思路跟Dragon很像，不过它采用了Nosql的Hbase作为存储，数据使用TCP/UDP进行传送，并且可以通过Web UI实时获取Agent中的数据。它的架构见下图，不过稍微有点老了，暂且看看吧：</p>
+<p><img src="/images/pinpoint1.png" alt="pinpoint1"></p>
+<p>对于监控数据或者非业务数据，我个人是非常喜欢使用UDP的，因为服务哪怕crash了，也不会对业务造成任何影响。虽然以上的功能已经让它看上去非常性感了，不过真正吸引我的却是它插件式的设计，可以根据自己的需求来研发任意插件。Pinpoint虽然有这样那样的优点，不过每个使用者都会觉得自己的一些需求还是没有满足，例如通过TraceId将所有系统的日志串起来，这就需要我们去修改部分源码。下面几张图，能够形象的展示Pinpoint的一些特色。</p>
+<p><img src="/images/pinpoint2.png" alt="pinpoint2"></p>
+<p><img src="/images/pinpoint3.png" alt="pinpoint3"></p>
+<p><img src="/images/pinpoint4.png" alt="pinpoint4"></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/APM/" rel="tag"># APM</a>
+          
+            <a href="/tags/Pinpoint/" rel="tag"># Pinpoint</a>
+          
+            <a href="/tags/Dapper/" rel="tag"># Dapper</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/05/23/分布式事务笔记/" rel="next" title="分布式事务笔记">
+                <i class="fa fa-chevron-left"></i> 分布式事务笔记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/15/传统企业互联网转型的架构之道/" rel="prev" title="TOP100案例分享">
+                TOP100案例分享 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Dapper"><span class="nav-number">1.</span> <span class="nav-text">Dapper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dragon"><span class="nav-number">2.</span> <span class="nav-text">Dragon</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pinpoint"><span class="nav-number">3.</span> <span class="nav-text">Pinpoint</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2016/12/04/APM/';
+
+      var disqus_title = "APM技术总结";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

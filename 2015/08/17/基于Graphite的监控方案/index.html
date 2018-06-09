@@ -1,0 +1,988 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="监控,Graphite," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="需求公司目前的监控粒度非常粗放，只做了些常规的监控，如：服务器的CPU/磁盘/网络，数据库，消息队列，以及一些核心业务的健康检查等。这种粒度的监控对发展初期的创业公司来说已经足够，但是对于接下来的发展便开始捉襟见肘了。个人认为监控不能浮于形式，不是采集一堆数据进行简单的罗列或者生成Dashboard，而是能够通过这些数据产生决策，告诉我们哪里出了问题，该如何解决，甚至自动解决。所以我们要能够自动采">
+<meta name="keywords" content="监控,Graphite">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于Graphite的监控方案">
+<meta property="og:url" content="https://www.yangguo.info/2015/08/17/基于Graphite的监控方案/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="需求公司目前的监控粒度非常粗放，只做了些常规的监控，如：服务器的CPU/磁盘/网络，数据库，消息队列，以及一些核心业务的健康检查等。这种粒度的监控对发展初期的创业公司来说已经足够，但是对于接下来的发展便开始捉襟见肘了。个人认为监控不能浮于形式，不是采集一堆数据进行简单的罗列或者生成Dashboard，而是能够通过这些数据产生决策，告诉我们哪里出了问题，该如何解决，甚至自动解决。所以我们要能够自动采">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://www.yangguo.info/images/MonitorStructure.png">
+<meta property="og:image" content="https://www.yangguo.info/images/jvm.png">
+<meta property="og:image" content="https://www.yangguo.info/images/logic.png">
+<meta property="og:image" content="https://www.yangguo.info/images/pic.png">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于Graphite的监控方案">
+<meta name="twitter:description" content="需求公司目前的监控粒度非常粗放，只做了些常规的监控，如：服务器的CPU/磁盘/网络，数据库，消息队列，以及一些核心业务的健康检查等。这种粒度的监控对发展初期的创业公司来说已经足够，但是对于接下来的发展便开始捉襟见肘了。个人认为监控不能浮于形式，不是采集一堆数据进行简单的罗列或者生成Dashboard，而是能够通过这些数据产生决策，告诉我们哪里出了问题，该如何解决，甚至自动解决。所以我们要能够自动采">
+<meta name="twitter:image" content="https://www.yangguo.info/images/MonitorStructure.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2015/08/17/基于Graphite的监控方案/"/>
+
+
+
+
+
+  <title> 基于Graphite的监控方案 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/08/17/基于Graphite的监控方案/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                基于Graphite的监控方案
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-17T12:54:29+08:00">
+                2015-08-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2015/08/17/基于Graphite的监控方案/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2015/08/17/基于Graphite的监控方案/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>公司目前的监控粒度非常粗放，只做了些常规的监控，如：服务器的CPU/磁盘/网络，数据库，消息队列，以及一些核心业务的健康检查等。这种粒度的监控对发展初期的创业公司来说已经足够，但是对于接下来的发展便开始捉襟见肘了。个人认为监控不能浮于形式，不是采集一堆数据进行简单的罗列或者生成Dashboard，而是能够通过这些数据产生决策，告诉我们哪里出了问题，该如何解决，甚至自动解决。所以我们要能够自动采集系统中的各种<strong>metric</strong>，然后各种<strong>metric</strong>汇集到数据中心进行处理，最后便是展现、报警以及自动修复等逻辑。</p>
+<hr>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>关于监控，业界成熟的方案数不胜数，如何从中选择适合自己的解决方案便是其中的难点。确定方案之前，我们首先需要对自己的系统架构进行梳理，确定我们所选方案兼容目前架构。由于我们的系统基本全部都构建在一系列的Java技术栈之上，Zabbix已经广泛应用在各个系统之中，所以我们做了如下的几点约定：</p>
+<ol>
+<li><strong>Metric</strong>的获取只能用Java实现</li>
+<li>服务器以及一些中间件的常规监控延续使用<strong>Zabbix</strong></li>
+<li>报警逻辑使用<strong>Zabbix</strong>实现</li>
+<li>数据能够实现多个维度的自由组合叠加以及横向对比</li>
+<li><strong>Metric</strong>获取的侵入性要非常小</li>
+</ol>
+<a id="more"></a>
+<hr>
+<h3 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h3><p>经过了前面两步，其实后面的方案选择就非常简单了，最终我们新版的监控架构图如下：</p>
+<p><img src="/images/MonitorStructure.png" alt="MonitorStructure"></p>
+<ul>
+<li><a href="http://metrics.dropwizard.io/" target="_blank" rel="external">Metrics</a>：获取JVM中的指标项(metric)，并将指标项发布到Graphite。</li>
+<li><a href="http://graphite.readthedocs.org/en/latest/" target="_blank" rel="external">Graphite</a>：数据收集处理以及对外提供接口。</li>
+<li><a href="http://grafana.org/" target="_blank" rel="external">Grafana</a>：通过Graphite-web接口获取数据进行图表展示。</li>
+<li><a href="https://www.zabbix.org/wiki/Main_Page" target="_blank" rel="external">Zabbix</a>：通过Graphite-web接口获取数据，来进行报警以及服务器常规监控。</li>
+</ul>
+<hr>
+<h3 id="实施"><a href="#实施" class="headerlink" title="实施"></a>实施</h3><p>方案确定之后，便可以开始实施了。首先需要将环境配置起来，然后才是代码层面的嵌入。<strong>Graphite</strong>的安装不是一件容易的事情，各个平台的安装都不相同，你可以把这当做是一种痛并快乐着的享受，下面便是我在Ubuntu上进行环境配置的步骤，仅供参考：</p>
+<h4 id="Graphite安装"><a href="#Graphite安装" class="headerlink" title="Graphite安装"></a>Graphite安装</h4><ol>
+<li>sudo apt-get install nginx uwsgi uwsgi-plugin-python</li>
+<li>sudo apt-get install graphite-web graphite-carbon</li>
+</ol>
+<p>安装就上面两步，当然在安装的过程中，缺少什么安装下就行了，接下来便可以开始配置Graphite。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">1. sudo vim /etc/graphite/local_settings.py</span><br><span class="line"><span class="comment">#将时区修改为正确的时区</span></span><br><span class="line">TIME_ZONE = <span class="string">'Asia/Shanghai'</span></span><br><span class="line"><span class="comment">#配置数据库，当然你也可以使用默认的sqlite3</span></span><br><span class="line">DATABASES = &#123;</span><br><span class="line">    <span class="string">'default'</span>: &#123;</span><br><span class="line">        <span class="string">'NAME'</span>: <span class="string">'graphite'</span>,</span><br><span class="line">        <span class="string">'ENGINE'</span>: <span class="string">'django.db.backends.postgresql_psycopg2'</span>,</span><br><span class="line">        <span class="string">'USER'</span>: <span class="string">'postgres'</span>,</span><br><span class="line">        <span class="string">'PASSWORD'</span>: <span class="string">'postgres'</span>,</span><br><span class="line">        <span class="string">'HOST'</span>: <span class="string">'localhost'</span>,</span><br><span class="line">        <span class="string">'PORT'</span>: <span class="string">''</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">2. 当配置好了之后，并可以执行`sudo graphite-manage syncdb`，进行数据库信息同步。</span><br><span class="line"></span><br><span class="line">3. sudo vim /etc/default/graphite-carbon</span><br><span class="line">CARBON_CACHE_ENABLED=<span class="literal">true</span></span><br><span class="line"></span><br><span class="line">4. sudo vim /etc/carbon/carbon.conf</span><br><span class="line"><span class="comment">#开启Carbon的log rotation</span></span><br><span class="line">ENABLE_LOGROTATION = True</span><br><span class="line"></span><br><span class="line">5. sudo vim /etc/carbon/storage-schemas.conf</span><br><span class="line"><span class="comment">#配置storage schemas</span></span><br><span class="line"><span class="comment">#意思是匹配任何以test.开头的metrics，采用三种方式收集存储数据：</span></span><br><span class="line"><span class="comment">#1.10s:10m---每10秒创建一个数据点，保存10分钟内该类型的数据点。</span></span><br><span class="line"><span class="comment">#2.1m:1h---每1分钟创建一个数据点，保存1小时内该类型的数据点。</span></span><br><span class="line"><span class="comment">#3.10m:1d---每10分钟创建一个数据点，保存一天内的该类型的数据点。</span></span><br><span class="line">[<span class="built_in">test</span>]</span><br><span class="line">pattern = ^<span class="built_in">test</span>\.</span><br><span class="line">retentions = 10s:10m,1m:1h,10m:1d</span><br><span class="line"></span><br><span class="line">6. sudo cp /usr/share/doc/graphite-carbon/examples/storage-aggregation.conf.example /etc/carbon/storage-aggregation.conf</span><br><span class="line"><span class="comment">#/etc/carbon/storage-aggregation.conf中的aggregation method默认使用的是average，其中的xFileFactor的值代表Carbon做聚合的最小百分比值，根据你的具体情况修改。</span></span><br><span class="line"></span><br><span class="line">7. sudo vim /etc/nginx/sites-available/graphite.conf</span><br><span class="line"><span class="comment">#nginx配置</span></span><br><span class="line">upstream graphite &#123;</span><br><span class="line">  server unix:///run/uwsgi/app/graphite/socket;</span><br><span class="line"></span><br><span class="line">  keepalive 600;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">  listen 80;</span><br><span class="line">  server_name graphite.yangguo.info;</span><br><span class="line"></span><br><span class="line">  access_log /var/<span class="built_in">log</span>/nginx/graphite.access.log;</span><br><span class="line">  error_log /var/<span class="built_in">log</span>/nginx/graphite.error.log;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  location / &#123;</span><br><span class="line">    uwsgi_pass graphite;</span><br><span class="line">    include uwsgi_params;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">8. sudo ln -s /etc/nginx/sites-available/graphite.conf /etc/nginx/sites-enabled</span><br><span class="line"></span><br><span class="line">9. sudo vi /etc/uwsgi/apps-available/graphite.ini</span><br><span class="line">[uwsgi]</span><br><span class="line">processes = 8</span><br><span class="line">uid = _graphite</span><br><span class="line">gid = _graphite</span><br><span class="line">master = True</span><br><span class="line"><span class="built_in">chdir</span> = /usr/share/graphite-web</span><br><span class="line">wsgi-file = graphite.wsgi</span><br><span class="line">chmod-socket = 666</span><br><span class="line"><span class="built_in">enable</span>-threads = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">10. sudo ln -s /etc/uwsgi/apps-available/graphite.ini /etc/uwsgi/apps-enabled</span><br><span class="line"></span><br><span class="line">11. sudo service carbon-cache start</span><br><span class="line">	sudo service nginx start</span><br><span class="line">	sudo service uwsgi start</span><br></pre></td></tr></table></figure>
+<p>对于上面第五步metrics的配置，精度的具体配置得看自己的业务，并不是粒度越细越好。<strong>江南白衣</strong>有篇很好的文章：<a href="http://calvin1978.blogcn.com/articles/graphite.html" target="_blank" rel="external">Graphite的百万Metrics实践之路</a>，就直接引过来，希望对大家有帮助。Graphite的安装及配置并不是非常容易，如果碰见问题，查查资料便能够解决，特别注意各种版本的兼容问题。</p>
+<h4 id="Whisper存储模式和聚合"><a href="#Whisper存储模式和聚合" class="headerlink" title="Whisper存储模式和聚合"></a>Whisper存储模式和聚合</h4><p>在开始的架构图中，你可能已经看见<strong>Graphite</strong>包含三个组件，<strong>Carbon</strong>和<strong>Graphite-web</strong>你可以不了解。但是如果你对<strong>Whisper</strong>的内部运行原理不是很了解，你可能会碰见如下的困惑：</p>
+<ul>
+<li>为什么我的数据点被平均了？</li>
+<li>为什么我周期性的发布了数据点，却看不见任何数据？</li>
+<li>我发布了很多天的数据，却只能看见一天的数据？</li>
+<li>为什么看见的数据跟我发布的数据点好像对应不上？</li>
+</ul>
+<p>要解决以上的问题，首先我们要明白<strong>Whisper</strong>是如何存储数据的，然后要了解它的聚合规则，最后还有数据点的移动。只要掌握了这些，我们才能配置合理的存储模式以及聚合规则，从而得到我们想要的结果。InfoQ上的<a href="http://www.infoq.com/cn/articles/graphite-intro" target="_blank" rel="external">DevOps实战：Graphite监控上手指南</a>已经讲的非常透彻，此处本着不造轮子的原则，就不复述了。</p>
+<h4 id="Grafana安装"><a href="#Grafana安装" class="headerlink" title="Grafana安装"></a>Grafana安装</h4><p>Grafana安装便非常简单，具体步骤如下：</p>
+<ol>
+<li>$ wget <a href="https://grafanarel.s3.amazonaws.com/builds/grafana_2.1.1_amd64.deb" target="_blank" rel="external">https://grafanarel.s3.amazonaws.com/builds/grafana_2.1.1_amd64.deb</a></li>
+<li>$ sudo apt-get install -y adduser libfontconfig</li>
+<li>$ sudo dpkg -i grafana_2.1.1_amd64.deb</li>
+</ol>
+<p>安装完成之后，便可以启动grafana-server了：</p>
+<p>$ sudo service grafana-server start</p>
+<p>最后设置开机启动：</p>
+<p>$ sudo update-rc.d grafana-server defaults 95 10</p>
+<p>别的环境安装教程见<a href="http://docs.grafana.org/installation/" target="_blank" rel="external">此处</a></p>
+<p>Grafana安装完成之后，便可以通过配置<code>Data sources</code>了，然后自定义需要展示的<strong>Dashboard</strong>，至此<strong>Graphite</strong>和<strong>Grafana</strong>的安装与集成便完成了。</p>
+<h4 id="Metrics使用"><a href="#Metrics使用" class="headerlink" title="Metrics使用"></a>Metrics使用</h4><p><strong>Metrics</strong>它不但提供了Gauge、Counter、Meter、Histogram、Timer等度量工具类以及Health Check功能，而且它还提供了很多模块为第三方库或者应用提供辅助统计信息，比如Jetty，Logback，Log4j，Apache HttpClient，Ehcache，JDBI，Jersey，最后它还可以将度量数据发送给Ganglia和Graphite以提供图形化的监控。作为一款监控指标的度量类库，从功能完善度已经易用性来说，它是表现的相当优秀。</p>
+<p>具体的业务指标需要自己的定义，然后完成采集，如果你使用<strong>spring</strong>，你可以使用<strong>metrics-spring</strong>，这又可以减轻一部分你的工作量。具体代码如何与代码集成，阅读下相关文档就可以很快上手了。</p>
+<h4 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h4><p>当完成上面三步，我们的数据采集，数据的汇总，数据展现都正常之后，我们就可以看看效果了，这是我简单的截了一个我的测试环境的图，供大家参考。<br><img src="/images/jvm.png" alt="jvm监控"><br><img src="/images/logic.png" alt="logic监控"></p>
+<h4 id="监控"><a href="#监控" class="headerlink" title="监控"></a>监控</h4><p><strong>graphite</strong>之所以被大家广泛采用，我觉得<strong>graphite-web API</strong>功不可没，它可以根据你将你需要的数据通过PNG图片或者JSON返回给你。正式基于这点，我们可以非常方便的与自己的报警系统集成，我们可以细粒度的监控我们的每项指标，然后来指定报警规则，并可以通过图表+文字的形式发送出来。</p>
+<p>请求1：<code>http://graphite.travelzen.com/render?target=jvm.192_168_161_87.ibe-interface-server.memory.heap.usage</code>得到了一个png图片</p>
+<p><img src="/images/pic.png" alt="api图片"></p>
+<p>请求2：<code>http://graphite.travelzen.com/render?target=jvm.192_168_161_87.ibe-interface-server.memory.heap.usage&amp;format=json</code>得到json数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[&#123;&quot;target&quot;: &quot;jvm.192_168_161_87.ibe-interface-server.memory.heap.usage&quot;, &quot;datapoints&quot;: [[0.01583333333333333, 1440424200], [0.016166666666666666, 1440424800], [0.015999999999999997, 1440425400], [0.01583333333333333, 1440426000], [0.015999999999999997, 1440426600], [0.01583333333333333, 1440427200], [0.015999999999999997, 1440427800], [0.01583333333333333, 1440428400], [0.016166666666666666, 1440429000], [0.016166666666666666, 1440429600], [0.015999999999999997, 1440430200], [0.016000000000000004, 1440430800], [0.01633333333333333, 1440431400], [0.01633333333333333, 1440432000], [0.01616666666666667, 1440432600], [0.01616666666666667, 1440433200], [0.01583333333333333, 1440433800], [0.01616666666666667, 1440434400], [0.0165, 1440435000], [0.016000000000000004, 1440435600], [0.016, 1440436200], [0.016166666666666666, 1440436800], [0.01616666666666667, 1440437400], [0.01583333333333333, 1440438000], [0.01633333333333333, 1440438600], [0.01633333333333333, 1440439200], [0.015666666666666666, 1440439800], [0.01633333333333333, 1440440400], [0.016333333333333335, 1440441000], [0.01583333333333333, 1440441600], [0.01616666666666667, 1440442200], [0.015999999999999997, 1440442800], [0.01616666666666667, 1440443400], [0.015999999999999997, 1440444000], [0.015999999999999997, 1440444600], [0.016, 1440445200], [0.01616666666666667, 1440445800], [0.01583333333333333, 1440446400], [0.01616666666666667, 1440447000], [0.016000000000000004, 1440447600], [0.016000000000000004, 1440448200], [0.01616666666666667, 1440448800], [0.015999999999999997, 1440449400], [0.016, 1440450000], [0.01616666666666667, 1440450600], [0.01583333333333333, 1440451200], [0.01616666666666667, 1440451800], [0.016000000000000004, 1440452400], [0.016000000000000004, 1440453000], [0.016166666666666666, 1440453600], [0.01616666666666667, 1440454200], [0.016000000000000004, 1440454800], [0.016166666666666666, 1440455400], [0.01616666666666667, 1440456000], [0.01616666666666667, 1440456600], [0.01616666666666667, 1440457200], [0.015999999999999997, 1440457800], [0.016000000000000004, 1440458400], [0.01633333333333333, 1440459000], [0.015666666666666666, 1440459600], [0.01633333333333333, 1440460200], [0.01583333333333333, 1440460800], [0.01616666666666667, 1440461400], [0.016, 1440462000], [0.01616666666666667, 1440462600], [0.016166666666666666, 1440463200], [0.016, 1440463800], [0.01633333333333333, 1440464400], [0.01633333333333333, 1440465000], [0.0165, 1440465600], [0.01633333333333333, 1440466200], [0.017, 1440466800], [0.017, 1440467400], [0.017, 1440468000], [0.016666666666666663, 1440468600], [0.017, 1440469200], [0.016999999999999998, 1440469800], [0.016833333333333332, 1440470400], [0.017, 1440471000], [0.020500000000000004, 1440471600], [0.023, 1440472200], [0.02266666666666667, 1440472800], [0.023000000000000003, 1440473400], [0.02316666666666667, 1440474000], [0.022833333333333334, 1440474600], [0.023, 1440475200], [0.022500000000000003, 1440475800], [0.023, 1440476400], [0.022833333333333334, 1440477000], [0.022833333333333334, 1440477600], [0.022833333333333337, 1440478200], [0.022833333333333337, 1440478800], [0.022833333333333337, 1440479400], [0.023, 1440480000], [0.023, 1440480600], [0.022833333333333337, 1440481200], [0.023, 1440481800], [0.016166666666666666, 1440482400], [0.015000000000000003, 1440483000], [0.015000000000000003, 1440483600], [0.015000000000000003, 1440484200], [0.015000000000000003, 1440484800], [0.015333333333333332, 1440485400], [0.015333333333333334, 1440486000], [0.01633333333333333, 1440486600], [0.025, 1440487200], [0.024999999999999998, 1440487800], [0.025333333333333336, 1440488400], [0.025, 1440489000], [0.02533333333333333, 1440489600], [0.025333333333333336, 1440490200], [0.025, 1440490800], [0.024833333333333336, 1440491400], [0.02633333333333333, 1440492000], [0.026499999999999996, 1440492600], [0.02633333333333333, 1440493200], [0.027500000000000004, 1440493800], [0.026666666666666665, 1440494400], [0.026666666666666672, 1440495000], [0.025500000000000002, 1440495600], [0.025000000000000005, 1440496200], [0.025000000000000005, 1440496800], [0.025000000000000005, 1440497400], [0.025000000000000005, 1440498000], [0.025000000000000005, 1440498600], [0.025000000000000005, 1440499200], [0.025000000000000005, 1440499800], [0.025000000000000005, 1440500400], [0.025000000000000005, 1440501000], [0.025000000000000005, 1440501600], [0.025000000000000005, 1440502200], [0.025000000000000005, 1440502800], [0.025833333333333337, 1440503400], [0.027500000000000004, 1440504000], [0.027500000000000004, 1440504600], [0.027500000000000004, 1440505200], [0.027500000000000004, 1440505800], [0.027500000000000004, 1440506400], [0.027500000000000004, 1440507000], [0.027500000000000004, 1440507600], [0.027500000000000004, 1440508200], [0.025500000000000002, 1440508800], [0.02518518518518519, 1440509400], [null, 1440510000]]&#125;]</span><br></pre></td></tr></table></figure>
+<p>我只是简单的说明了下API的使用，API还有非常多的函数可供选择，每次当你有新的需求不妨先翻翻是不是有现成的函数或者方法可供使用。</p>
+<p>监控这个老生常谈的话题，其实没有多少干货，看似简单其实做好并不容易。很多东西并不复杂，最重要的是要契合自己的业务，知道自己的关注点。Enjoy yourself !</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/监控/" rel="tag"># 监控</a>
+          
+            <a href="/tags/Graphite/" rel="tag"># Graphite</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/08/17/漫谈通讯架构/" rel="next" title="漫谈IM通信架构">
+                <i class="fa fa-chevron-left"></i> 漫谈IM通信架构
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/05/2015年工作总结/" rel="prev" title="2015年工作总结">
+                2015年工作总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#需求"><span class="nav-number">1.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析"><span class="nav-number">2.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方案"><span class="nav-number">3.</span> <span class="nav-text">方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实施"><span class="nav-number">4.</span> <span class="nav-text">实施</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Graphite安装"><span class="nav-number">4.1.</span> <span class="nav-text">Graphite安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Whisper存储模式和聚合"><span class="nav-number">4.2.</span> <span class="nav-text">Whisper存储模式和聚合</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Grafana安装"><span class="nav-number">4.3.</span> <span class="nav-text">Grafana安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Metrics使用"><span class="nav-number">4.4.</span> <span class="nav-text">Metrics使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#效果"><span class="nav-number">4.5.</span> <span class="nav-text">效果</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#监控"><span class="nav-number">4.6.</span> <span class="nav-text">监控</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2015/08/17/基于Graphite的监控方案/';
+
+      var disqus_title = "基于Graphite的监控方案";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

@@ -1,0 +1,988 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="IM," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前前后后做的IM和推送系统已经有好几个了，一直都想好好总结下，因此就有了这篇文章。在我刚学编程的那会儿，觉得网络通信是一个很牛逼和门槛很高的一门技术，但是随着开源技术的发展和互联网知识的共享，现在要写出高质量的网络通信程序已经变得容易多了。  只要谈通讯肯定绕不开协议，鉴于本人经验下面只谈本人撸过的三种协议：  XMPP MQTT 私有协议">
+<meta name="keywords" content="IM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="漫谈IM通信架构">
+<meta property="og:url" content="https://www.yangguo.info/2015/08/17/漫谈通讯架构/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="前前后后做的IM和推送系统已经有好几个了，一直都想好好总结下，因此就有了这篇文章。在我刚学编程的那会儿，觉得网络通信是一个很牛逼和门槛很高的一门技术，但是随着开源技术的发展和互联网知识的共享，现在要写出高质量的网络通信程序已经变得容易多了。  只要谈通讯肯定绕不开协议，鉴于本人经验下面只谈本人撸过的三种协议：  XMPP MQTT 私有协议">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://www.yangguo.info/images/mqtt-fixed-header.jpg">
+<meta property="og:image" content="https://www.yangguo.info/images/mqtt-fixed-header-message1.jpg">
+<meta property="og:image" content="https://www.yangguo.info/images/mqtt-qos.jpg">
+<meta property="og:image" content="https://www.yangguo.info/images/architecture.png">
+<meta property="og:image" content="https://www.yangguo.info/images/login.png">
+<meta property="og:image" content="https://www.yangguo.info/images/message.png">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="漫谈IM通信架构">
+<meta name="twitter:description" content="前前后后做的IM和推送系统已经有好几个了，一直都想好好总结下，因此就有了这篇文章。在我刚学编程的那会儿，觉得网络通信是一个很牛逼和门槛很高的一门技术，但是随着开源技术的发展和互联网知识的共享，现在要写出高质量的网络通信程序已经变得容易多了。  只要谈通讯肯定绕不开协议，鉴于本人经验下面只谈本人撸过的三种协议：  XMPP MQTT 私有协议">
+<meta name="twitter:image" content="https://www.yangguo.info/images/mqtt-fixed-header.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2015/08/17/漫谈通讯架构/"/>
+
+
+
+
+
+  <title> 漫谈IM通信架构 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/08/17/漫谈通讯架构/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                漫谈IM通信架构
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-17T12:54:29+08:00">
+                2015-08-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2015/08/17/漫谈通讯架构/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2015/08/17/漫谈通讯架构/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>前前后后做的IM和推送系统已经有好几个了，一直都想好好总结下，因此就有了这篇文章。在我刚学编程的那会儿，觉得网络通信是一个很牛逼和门槛很高的一门技术，但是随着开源技术的发展和互联网知识的共享，现在要写出高质量的网络通信程序已经变得容易多了。</p>
+</blockquote>
+<p>只要谈通讯肯定绕不开协议，鉴于本人经验下面只谈本人撸过的三种协议：</p>
+<ol>
+<li>XMPP</li>
+<li>MQTT</li>
+<li>私有协议</li>
+</ol>
+<a id="more"></a>
+<hr>
+<h3 id="XMPP"><a href="#XMPP" class="headerlink" title="XMPP"></a>XMPP</h3><p>XMPP(Extensible Messaging and Presence Protocol)，也叫Jabber，它是基于稳定长连接网络环境所设计的，对于不够稳定和带宽小的移动网络不是非常合适。由于XMPP基于XML，所以流量大，流量问题对于移动网络来说非常敏感，然后就是消息不可靠、CMWAP兼容、开源项目对协议实现不完善等问题，也是XMPP面临的问题。当然XML可以通过精简压缩来实现流量可控，目前这也是XMPP优化的可行方案，消息的不可靠可以通过扩展XMPP来实现ACK，随着3/4G的发展，CMWAP网关毕竟是末日黄花，但是开源项目对协议只是部分实现等问题，也是使用XMPP绕不过去的坎。Openfire是XMPP领域最知名的开源项目，它简单易用，是很多团队的首选方案，这是国内使用最多的开源方案。Openfire虽然优点很多，但是缺点也不少，最致命的就是它的分布式扩展能力很弱，当用户量很大的时候，水平扩展就成为它的瓶颈所在。还有一个不得不提的项目就是<a href="http://www.tigase.net/" target="_blank" rel="external">Tigase</a>，这是笔者接触的第一个XMPP开源项目，它在分布式扩展能力上和架构设计上比Openfire强了不少。由于该项目开始是一个私人项目，现在好像在商业化，所以使用者并不是很多，虽然国外有成熟案例，但是国内目前并不多，所以当时趟了Tigase的很多坑，目前<a href="http://www.jk.cn/" target="_blank" rel="external">平安好医生</a>的聊天系统就是基于此搭建的。如果对Tigase感兴趣，可以阅读我之前写的一篇文章《<a href="/2014/09/20/tigase集群方案及配置说明文档">Tigase集群方案及配置说明文档</a>》。不论使用哪个开源项目，虽然看起来开箱即用，但是要成为稳定成熟的产品，还需要深度的二次开发才行。</p>
+<p>虽然XMPP有很多弊端，但是它的生态目前是最完善的，如果从成本角度来考量，XMPP是前期投入最小产出最快的。但是如果是搭建一个SAAS平台或者千万量级的IM，XMPP就不是最优的选择了。当然这是一家之言，国内外目前商业化的IM SAAS平台有好几家都是基于XMPP实现的，这个大家可以自行Google。</p>
+<hr>
+<h3 id="MQTT"><a href="#MQTT" class="headerlink" title="MQTT"></a>MQTT</h3><p>MQTT是轻量级基于代理的发布/订阅的消息传输协议，它的最大特点就是协议开销非常小，伴随着的就是协议简单（40多页）、网络带宽要求极低和移动设备省电。有幸接触到该协议是笔者在开发Android推送系统时，对它进行了较细致的研究，虽然最终方案中没有使用该协议，但是自己定制的私有协议也参考了很多MQTT的设计。MQTT整个协议的组成，可以分为三个部分：</p>
+<ol>
+<li><strong>固定头部</strong>：通用消息数据包格式</li>
+<li><strong>可变头部</strong>：特定消息数据包格式</li>
+<li><strong>消息体</strong>：有效载荷</li>
+</ol>
+<h4 id="固定头部"><a href="#固定头部" class="headerlink" title="固定头部"></a>固定头部</h4><p>每个MQTT命令消息的消息头部都包含一个固定头部，固定头部的格式如下：</p>
+<p><img src="/images/mqtt-fixed-header.jpg" alt="fixed header"></p>
+<p><strong>Byte 1</strong><br>消息类型和标志字段</p>
+<p><strong>Byte 2</strong><br>剩余长度字段（至少1个字节，最多4个字节），采用big-endian模式存储</p>
+<p><strong>Message Type</strong></p>
+<p><img src="/images/mqtt-fixed-header-message1.jpg" alt="mqtt-fixed-header-message1"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">0：保留</span><br><span class="line">1：客户端请求连接服务器</span><br><span class="line">2：连接确认</span><br><span class="line">3：发布消息</span><br><span class="line">4：发布确认</span><br><span class="line">5：发布接收（有保证的交付第1部分）</span><br><span class="line">6：发布释放（有保证的交付第2部分）</span><br><span class="line">7：发布完成（有保证的交付第3部分）</span><br><span class="line">8：客户端订阅请求</span><br><span class="line">9：订阅确认</span><br><span class="line">10：客户端取消订阅请求</span><br><span class="line">11：取消订阅确认</span><br><span class="line">12：PING请求</span><br><span class="line">13：PING回复</span><br><span class="line">14：客户端断开连接</span><br><span class="line">15：保留</span><br></pre></td></tr></table></figure>
+<h4 id="DUP-Duplicate-delivery"><a href="#DUP-Duplicate-delivery" class="headerlink" title="DUP(Duplicate delivery)"></a>DUP(Duplicate delivery)</h4><p>保证消息可靠传输，默认为0，只占用一个bit，表示是否第一次发送，它不能用于检测消息重复发送。只适用于客户端或服务器端尝试重发PUBLISH, PUBREL, SUBSCRIBE 或 UNSUBSCRIBE消息，注意需要满足以下条件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">QoS &gt; 0</span><br><span class="line">即消息需要回复确认</span><br></pre></td></tr></table></figure>
+<p>此时，在可变头部需要包含消息ID。当值为1时，表示当前消息先前已经被传送过。</p>
+<h4 id="Qos-Quality-of-Service"><a href="#Qos-Quality-of-Service" class="headerlink" title="Qos(Quality of Service)"></a>Qos(Quality of Service)</h4><p>该标志位标明 PUBLISH 消息的交付质量级别:</p>
+<p><img src="/images/mqtt-qos.jpg" alt="mqtt-fixed-header-message1"></p>
+<h4 id="RETAIN"><a href="#RETAIN" class="headerlink" title="RETAIN"></a>RETAIN</h4><p>仅针对PUBLISH消息。不同值，不同含义：</p>
+<p>1：表示发送的消息需要一直持久保存（不受服务器重启影响），不但要发送给当前的订阅者，并且以后新来的订阅了此Topic name的订阅者会马上得到推送。</p>
+<p>备注：新来乍到的订阅者，只会取出最新的一个RETAIN flag = 1的消息推送。</p>
+<p>0：仅仅为当前订阅者推送此消息。</p>
+<p>假如服务器收到一个空消息体(zero-length payload)、RETAIN = 1、已存在Topic name的PUBLISH消息，服务器可以删除掉对应的已被持久化的PUBLISH消息。</p>
+<h4 id="Remaining-Length"><a href="#Remaining-Length" class="headerlink" title="Remaining Length"></a>Remaining Length</h4><p>这个字节包含当前消息的剩余部分，包括变量头部和负载的数据。</p>
+<p>可变长度的编码方式使用一个单独的字节使消息可以达到127字节的长度上限。协议限制最多4个字节，这样程序可以发送最大256Ｍ的消息。</p>
+<p>上面便是最核心的固定头部的内容，至于可变头部和消息体可以自己查询资料，目前有很多公司在使用MQTT实现Android的推送，但是目前笔者暂时不知道谁家的IM在使用它。</p>
+<h3 id="私有协议"><a href="#私有协议" class="headerlink" title="私有协议"></a>私有协议</h3><p>一万人眼中就有一万个哈姆雷特，同样的一万人眼中就有一万个私有协议。应用场景、设计风格，都会导致协议的设计千奇百怪。例如：数据量传输大的场景，压缩方案可能也被设计到协议中，因为不同的环境可能用到不同的压缩方式；传输质量，我们可能就默认某一个级别，可能就从协议中移除，具体的设计得靠经验和应用场景来设计。</p>
+<hr>
+<h3 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h3><p>做了好几个系统，我将我喜欢使用的一套架构抛出来供大家探讨。<br><img src="/images/architecture.png" alt="mqtt-fixed-header-message1"></p>
+<ul>
+<li><strong>CM-*</strong>:Connection Manager，可以分为WebSocket和Tcp两种承载方式。</li>
+<li><strong>SM</strong>:Session Manager。</li>
+<li><strong>Web</strong>:Rest接口，HTTP承载。历史消息，好友关系，个人信息管理等。</li>
+</ul>
+<p>一套很简单的架构，<strong>CM</strong>只负责链路的管理，链路和用户ID的关系维护在Redis中，<strong>SM</strong>负责业务逻辑和消息路由。<strong>CM</strong>和<strong>SM</strong>内部通过RPC调用，<strong>CM</strong>和<strong>SM</strong>内部全部采用事件驱动的方式，全部采用异步的方式。任何一个模块都可以水平扩展，并且<strong>SM</strong>如果达到非常复杂的地步，还可以拆分。最终的压力基本就到了Redis和Mysql，这些高可用和高并发的方案，已经非常成熟，就不用多说了。</p>
+<p>下图是登录流程和消息发送流程</p>
+<p><img src="/images/login.png" alt="login"></p>
+<p><img src="/images/message.png" alt="message"></p>
+<blockquote>
+<p>鉴于笔者经验，开发的IM最多承载用户数也就百万级别，所以架构上或者设计方案不一定完美，仅供参考！</p>
+</blockquote>
+<p><strong>注意事项</strong></p>
+<ol>
+<li>CM一定要采用多队列网卡，否者会出现服务器的一个CPU 100%，而别的CPU却很空闲，从而导致系统吞吐量上不去。因为单队列网卡的I/O中断都被分配到了一个CPU核上，大量数据包到来时，单个CPU核无法全部处理，导致LVS不断丢包连接中断。</li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/IM/" rel="tag"># IM</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/07/18/JavaAgent的一点思路/" rel="next" title="Java agent笔记">
+                <i class="fa fa-chevron-left"></i> Java agent笔记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/08/17/基于Graphite的监控方案/" rel="prev" title="基于Graphite的监控方案">
+                基于Graphite的监控方案 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#XMPP"><span class="nav-number">1.</span> <span class="nav-text">XMPP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQTT"><span class="nav-number">2.</span> <span class="nav-text">MQTT</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#固定头部"><span class="nav-number">2.1.</span> <span class="nav-text">固定头部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DUP-Duplicate-delivery"><span class="nav-number">2.2.</span> <span class="nav-text">DUP(Duplicate delivery)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Qos-Quality-of-Service"><span class="nav-number">2.3.</span> <span class="nav-text">Qos(Quality of Service)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RETAIN"><span class="nav-number">2.4.</span> <span class="nav-text">RETAIN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Remaining-Length"><span class="nav-number">2.5.</span> <span class="nav-text">Remaining Length</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#私有协议"><span class="nav-number">3.</span> <span class="nav-text">私有协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#架构"><span class="nav-number">4.</span> <span class="nav-text">架构</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2015/08/17/漫谈通讯架构/';
+
+      var disqus_title = "漫谈IM通信架构";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

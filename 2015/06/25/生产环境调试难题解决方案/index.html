@@ -1,0 +1,962 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Thread,BTrace," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="生产环境调试难题当我们的代码运行在生产环境时，各种千奇百怪的事情都有可能发生，而此时我们已经离开了舒服的开发环境，不能使用自己习惯的IDE来单步调试。当我们生产环境出现问题时，我们需要第一时间知道问题出在哪里。因此我们需要未雨绸缪做好准备，否者等问题发生时才通过漫无目的的查找日志，不但时间成本太高，并且不见得有效。 SOA，分布式，微服务….虽然带来了高可用和可扩展，但是同时也将系统架构的复杂度提">
+<meta name="keywords" content="Thread,BTrace">
+<meta property="og:type" content="article">
+<meta property="og:title" content="生产环境难题解决方案">
+<meta property="og:url" content="https://www.yangguo.info/2015/06/25/生产环境调试难题解决方案/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="生产环境调试难题当我们的代码运行在生产环境时，各种千奇百怪的事情都有可能发生，而此时我们已经离开了舒服的开发环境，不能使用自己习惯的IDE来单步调试。当我们生产环境出现问题时，我们需要第一时间知道问题出在哪里。因此我们需要未雨绸缪做好准备，否者等问题发生时才通过漫无目的的查找日志，不但时间成本太高，并且不见得有效。 SOA，分布式，微服务….虽然带来了高可用和可扩展，但是同时也将系统架构的复杂度提">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="生产环境难题解决方案">
+<meta name="twitter:description" content="生产环境调试难题当我们的代码运行在生产环境时，各种千奇百怪的事情都有可能发生，而此时我们已经离开了舒服的开发环境，不能使用自己习惯的IDE来单步调试。当我们生产环境出现问题时，我们需要第一时间知道问题出在哪里。因此我们需要未雨绸缪做好准备，否者等问题发生时才通过漫无目的的查找日志，不但时间成本太高，并且不见得有效。 SOA，分布式，微服务….虽然带来了高可用和可扩展，但是同时也将系统架构的复杂度提">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2015/06/25/生产环境调试难题解决方案/"/>
+
+
+
+
+
+  <title> 生产环境难题解决方案 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/06/25/生产环境调试难题解决方案/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                生产环境难题解决方案
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-06-25T14:51:29+08:00">
+                2015-06-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2015/06/25/生产环境调试难题解决方案/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2015/06/25/生产环境调试难题解决方案/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="生产环境调试难题"><a href="#生产环境调试难题" class="headerlink" title="生产环境调试难题"></a>生产环境调试难题</h3><p>当我们的代码运行在生产环境时，各种千奇百怪的事情都有可能发生，而此时我们已经离开了舒服的开发环境，不能使用自己习惯的IDE来单步调试。当我们生产环境出现问题时，我们需要第一时间知道问题出在哪里。因此我们需要未雨绸缪做好准备，否者等问题发生时才通过漫无目的的查找日志，不但时间成本太高，并且不见得有效。</p>
+<p>SOA，分布式，微服务….虽然带来了高可用和可扩展，但是同时也将系统架构的复杂度提升了好几个等级。经常我们会发现一个服务的不可用，是由于例外一个它依赖的服务导致的。持续交付和代码的不断更改，生产环境错误被找到的速度越来越快。然而如今，我们面对更大的困难是当错误发生时，我们如何提取错误的状态，比如变量值，错误，甚至逻辑代码块。</p>
+<p>目前主流的解决方案有如下几种:</p>
+<ol>
+<li>分布式日志</li>
+<li>高级的jstack</li>
+<li>Btrack</li>
+<li>定制的JVM代理</li>
+</ol>
+<a id="more"></a>
+<hr>
+<h3 id="分布式日志"><a href="#分布式日志" class="headerlink" title="分布式日志"></a>分布式日志</h3><p>分布式日志，就是我们每行日志都有清楚的上下文，我们只需要通过这行日志就能知道整个RPC调用链上发生的整个情况。对于分布式日志系统，业界成熟的产品有<strong>淘宝的鹰眼</strong>和<strong>点评的cat</strong>。原理就是RPC的第一跳，就生成一个全局唯一的UUID，该UUID会在整个RPC调用链中传递，并在需要打印日志的地方表现出来。很多日志库可以修改<strong>MDC(Mapped Diagnostic Context)</strong>来实现，如果没有也可以通过ThreadLocal来实现。至于该UUID如何在RPC调用链上传递，就需要自己在协议层面完善了。于此同时我们还可以结合<a href="https://www.elastic.co/products/logstash" target="_blank" rel="external">Logstash</a>或者<a href="https://www.loggly.com/" target="_blank" rel="external">Loggly</a>等日志管理工具，来简化日志管理。当然也有很多公司，通过<strong>rsyslog</strong>和<strong>syslog-ng</strong>甚至通过<strong>rsync</strong>来实现日志的集中化管理。</p>
+<p>导致线程终结的未捕获异常点，通常包含许多有用信息。绝大多数的框架能够将这些异常信息打印出来，如果要自己实现，可以通过一个全局的<strong>Exception Handler</strong>来实现。在未捕获的异常发生时，我们在打印日志时，注意以下的3点。</p>
+<ol>
+<li>线程名字：根据你请求的参数来修改线程名，比如RPCID或者事务ID，这样我们查找日志时，便能一眼知道该线程在干嘛。</li>
+<li>ThreadLocal(TLS)：在未捕获异常发生时，我们最好将ThreadLocal中的数据打印出来。因为除了数据和线程的名字，没有太多的程序能够到达异常点来记录TLS中的数据。这些现场数据保留的越多越好，当你追查问题时，便会从中受益。</li>
+<li>MDC：它类似与TLS，MDC是Log4j或者Logback日志框架的一部分。它就是在指定的日志级别上创建了一个静态Map，相比TLS，它的功能更高级些。</li>
+</ol>
+<h3 id="先发制人的Jstack"><a href="#先发制人的Jstack" class="headerlink" title="先发制人的Jstack"></a>先发制人的Jstack</h3><p>jstack作为一款jdk自带的强大工具，被大多数的程序员所熟悉。它能够hook进正在运行的程序和输出被hook程序的堆栈，数据帧，Java虚拟机或者native，锁以及其它各种各样的元数据，它还能分析已经dump出来的堆栈信息。</p>
+<p>虽然它很强大，但是我们都主要用在问题已出的事后，通过它来寻找蛛丝马迹定位问题所在。如果说能够在问题发生前或者问题发生中，我们就能够知道，并且将现场给保存下来，那么这无疑会降低问题的定位难度。下面给出一个当吞吐量达到一定阀值，自动jstack的例子。具体代码详见<a href="https://github.com/chengdedeng/jstack" target="_blank" rel="external">链接</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startScheduleTask</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   scheduler.scheduleAtFixedRate(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">           checkThroughput();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;, APP_WARMUP, POLLING_CYCLE, TimeUnit.SECONDS);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkThroughput</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> throughput = adder.intValue(); <span class="comment">//the adder is inc’d when a message is processed</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (throughput &lt; MIN_THROUGHPUT) &#123;</span><br><span class="line"></span><br><span class="line">       Thread.currentThread().setName(<span class="string">"Throughput jstack thread: "</span> + throughput);</span><br><span class="line"></span><br><span class="line">       System.err.println(<span class="string">"Minimal throughput failed: executing jstack"</span>);</span><br><span class="line"></span><br><span class="line">       executeJstack();  <span class="comment">// See the code on GitHub to learn how this is done</span></span><br><span class="line"></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   adder.reset();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="有状态的Jstack"><a href="#有状态的Jstack" class="headerlink" title="有状态的Jstack"></a>有状态的Jstack</h3><p>Jstack存在的例外一个问题就是，虽然他提供了非常丰富的元数据，但是我们缺乏导致错误的实际状态。我们可以设置线程名称来解决。为了能够找到错误的根源，我们需要的不仅仅是一个堆栈追踪信息。我们以数据库查询为例，我们在程序中加入这样一行代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Thread.currentThread().setName(Context + TID + Params + current Time, ...);</span><br></pre></td></tr></table></figure>
+<p>没有设置前，数据的元数据如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">“ pool-1-thread-1 ″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
+<p>现在看起来是这样的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">”Queue Processing Thread, MessageID: AB5CAD, <span class="built_in">type</span>: AnalyzeGraph, queue: ACTIVE_PROD, Transaction_ID: 5678956, Start Time: 10/8/2014 18:34″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
+<p>现在的输出可以帮助我们更好的了解程序到底发生了什么。现在我们可以知道线程接收的参数，事务ID，消息ID。有了这些参数，我们就可以追溯问题，发现错误和解决问题。</p>
+<h3 id="BTrace"><a href="#BTrace" class="headerlink" title="BTrace"></a>BTrace</h3><p>不论是日志还是jstack都不能对JVM的运行状态进行很好的可视化，BTrace使用Java的<strong>Attach</strong>技术，可以让我们无缝的将我们BTrace脚本挂到JVM上。通过脚本你可以获取到任何你想拿到的数据，在侵入性和安全性上都非常可靠，特别是定位线上问题的神器。BTrace的详细使用，可以见我的例外<a href="/2015/06/08/btrace笔记">一篇文章</a>。</p>
+<p>让我们简单的看一段<strong>BTrace</strong>脚本：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Profiling</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Property</span></span><br><span class="line">    Profiler profiler = BTraceUtils.Profiling.newProfiler();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">entry</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordEntry(profiler, probeMethod);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>, location = <span class="meta">@Location</span>(value = Kind.RETURN))</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod, @Duration <span class="keyword">long</span> duration) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordExit(profiler, probeMethod, duration);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnTimer</span>(<span class="number">5000</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">timer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.printSnapshot(<span class="string">"Performance profile"</span>, profiler);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>BTrace是定位具体问题的有效工具，但是它的开销是非常显著的，使用的时候要小心，避免过高的开销影响重要业务。</p>
+<h3 id="自定义代理"><a href="#自定义代理" class="headerlink" title="自定义代理"></a>自定义代理</h3><p>跟BTrace一样，我们也可以自己定义Java代理。在Java SE5中，Instrument就已经被加入，Java SE6中，更是实现了动态Instrument。Instrument功能从本地代码中解放出来，使之可以使用使用Java代码在不改变现有代码的前提下，在不重启应用的前提下实现对JVM的监测甚至替换和修改某些类的定义。它有点类似于虚拟机级别的AOP，使开发者不用对jdk做任何改动，就可以实现AOP功能。BTrace的实现就是依靠该功能实现的。</p>
+<p>“java.lang.instrument”包的具体实现，依赖于 JVMTI。JVMTI（Java Virtual Machine Tool Interface）是一套由 Java 虚拟机提供的，为 JVM 相关的工具提供的本地编程接口集合。JVMTI 是从 Java SE 5 开始引入，整合和取代了以前使用的 Java Virtual Machine Profiler Interface (JVMPI) 和 the Java Virtual Machine Debug Interface (JVMDI)，而在 Java SE 6 中，JVMPI 和 JVMDI 已经消失了。JVMTI 提供了一套”代理”程序机制，可以支持第三方工具程序以代理的方式连接和访问 JVM，并利用 JVMTI 提供的丰富的编程接口，完成很多跟 JVM 相关的功能。</p>
+<p>另外，对 native 的 Instrumentation 也是 Java SE 6 的一个崭新的功能，这使以前无法完成的功能 —— 对 native 接口的 instrumentation 可以在 Java SE 6 中，通过一个或者一系列的 prefix 添加而得以完成。</p>
+<p>测试代码可以具体参考<a href="https://github.com/chengdedeng/demo" target="_blank" rel="external">该项目</a>中的<strong>attch_api</strong>包下面的代码。</p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>很多时候个人价值的体现就是当有问题发生时，看谁能够更快速的解决问题。今天对于一个需要提供7*24小时服务的应用来说，别说停机，就是部分服务出现问题都是不可容忍的。谁能在最短的时间修复问题，并且快速部署，谁就更能创造价值。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Thread/" rel="tag"># Thread</a>
+          
+            <a href="/tags/BTrace/" rel="tag"># BTrace</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/06/08/btrace笔记/" rel="next" title="BTrace笔记">
+                <i class="fa fa-chevron-left"></i> BTrace笔记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/06/30/外部HTTP服务访问慢的Case/" rel="prev" title="外部HTTP服务访问慢的Case">
+                外部HTTP服务访问慢的Case <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#生产环境调试难题"><span class="nav-number">1.</span> <span class="nav-text">生产环境调试难题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分布式日志"><span class="nav-number">2.</span> <span class="nav-text">分布式日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#先发制人的Jstack"><span class="nav-number">3.</span> <span class="nav-text">先发制人的Jstack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#有状态的Jstack"><span class="nav-number">4.</span> <span class="nav-text">有状态的Jstack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BTrace"><span class="nav-number">5.</span> <span class="nav-text">BTrace</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义代理"><span class="nav-number">6.</span> <span class="nav-text">自定义代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结论"><span class="nav-number">7.</span> <span class="nav-text">结论</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2015/06/25/生产环境调试难题解决方案/';
+
+      var disqus_title = "生产环境难题解决方案";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

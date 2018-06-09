@@ -1,0 +1,982 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="管理、架构、DDD," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="随着SOA、微服务等诸多概念的炒作，再加上Dubbo、Spring Cloud、Netflix OSS等诸多开源软件的支撑，要构建一套大型的分布式系统的技术门槛已经变得非常之低。但是这并不意味着构建一套大型分布式系统就是很容易的，因为任何系统都是领域知识的体现。所以笔者将这些年系统研发过程中的一点感悟记录下来，仅供参考。   统一内部通用语言Question:  SPU=SKU 12A:把类目X">
+<meta name="keywords" content="管理、架构、DDD">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式系统研发心得">
+<meta property="og:url" content="https://www.yangguo.info/2017/01/25/分布式系统研发心得/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="随着SOA、微服务等诸多概念的炒作，再加上Dubbo、Spring Cloud、Netflix OSS等诸多开源软件的支撑，要构建一套大型的分布式系统的技术门槛已经变得非常之低。但是这并不意味着构建一套大型分布式系统就是很容易的，因为任何系统都是领域知识的体现。所以笔者将这些年系统研发过程中的一点感悟记录下来，仅供参考。   统一内部通用语言Question:  SPU=SKU 12A:把类目X">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分布式系统研发心得">
+<meta name="twitter:description" content="随着SOA、微服务等诸多概念的炒作，再加上Dubbo、Spring Cloud、Netflix OSS等诸多开源软件的支撑，要构建一套大型的分布式系统的技术门槛已经变得非常之低。但是这并不意味着构建一套大型分布式系统就是很容易的，因为任何系统都是领域知识的体现。所以笔者将这些年系统研发过程中的一点感悟记录下来，仅供参考。   统一内部通用语言Question:  SPU=SKU 12A:把类目X">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2017/01/25/分布式系统研发心得/"/>
+
+
+
+
+
+  <title> 分布式系统研发心得 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2017/01/25/分布式系统研发心得/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                分布式系统研发心得
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-25T13:05:30+08:00">
+                2017-01-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2017/01/25/分布式系统研发心得/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/01/25/分布式系统研发心得/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>随着SOA、微服务等诸多概念的炒作，再加上Dubbo、Spring Cloud、Netflix OSS等诸多开源软件的支撑，要构建一套大型的分布式系统的技术门槛已经变得非常之低。但是这并不意味着构建一套大型分布式系统就是很容易的，因为任何系统都是领域知识的体现。所以笔者将这些年系统研发过程中的一点感悟记录下来，仅供参考。</p>
+</blockquote>
+<hr>
+<h2 id="统一内部通用语言"><a href="#统一内部通用语言" class="headerlink" title="统一内部通用语言"></a>统一内部通用语言</h2><p>Question:</p>
+<ol>
+<li><p><code>SPU=SKU</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A:把类目X下的SPU给我。</span><br><span class="line">B:把类目X下的SKU给了A。</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>ID=CODE</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A:我给你商场ID，你给我商场信息。</span><br><span class="line">B:A给我商场CODE，我用商场CODE去查询。</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>为了解决这个问题，所有的团队成员都应该意识到需要创建一种通用的语言，并且时常提醒大家对基本的内容保持专注，在任何需要的时候都使用这种语言。我们应该尽量少地在这些场合使用我们自己的行话，应该使用通用语言，因为它能帮助我们更清晰、更精确地交流。</p>
+<a id="more"></a>
+<p>通用语言连接起设计中的所有的部分，为设计团队今后顺利开展工作建立了前提。 完成一个大规模项目的设计可能需要花费数周乃至数月的时间。团队成员会发现一些初始的概念是不正确的或者不合时宜，或者发现一些需要考虑并放进总体设计中的新的设计元素。没有一种公共的语言，所有的这一切都是不可能的。</p>
+<p>这种语言的形成可不是一日之功，需要开展艰难的工作，重点在于确保发现语言的那些关键元素。我们需要发现定义领域和模型的那些关键概念，发现描述它们的适当用词，并开始使用它们。它们当中的一些概念可能很容易被发现，但另一些则不然。</p>
+<p>通用语言的重要性，不言而喻，但是我们很多时候却并没有把它提升到一个非常重要的高度，这样导致了内部的沟通效率非常低下。在各种场合、组织内部强化约束这些通用语言的抽象和使用，它并不会立马提升效率，但是你得坚信这样做是值得的。</p>
+<h2 id="模型驱动设计（MDD）"><a href="#模型驱动设计（MDD）" class="headerlink" title="模型驱动设计（MDD）"></a>模型驱动设计（MDD）</h2><p>产品经理（软件分析人员）和业务领域专家（老板 or 甲方）在一起工作了一段时间，一起找出来了领域的基础元素，理清了元素之间的关系，创建了一个正确的模型，这个模型的确正确捕获了领域知识。然后模型交给软件工程师。开发人员看模型时可能会发现模型中的有些概念或者关系无法使用代码来正确地表达。所以他们使用模型作为灵感的源泉，创建了自己的设计，虽然其设计借鉴了模型的某些思想，但是他们还增加了一些自己的东西。开发过程继续进行，更多的类被添加到代码中，进一步加大了原始模型和最终实现的差距。在这种情况下，很难保证产生好的结果。优秀的开发人员可能会做出一个能够工作的产品，但它能经得起时间的考验吗?它能被很容易地扩展吗?它能被容易地维护吗?当然还有更差的就是设计反推需求，工程师在设计系统的时候，发现流程走不下去，需要提新的需求，而这些需求软件分析人员根本就没有考虑到。这些问题从软件诞生以来就存在，只是在大型分布式系统被成倍的放大。</p>
+<p>如果开发人员能够参加需求讨论会议，并在开始做编码设计之前对领域 知识和模型获得一个清晰完整的视图，他们后面的设计工作将会更有效率。最好的方法是将领域建模和系统设计紧密关联起来，领域模型在构建时就考虑到软件实现和设计，如果有问题及时调整和修正方向。这样就能获得一个有效的领域模型，程序员就能非常方便的将这种模型转化为代码。当然并不是这样做就能够保证沟通是没有任何障碍的，很多软件分析人员（产品经理）总以为程序员在刁难他们，因为他们不能理解建模中的难点和技术问题，这也是我坚持认为一个好的软件分析人员一定要写过几年代码。在我们目前的职业生涯中遇见过好几个工程师出身的产品经理，我经常拿他们跟非工程师出身的比较，不论跟程序员的讨论实现细节还是领域模型的抽象，他们的确具有一定优势。</p>
+<p>当我们创建一个软件应用时，这个应用的很大一部分并没有直接与领域关联，但它们是基础设施的一部分或者是为软件本身提供服务的。最好能让应用中的领域部分与其余部分相比保持尽可能小(而不是和其余部分掺杂在一起)，因为一个典型的应用包含了大量访问数据库、访问文件或网络、用户界面等相关的代码。</p>
+<p>因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础设施代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识， 并且能够正常工作。</p>
+<p>常用的分层架构方案如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">层</th>
+<th style="text-align:center">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">展示层</td>
+<td style="text-align:center">向用户展示软件的功能和信息</td>
+</tr>
+<tr>
+<td style="text-align:center">应用层</td>
+<td style="text-align:center">应用的逻辑的协调，不包含业务逻辑和业务对象的状态，包含会话的上下文</td>
+</tr>
+<tr>
+<td style="text-align:center">领域层</td>
+<td style="text-align:center">核心业务逻辑，业务对象状态保持，包含完整的领域信息</td>
+</tr>
+<tr>
+<td style="text-align:center">基础层</td>
+<td style="text-align:center">实体对象的持久化，公用库，基础服务</td>
+</tr>
+</tbody>
+</table>
+<p>分层就必然面临着边界的划分问题，因为对于一个大型的分布式应用，每一层都是极其庞杂的，所以是先按领域划分模块然后再分层。各个模块清晰的被划分出来，各层被清晰的定义出来，这样就可以有效的避免代码混乱和降低管理成本。因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识，并且能够正常工作。因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础设施代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识，并且能够正常工作。当实体、值对象、服务被清晰无误的定义出来，领域知识的落地就基本完成。</p>
+<p>虽然内聚始于类和方法，它也可以用在模块级别。模块内聚一般分为两种，通信性内聚和功能性内聚，把操作相同数据的服务放在一个模块叫做通信性内聚，把具有强关联性的业务逻辑放在一个模块叫功能性内聚，功能性内聚被认为是最佳实践。不论如何聚合，我们还是会看到很多对象会跟其他的对象发生关联，形成了一个复杂的关系网，不论是一对一、一对多还是多对多。来自模型的挑战常常不是让它们尽量完整，而是让它们尽量地简单和容易理解。这意味着，除非直到模型中嵌入了对领域的深层理解，否则大多数时候需要对模型中的关系进行消减和简化。 首先，要删除模型中非基本的关联关系。它们可能在领域中是存在的，但它们在我们的模型中不是必要的，所以我们要删除它们。其次，可以通过添加约束的方式来减少多重性。如果很多对象满足一种关系，那么在这个关系上加入正确的约束之后，很有可能只有一个对象会继续满足这种关系。第三，很多时候双向关联可以被转换成非双向的关联。</p>
+<h2 id="接口设计原则"><a href="#接口设计原则" class="headerlink" title="接口设计原则"></a>接口设计原则</h2><ol>
+<li>尽可能保证接口幂等性，不论是读还是写。读不需要多解释，写的并发问题，所以乐观锁等不错的思路。</li>
+<li>接口要尽可能可以降级</li>
+<li>需求确定之后，接口和数据模型先行，协议和字段需要在Java Doc和Swagger API Docs中详细描述</li>
+<li>领域层的接口先从一个比较大的服务边界开始，然后随着时间推移基于业务需求来重构成更小的。我们应该关注微服务的范围，而不是一味的把服务做小。一个服务的（正确的）大小应该等于满足某个特定业务能力所需要的大小。他们应该是内聚而完整的。</li>
+<li>接口需要向下兼容，所以接口都需要带上版本号，如果底层的数据结构发生了颠覆性变化，要充分考虑老版本接口问题，特别是C端产品。</li>
+<li>接口要尽量保证无状态，如果的确有状态，可以按状态划分为多个接口。</li>
+<li>不能过度抽象接口，例如public Map query(Map map)这类接口，维护和使用都非常困难。但是也不能不抽象，否者接口数会暴增，随着业务的稳定，有必要抽象合并。</li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/管理、架构、DDD/" rel="tag"># 管理、架构、DDD</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/12/15/传统企业互联网转型的架构之道/" rel="next" title="TOP100案例分享">
+                <i class="fa fa-chevron-left"></i> TOP100案例分享
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/17/红星互联网转型的技术心得/" rel="prev" title="红星悦家技术研发心得">
+                红星悦家技术研发心得 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#统一内部通用语言"><span class="nav-number">1.</span> <span class="nav-text">统一内部通用语言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模型驱动设计（MDD）"><span class="nav-number">2.</span> <span class="nav-text">模型驱动设计（MDD）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口设计原则"><span class="nav-number">3.</span> <span class="nav-text">接口设计原则</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2017/01/25/分布式系统研发心得/';
+
+      var disqus_title = "分布式系统研发心得";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

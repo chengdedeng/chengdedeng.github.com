@@ -1,0 +1,956 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="架构," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="这篇文章最早发布在聊聊架构微信公众号，结果引发了大家的众多评论，有对红星所做事情的疑惑也有对技术合理性的质疑。不论哪种情况，很高兴抛出了一个让大家还有兴趣聊两句的话题，还是那句话不求共鸣，只求博君一笑，不论是嘲笑还是微笑！  互联网和移动互联网的飞速崛起，对传统行业造成了破坏性的冲击和几乎窒息的压迫，迫使他们必须做出改变和应对。在这个都想拿到船票的时刻，技术的重要性已经可以媲美商业模式，因为再好">
+<meta name="keywords" content="架构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="红星悦家技术研发心得">
+<meta property="og:url" content="https://www.yangguo.info/2017/03/17/红星互联网转型的技术心得/index.html">
+<meta property="og:site_name" content="城的灯">
+<meta property="og:description" content="这篇文章最早发布在聊聊架构微信公众号，结果引发了大家的众多评论，有对红星所做事情的疑惑也有对技术合理性的质疑。不论哪种情况，很高兴抛出了一个让大家还有兴趣聊两句的话题，还是那句话不求共鸣，只求博君一笑，不论是嘲笑还是微笑！  互联网和移动互联网的飞速崛起，对传统行业造成了破坏性的冲击和几乎窒息的压迫，迫使他们必须做出改变和应对。在这个都想拿到船票的时刻，技术的重要性已经可以媲美商业模式，因为再好">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://www.yangguo.info/images/mmall_architecture.png">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon1.png">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon2.png">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon3.png">
+<meta property="og:image" content="https://www.yangguo.info/images/dragon4.png">
+<meta property="og:image" content="https://www.yangguo.info/images/pinpoint2.png">
+<meta property="og:image" content="https://www.yangguo.info/images/pinpoint3.png">
+<meta property="og:image" content="https://www.yangguo.info/images/pinpoint4.png">
+<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="红星悦家技术研发心得">
+<meta name="twitter:description" content="这篇文章最早发布在聊聊架构微信公众号，结果引发了大家的众多评论，有对红星所做事情的疑惑也有对技术合理性的质疑。不论哪种情况，很高兴抛出了一个让大家还有兴趣聊两句的话题，还是那句话不求共鸣，只求博君一笑，不论是嘲笑还是微笑！  互联网和移动互联网的飞速崛起，对传统行业造成了破坏性的冲击和几乎窒息的压迫，迫使他们必须做出改变和应对。在这个都想拿到船票的时刻，技术的重要性已经可以媲美商业模式，因为再好">
+<meta name="twitter:image" content="https://www.yangguo.info/images/mmall_architecture.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.yangguo.info/2017/03/17/红星互联网转型的技术心得/"/>
+
+
+
+
+
+  <title> 红星悦家技术研发心得 | 城的灯 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-30366740-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2ea998c61c5fca0f866fd64121472473";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">城的灯</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">杨果的博客</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2017/03/17/红星互联网转型的技术心得/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                红星悦家技术研发心得
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-03-17T12:54:29+08:00">
+                2017-03-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2017/03/17/红星互联网转型的技术心得/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/17/红星互联网转型的技术心得/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>这篇文章最早发布在<a href="http://mp.weixin.qq.com/s?__biz=MzA5Nzc4OTA1Mw==&amp;mid=2659599087&amp;idx=1&amp;sn=b113e5fbfccd8145a61f026250e08081&amp;chksm=8be997fdbc9e1eebaba52b4b2a0606acfb50f78ee5267d3b8912866039960f31f57438bfbd54&amp;mpshare=1&amp;scene=5&amp;srcid=0324MRCZlO2zYn4Ly3TZhr4D#rd" target="_blank" rel="external">聊聊架构</a>微信公众号，结果引发了大家的众多评论，有对红星所做事情的疑惑也有对技术合理性的质疑。不论哪种情况，很高兴抛出了一个让大家还有兴趣聊两句的话题，还是那句话不求共鸣，只求博君一笑，不论是嘲笑还是微笑！</p>
+</blockquote>
+<p>互联网和移动互联网的飞速崛起，对传统行业造成了破坏性的冲击和几乎窒息的压迫，迫使他们必须做出改变和应对。在这个都想拿到船票的时刻，技术的重要性已经可以媲美商业模式，因为再好的商业模式都离不开技术来落地，所以谁的技术领先，谁就有可能最快抵达终点。但是众所周知，传统行业的IT部都是支撑部门，在信息化建设的研发能力上是先天不足的。红星美凯龙是一家超过30年的老牌传统企业，虽然过去几年在信息化的建设和互联网的探索上投入了大量的资本，但是在技术方面的积淀收效甚微。随着红星的港股上市，再次开启互联网战略，成立红星悦家互联网集团，我们在吸收了过去经验教训的基础上，重新架构红星的技术体系。</p>
+<a id="more"></a>
+<h2 id="研发团队组建"><a href="#研发团队组建" class="headerlink" title="研发团队组建"></a>研发团队组建</h2><p>研发团队的组建一直以来困扰着诸多创业公司，对于红星来说也不例外。虽然红星在线下有较强的优势，但是对于互联网确实不折不扣的新兵，每一位候选人都带着深深的疑惑和担忧，让我们感到在吸引优秀技术人才上的无力感。在内部推荐、猎头、人事三管齐下的努力下，技术团队迅速壮大起来，因为我们都在努力传达一个讯息，那就是红星对互联网业务是认真的。不论是做人还是做事，就怕认真，我们在努力给技术人员创造舒适工作环境的同时也让技术人员拥有更多的话语权。任何事情都是两面性的，快速扩张的团队在磨合上出现了不小的问题，这不是最突出的，难点在突然发现出现了技术栈的分裂。我们在一开始就设计了基于Java的整套后端解决方案，由于种种原因，部分核心业务团队开始使用PHP。这个时候，我们开始意识到问题的严重性，当然并不是因为否定PHP是世界上最好的语言，而是我们发现这样会完全打乱我们早期的整体架构规划。对于一家创业公司，如果很多基础设施不能做到公用不能求同存异，研发成本和技术架构复杂度会陡然上升，吃过苦头的公司不在少数，当然这也是他们吹牛的资本。在技术管理层的强烈要求下，该业务团队很快切换了过来，不论是人员招聘还是新需求的研发上都进行了管控。红星技术团队初期遇到的磨合问题，跟所有迅速扩展组建的技术团队一样，大家来至五湖四海四海八荒，不论是技术决策还是业务需求，我们都本着对事不对人，所以很快就度过了那段最为动荡的时光。</p>
+<h2 id="新架构的设计与落地"><a href="#新架构的设计与落地" class="headerlink" title="新架构的设计与落地"></a>新架构的设计与落地</h2><p>对于重装归来的红星悦家，我们希望在技术方面能够夯实每一步，所以在技术团队组建之初就开始了架构设计。在新技术和新架构层出不穷的当下，在技术选型和技术方案的敲定上，始终秉承着<code>不熟不用</code>。没有成功案例、开源者的背景不好、社区活跃度低、团队接收度低的都不采用。我们要的不是屌炸天，而是稳定可靠易用，当然我们也不是独断专行，而是兼蓄并包，只要团队成员的选择能够通过架构委员会的challenge。整体架构大概如下：</p>
+<p><img src="/images/mmall_architecture.png" alt="红星架构"></p>
+<p>虽然我们内心保守，但毕竟新业务没有太多的历史负担，加上大家都来至行业内技术口碑都还不错的公司，所以在短短的两个月之内就攒出来了这样一套并不算太过时的架构。</p>
+<h4 id="监控"><a href="#监控" class="headerlink" title="监控"></a>监控</h4><p>监控的重要性不言而喻，一开始我们就将监控摆在了首要位置，不论是容量规划、服务的Qos、代码质量管理，都需要监控作为支撑。在网络、负载、IO、流量等常规监控上，我们选择了Zabbix。在日志分析和报表展示上，我们选择了Kibana，它是我们日志平台的核心组件。在业务逻辑的Metrics上，我们选择了Graphite，代码端我们使用了Dropwizard的Metrics库再配合metrics-spring，实现了埋点的最小侵入性。Graphite中的Metrics数据在Grafana进行Dashboard展现，同时Graphite的REST接口提供数据给Zabbix进行业务Metrics报警。当某个核心业务逻辑的Rate、响应时长超过预定阀值时就会触发。在服务治理上，我们选择了Dubbo，在调用链的追踪上，开始我们选择了自研，代号为Dragon，通过Dubbo的Attachment将TraceId和Parent SpanId带给RPC下一跳，就能将整个调用链给串起来。Dragon的界面如下，从截图中能够清晰的了解Dragon传达的信息，线上的数值表示网络耗时，红色表示异常，绿色表示正常。</p>
+<p><img src="/images/dragon1.png" alt="dragon1"></p>
+<p><img src="/images/dragon2.png" alt="dragon2"></p>
+<p><img src="/images/dragon3.png" alt="dragon3"></p>
+<p><img src="/images/dragon4.png" alt="dragon4"></p>
+<p>同时我们修改Log4j MDC将TraceId和日志进行了绑定。由于Kibana对日志的切割和索引，我们通过TraceId就能够很轻松的将一次跨域多个服务的Trace所打印的日志给搜索出来。虽然Dragon看起来不错，但是我们发现Pinpoint做的更多更好，并且通过Java agent侵入性几乎为零，所以最终我们放弃了自研的Dragon。调用链的追踪可以认为是微观粒度的，是分析某一个请求，宏观层面我们还是依靠Metrics和Dubbo自带的monitor。由于Pinpoint有丰富的插件，所以收集的信息非常多，这也是我们选择它的主要原因。</p>
+<p><img src="/images/pinpoint2.png" alt="pinpoint2"></p>
+<p><img src="/images/pinpoint3.png" alt="pinpoint3"></p>
+<p><img src="/images/pinpoint4.png" alt="pinpoint4"></p>
+<h4 id="技术细节"><a href="#技术细节" class="headerlink" title="技术细节"></a>技术细节</h4><p><code>对外服务层</code>可以理解为展示层和应用层的结合，七层的负载均衡我们使用的是Nginx。在该层中我们进行应用逻辑的协调和拼装，这层绝大部分REST服务是无状态的，对于需要上下文的逻辑，会话也维持在这层，这一层非常薄。<code>核心逻辑层</code>维护着业务逻辑和业务对象的状态，该层是领域的体现，也是服务治理的核心层。这层的复杂度一般是最高的，因为领域建模、数据持久化、业务流转等都在此完成。为了降低复杂度提高可维护性，这层的项目要严格进行分层架构。<code>基础服务层</code>比较简单，就是一些常规的基础服务，例如:短信网关、邮件网关、全局唯一ID生成器、Pinpoint、推送服务等等。</p>
+<p>为了尽可能让发布简单，不论是WEB服务还是Dubbo服务，我们都使用<a href="https://wrapper.tanukisoftware.com/doc/english/download.jsp" target="_blank" rel="external">JSW</a>打包成Zip包来发布，对应的maven插件为<code>appassembler-maven-plugin</code>。WEB服务我们基于Spring Boot，通过内嵌Tomcat来实现Zip的创建。配置中心我们选择了<a href="https://github.com/knightliao/disconf" target="_blank" rel="external">Disconf</a>，不但让代码和配置分离，并且让我们一个包能够运行在多套环境。使用Disconf得注意配置文件的加载顺序，特别是在Spring Boot项目中，WEB配置优先于Disconf相关Bean加载，可以使用<code>@PropertySource</code>通过URL来引入Disconf的配置。<a href="http://swagger.io/" target="_blank" rel="external">Swagger</a>用来生成REST接口文档，代码即文档，让接口的文档维护和测试更加容易。随着开源组件的引入越来越多，要迅速搭建一套系统越来越不容易，所以我们抽象出了多种类型的Archetype，各种基础代码和配置都全部自动生成，降低基础组件的使用的成本。在核心库的版本管理上，我们通过maven的parent来管理，从而加强约束将冲突降低最低，也为统一的版本升级提供了便利。在服务降级和熔断方面，我们选择了Netflix OSS中的<a href="https://github.com/Netflix/Hystrix" target="_blank" rel="external">Hystrix</a>，不过在我们还是使用Spring Cloud Netflix来集成，不过这个还没有大规模推广。</p>
+<p>读写分离作为最基础的需求，我们没有选择Proxy，而是在Mybatis和Spring的基础上做了二次封装。实现的原理就是事务内的所有SQL语句和没有事务的insert、update、delete走主库，select走从库，但如果select要强制路由到主库，可以在SQL语句头上加/*master*/来实现路由。通过重写Spring的AbstractRoutingDataSource类来实现动态数据源，在事务管理上通过重写Spring的DataSourceTransactionManager来实现事务对数据源的选择，然后再动态代理Mybatis的SqlSession在InvocationHandler的实现中进行路由，如果发现事务已经开启就直接走主库，如果没有事务再进行SQL语句解析从而来选择主从库。网上也有大量的实现，不过都比较粗糙，一定要大量测试，并且弄明白里面所有的门门道道。在分库分表方面，我们选择了<a href="https://github.com/dangdangdotcom/sharding-jdbc" target="_blank" rel="external">sharding-jdbc</a>，不过目前还没有用到核心的业务逻辑中，在Dragon的研发时，抱着测试该库的目的，没有使用HBase，选择使用它进行了分库分表，目前使用下来还是不错。当涉及到分布式事务时，我们使用Spring的best efforts 1pc来尽量保证数据的一致性。全局ID生成器的用途广泛，特别是在分库分表业务中，我们选用了twitter的<a href="https://blog.twitter.com/2010/announcing-snowflake" target="_blank" rel="external">snowflake</a>。</p>
+<p>缓存和分布式Session是每一个可以水平扩展系统都不可能避免的需求，Spring作为技术方案的基石，Spring的Cache和Session自然也作为了我们的首选方案。虽然Spring作为Pivital的看家项目，但在使用中也给我们带来了一些麻烦。Session需要使用Redis的命令，已经上线运行的Twemproxy不支持，所以我们只好切换到Redis的sentinel集群。Session由于发布不久，功能不是很强大，所以我们也做了二次扩展，并且修复了超时设置的小bug。虽然使用起来并不是很完美，但是基于对Pivital的信任，我们还是坚定紧跟Spring的发展。</p>
+<p>在基础设施选型和建设上，不论是MHA的Mysql、FastDFS+GraphicsMagick、RabbitMQ的Mirror Queue、Sentinel的Redis还是大数据相关的Hadoop、Hbase都是很成熟的解决方案，我们的主要精力都放在了运维方面。对于基础设施，我们的原则是尽可能少，因为运维成本很高，要运维好更难。</p>
+<p>安全放在最后讲，并不是因为安全不重要，而是大家都知道很重要，要做好却很难，特别是红星悦家这种刚起步的公司。在内部没有安全团队，并且安全意识比较薄弱的情况下，我们通过内部培训和外部合作来共同提高系统安全。过去一年，我们实现了全站的HTTPS，在账号体系的设计上为了简化动态盐和慢哈希的使用，我们使用了Spring-security中的BCryptPasswordEncoder。XSS防御使用OWASP提供的<a href="https://www.owasp.org/index.php/ESAPI" target="_blank" rel="external">ESAPI</a>提供的函数进行编码。在CSRF方面，一是遵循Restful风格，二是通过一次性Token和Refer检验；SQL注入防御上就只使用了PreparedStatement，避免了绝大部分攻击。不过在业务驱动的重压之下，虽然安全很多时候被放到了最后一位，不论是内部的理念灌输还是外部渗透测试，我们都一直在努力。</p>
+<h4 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h4><p>一家之言，不登大雅之堂，仅供大家参考。悦家作为刚起步一年的初创公司，虽然技术架构上有了一个简单的雏形并且没有经历过大流量的考验，但是从无到有从粗放到精细的架构和技术变迁正是技术的最大乐趣所在，所以我们也诚邀有志之士共建红星悦家的技术体系，特别是精通容器/服务编排相关技术的大牛。非知之艰，行之惟艰，与君共勉！</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/25/分布式系统研发心得/" rel="next" title="分布式系统研发心得">
+                <i class="fa fa-chevron-left"></i> 分布式系统研发心得
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/06/Java版WAF实现/" rel="prev" title="Java版WAF技术细节">
+                Java版WAF技术细节 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="杨果" />
+          <p class="site-author-name" itemprop="name">杨果</p>
+          <p class="site-description motion-element" itemprop="description">知易行难</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/chengdedeng" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/mapserver000" target="_blank" title="twitter">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/shyangguo" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#研发团队组建"><span class="nav-number">1.</span> <span class="nav-text">研发团队组建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#新架构的设计与落地"><span class="nav-number">2.</span> <span class="nav-text">新架构的设计与落地</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#监控"><span class="nav-number">2.0.1.</span> <span class="nav-text">监控</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#技术细节"><span class="nav-number">2.0.2.</span> <span class="nav-text">技术细节</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#写在最后"><span class="nav-number">2.0.3.</span> <span class="nav-text">写在最后</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">杨果</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'chengdedeng';
+      var disqus_identifier = '2017/03/17/红星互联网转型的技术心得/';
+
+      var disqus_title = "红星悦家技术研发心得";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>
