@@ -112,10 +112,12 @@
 <meta property="og:site_name" content="城的灯">
 <meta property="og:description" content="最近研究避免分布式事务，有幸读到David Syer于09年发布在JavaWorld的HOW-TODistributed transactions in Spring, with and without XA，虽然文章和测试代码都老了点，但是思想不变。 Full XA with 2PC如果需要近乎完美的防护，2PC绝对是不二之选，但是它的性能损耗是显而易见的，这也是为什么大家谈分布式事务而闻之色变">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-09-23T02:15:45.000Z">
+<meta property="og:image" content="https://www.yangguo.info/images/rocketmq_flow.png">
+<meta property="og:updated_time" content="2020-06-18T14:51:19.004Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="分布式事务笔记">
 <meta name="twitter:description" content="最近研究避免分布式事务，有幸读到David Syer于09年发布在JavaWorld的HOW-TODistributed transactions in Spring, with and without XA，虽然文章和测试代码都老了点，但是思想不变。 Full XA with 2PC如果需要近乎完美的防护，2PC绝对是不二之选，但是它的性能损耗是显而易见的，这也是为什么大家谈分布式事务而闻之色变">
+<meta name="twitter:image" content="https://www.yangguo.info/images/rocketmq_flow.png">
 
 
 
@@ -443,6 +445,9 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">consumeSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    User user= (User) rabbitTemplate.receiveAndConvert(<span class="string">"test-queue"</span>);</span><br><span class="line">    friendMapper.update(user);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>代码其实很简单，首先配置一个支持事务的RabbitTemplate，主要设置<code>channel-transacted=&quot;true&quot;</code>，当然Mysql DataSource和Mybatis的配置，我就省略了，然后剩下的事情就交给Spring的Transaction吧。不过原文是使用ActiveMQ来讲解的，不过思想都是一样的。当然作者在原文中还解释了一种链式事务管理器，其实上面的例子也是一种链式思路，链式事务管理器非常注重顺序性，因为回滚和业务顺序正好相反。现阶段的spring事务处理，默认就是一种链式思路，只要你在service上面加了@Transaction或者在XML里面配置了切面，那么处于切面中的方法中的分布式资源就会受到spring事务管理器的托管。这也是最大努力一次提交模式流行的真正原因，因为它就是Spring事务管理器的核心。当然如果我们使用消息队列的Topic模式，是可以绕过<code>消息驱动的单Database更新</code>的，因为我们只要能够实现最终一致性就OK了。</p>
 <h3 id="Nontransactional-Access-pattern"><a href="#Nontransactional-Access-pattern" class="headerlink" title="Nontransactional Access pattern"></a>Nontransactional Access pattern</h3><p>这个模式是需要特殊的业务场景，理想情况是非事务或者本地事务的逻辑是边缘业务，该业务具备幂等性或者从逻辑的角度来说具备幂等性。当然该模式可以是分布式事务和非事务的组合，也可以全部都是非事务逻辑，还可以是分布式事务和本地事务的组合。这种模式需要细致的分析，只有对业务充分了解，才能确定哪些可以走非事务或者本地事务。当然业务出错，你可以使用补偿机制，不过请注意通用的事务补偿通常都很麻烦。</p>
+<h3 id="HALF消息-本地事务表-消息回查"><a href="#HALF消息-本地事务表-消息回查" class="headerlink" title="HALF消息+本地事务表+消息回查"></a>HALF消息+本地事务表+消息回查</h3><p>这种模式并不是David Syer文章中所提到的模式，不过该模式我认为是最简单和安全的模式，不过需要中间件支持，该类型中间件的代表就是<a href="https://rocketmq.apache.org/" target="_blank" rel="external">RocketMQ</a>。为了简单阐述该模式的，我就直接拿RocketMQ的交互流程。</p>
+<p><img src="/images/rocketmq_flow.png" alt="rocketmq_flow"></p>
+<p>该模式在性能和易用性上都有非常好的表现，不过就是需要自己消息回查逻辑，这种模式也是我使用最多的模式。该模式通过本地事务表和消息中间件的状态管理，将复杂的分布式问题简单化，唯一牺牲的就是时效性，因为它只能保证最终一致性。</p>
 <h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.ibm.com/developerworks/cn/java/j-lo-spring-ts1/" target="_blank" rel="external">Spring 事务管理高级应用难点剖析: 第 1 部分</a></p>
 <p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-spring-ts2/" target="_blank" rel="external">Spring 事务管理高级应用难点剖析: 第 2 部分</a></p>
 <p><a href="http://www.ibm.com/developerworks/cn/java/j-ts1.html" target="_blank" rel="external">事务策略: 了解事务陷阱</a></p>
@@ -657,7 +662,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Full-XA-with-2PC"><span class="nav-number">1.</span> <span class="nav-text">Full XA with 2PC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XA-with-1PC-Optimization"><span class="nav-number">2.</span> <span class="nav-text">XA with 1PC Optimization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XA-and-the-Last-Resource-Gambit"><span class="nav-number">3.</span> <span class="nav-text">XA and the Last Resource Gambit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XA模式总结"><span class="nav-number">4.</span> <span class="nav-text">XA模式总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shared-Transaction-Resource-pattern"><span class="nav-number">5.</span> <span class="nav-text">Shared Transaction Resource pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#共享数据库Connection"><span class="nav-number">5.1.</span> <span class="nav-text">共享数据库Connection</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息驱动的单Database更新"><span class="nav-number">5.2.</span> <span class="nav-text">消息驱动的单Database更新</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Best-Efforts-1PC-pattern"><span class="nav-number">6.</span> <span class="nav-text">Best Efforts 1PC pattern</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Nontransactional-Access-pattern"><span class="nav-number">7.</span> <span class="nav-text">Nontransactional Access pattern</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">8.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Full-XA-with-2PC"><span class="nav-number">1.</span> <span class="nav-text">Full XA with 2PC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XA-with-1PC-Optimization"><span class="nav-number">2.</span> <span class="nav-text">XA with 1PC Optimization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XA-and-the-Last-Resource-Gambit"><span class="nav-number">3.</span> <span class="nav-text">XA and the Last Resource Gambit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XA模式总结"><span class="nav-number">4.</span> <span class="nav-text">XA模式总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shared-Transaction-Resource-pattern"><span class="nav-number">5.</span> <span class="nav-text">Shared Transaction Resource pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#共享数据库Connection"><span class="nav-number">5.1.</span> <span class="nav-text">共享数据库Connection</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息驱动的单Database更新"><span class="nav-number">5.2.</span> <span class="nav-text">消息驱动的单Database更新</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Best-Efforts-1PC-pattern"><span class="nav-number">6.</span> <span class="nav-text">Best Efforts 1PC pattern</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Nontransactional-Access-pattern"><span class="nav-number">7.</span> <span class="nav-text">Nontransactional Access pattern</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HALF消息-本地事务表-消息回查"><span class="nav-number">8.</span> <span class="nav-text">HALF消息+本地事务表+消息回查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">9.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
             
 
           </div>
@@ -678,7 +683,7 @@
         <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2018</span>
+  <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
