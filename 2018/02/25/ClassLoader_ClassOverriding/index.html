@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion" lang="zh-Hans">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -81,23 +81,23 @@
 
 
 
-<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Classloader,Springboot,JSW," />
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml" />
+  <meta name="keywords" content="Classloader,Springboot,JSW,">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+  <link rel="alternate" href="/atom.xml" title="城的灯" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0">
 
 
 
@@ -143,7 +143,7 @@
 
 
 
-  <link rel="canonical" href="https://www.yangguo.info/2018/02/25/ClassLoader_ClassOverriding/"/>
+  <link rel="canonical" href="https://www.yangguo.info/2018/02/25/ClassLoader_ClassOverriding/">
 
 
 
@@ -197,7 +197,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">城的灯</span>
       <span class="logo-line-after"><i></i></span>
@@ -224,7 +224,7 @@
         <li class="menu-item menu-item-home">
           <a href="/" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
             
             首页
           </a>
@@ -234,7 +234,7 @@
         <li class="menu-item menu-item-categories">
           <a href="/categories" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
             
             分类
           </a>
@@ -244,7 +244,7 @@
         <li class="menu-item menu-item-archives">
           <a href="/archives" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
             
             归档
           </a>
@@ -254,7 +254,7 @@
         <li class="menu-item menu-item-tags">
           <a href="/tags" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
             
             标签
           </a>
@@ -264,7 +264,7 @@
         <li class="menu-item menu-item-about">
           <a href="/about" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
             
             关于
           </a>
@@ -277,7 +277,7 @@
             <a href="javascript:;" class="popup-trigger">
           
             
-              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
             
             搜索
           </a>
@@ -326,14 +326,14 @@
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="杨果">
-    <meta itemprop="description" content="">
+    <meta itemprop="description" content>
     <meta itemprop="image" content="/images/avatar.jpg">
   </span>
 
   <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
     <meta itemprop="name" content="城的灯">
     <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
-      <img style="display:none;" itemprop="url image" alt="城的灯" src="">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src>
     </span>
   </span>
 
@@ -370,7 +370,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               <span class="post-meta-divider">|</span>
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -436,14 +436,14 @@
 <li>War</li>
 <li>Jar/JSW（Java Service Wrapper）</li>
 </ol>
-<p>为了测试上述的五种情况，我分别用<a href="https://github.com/chengdedeng/waf" target="_blank" rel="external">WAF</a>和<a href="https://github.com/chengdedeng/spring-boot-loader-play" target="_blank" rel="external">spring-boot-loader-play</a>两份代码来进行测试。WAF中使用了<a href="https://github.com/adamfisk/LittleProxy" target="_blank" rel="external">LitteProxy</a>，由于<strong>org.littleshoot.proxy.impl.ProxyToServerConnection</strong>在连接Socks5 Server存在一个bug，正好可以用来作为测试，该测试代码可以覆盖场景1和场景4。spring-boot-loader-play其实是文章<a href="https://dzone.com/articles/spring-boot-classloader-and-class-override" target="_blank" rel="external">Spring Boot Classloader and Class Overriding</a>的测试代码，它可以覆盖场景2。有1、2、4的分析，场景3其实就可以不用测试了，如果感兴趣，自己动手试试就知道了。</p>
+<p>为了测试上述的五种情况，我分别用<a href="https://github.com/chengdedeng/waf" target="_blank" rel="noopener">WAF</a>和<a href="https://github.com/chengdedeng/spring-boot-loader-play" target="_blank" rel="noopener">spring-boot-loader-play</a>两份代码来进行测试。WAF中使用了<a href="https://github.com/adamfisk/LittleProxy" target="_blank" rel="noopener">LitteProxy</a>，由于<strong>org.littleshoot.proxy.impl.ProxyToServerConnection</strong>在连接Socks5 Server存在一个bug，正好可以用来作为测试，该测试代码可以覆盖场景1和场景4。spring-boot-loader-play其实是文章<a href="https://dzone.com/articles/spring-boot-classloader-and-class-override" target="_blank" rel="noopener">Spring Boot Classloader and Class Overriding</a>的测试代码，它可以覆盖场景2。有1、2、4的分析，场景3其实就可以不用测试了，如果感兴趣，自己动手试试就知道了。</p>
 <h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><h4 id="场景1"><a href="#场景1" class="headerlink" title="场景1"></a>场景1</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyToServerConnection from file:/Users/guo/work/code/waf/target/classes/]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$1 from file:/Users/guo/work/code/waf/target/classes/]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$2 from file:/Users/guo/work/code/waf/target/classes/]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$3 from file:/Users/guo/work/code/waf/target/classes/]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$4 from file:/Users/guo/work/code/waf/target/classes/]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyConnection$ResponseReadMonitor from file:/Users/guo/.m2/repository/org/littleshoot/littleproxy/1.1.2/littleproxy-1.1.2.jar]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$5 from file:/Users/guo/work/code/waf/target/classes/]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$6 from file:/Users/guo/work/code/waf/target/classes/]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyConnection$RequestWrittenMonitor from file:/Users/guo/.m2/repository/org/littleshoot/littleproxy/1.1.2/littleproxy-1.1.2.jar]</span><br><span class="line">[Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$7 from file:/Users/guo/work/code/waf/target/classes/]</span><br></pre></td></tr></table></figure>
 <h4 id="场景4"><a href="#场景4" class="headerlink" title="场景4"></a>场景4</h4><h5 id="classpath中waf-1-0-SNAPSHOT-jar在littleproxy-1-1-2-jar之前的启动命令"><a href="#classpath中waf-1-0-SNAPSHOT-jar在littleproxy-1-1-2-jar之前的启动命令" class="headerlink" title="classpath中waf-1.0-SNAPSHOT.jar在littleproxy-1.1.2.jar之前的启动命令"></a>classpath中waf-1.0-SNAPSHOT.jar在littleproxy-1.1.2.jar之前的启动命令</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/java -server -Xms128m -Xmx128m -Xmn60m -XX:+UseG1GC -Xloggc:/tmp/log/gc.log -XX:+HeapDumpOnOutOfMemoryError -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -verbose:class -Djava.library.path=lib -classpath lib/wrapper.jar:conf:lib/waf-1.0-SNAPSHOT.jar:lib/littleproxy-1.1.2.jar:lib/commons-lang3-3.5.jar:lib/barchart-udt-bundle-2.3.0.jar:lib/netty-all-4.1.17.Final.jar:lib/mitm-2.1.4.jar:lib/bcprov-jdk15on-1.56.jar:lib/bcpkix-jdk15on-1.56.jar:lib/spring-context-4.2.5.RELEASE.jar:lib/spring-aop-4.2.5.RELEASE.jar:lib/aopalliance-1.0.jar:lib/spring-beans-4.2.5.RELEASE.jar:lib/spring-core-4.2.5.RELEASE.jar:lib/spring-expression-4.2.5.RELEASE.jar:lib/slf4j-api-1.7.21.jar:lib/slf4j-log4j12-1.7.7.jar:lib/log4j-1.2.17.jar:lib/metrics-core-3.1.2.jar:lib/metrics-graphite-3.1.2.jar:lib/metrics-log4j-3.1.2.jar:lib/metrics-jvm-3.1.2.jar:lib/metrics-spring-3.1.3.jar:lib/metrics-healthchecks-3.1.2.jar:lib/metrics-annotation-3.1.2.jar:lib/spring-context-support-4.1.6.RELEASE.jar:lib/esapi-2.1.0.1.jar:lib/commons-configuration-1.10.jar:lib/commons-lang-2.6.jar:lib/commons-beanutils-core-1.8.3.jar:lib/commons-fileupload-1.3.1.jar:lib/commons-io-2.2.jar:lib/commons-collections-3.2.2.jar:lib/xom-1.2.5.jar:lib/xml-apis-1.3.03.jar:lib/xercesImpl-2.8.0.jar:lib/xalan-2.7.0.jar:lib/bsh-core-2.0b4.jar:lib/antisamy-1.5.3.jar:lib/nekohtml-1.9.16.jar:lib/commons-httpclient-3.1.jar:lib/batik-css-1.8.jar:lib/batik-ext-1.8.jar:lib/batik-util-1.8.jar:lib/xml-apis-ext-1.3.04.jar:lib/guava-20.0.jar:lib/httpclient-4.5.3.jar:lib/commons-logging-1.2.jar:lib/commons-codec-1.9.jar:lib/httpcore-4.4.6.jar:lib/httpmime-4.5.2.jar:lib/joda-time-2.9.9.jar -Dwrapper.key=SDxB55oX2r5RDERn -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=27529 -Dwrapper.version=3.2.3 -Dwrapper.native_library=wrapper -Dwrapper.service=TRUE -Dwrapper.cpu.timeout=10 -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp info.yangguo.waf.Application</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/waf-1.0-SNAPSHOT.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$1 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/waf-1.0-SNAPSHOT.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$2 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/waf-1.0-SNAPSHOT.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$3 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/waf-1.0-SNAPSHOT.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$4 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/waf-1.0-SNAPSHOT.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyConnection$ResponseReadMonitor from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$5 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/waf-1.0-SNAPSHOT.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$6 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/waf-1.0-SNAPSHOT.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyConnection$RequestWrittenMonitor from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 16:42:23 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$7 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/waf-1.0-SNAPSHOT.jar]</span><br></pre></td></tr></table></figure>
 <h5 id="classpath中waf-1-0-SNAPSHOT-jar在littleproxy-1-1-2-jar之后的启动命令"><a href="#classpath中waf-1-0-SNAPSHOT-jar在littleproxy-1-1-2-jar之后的启动命令" class="headerlink" title="classpath中waf-1.0-SNAPSHOT.jar在littleproxy-1.1.2.jar之后的启动命令"></a>classpath中waf-1.0-SNAPSHOT.jar在littleproxy-1.1.2.jar之后的启动命令</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/java -server -Xms128m -Xmx128m -Xmn60m -XX:+UseG1GC -Xloggc:/tmp/log/gc.log -XX:+HeapDumpOnOutOfMemoryError -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -verbose:class -Djava.library.path=lib -classpath lib/wrapper.jar:conf:lib/littleproxy-1.1.2.jar:lib/waf-1.0-SNAPSHOT.jar:lib/commons-lang3-3.5.jar:lib/barchart-udt-bundle-2.3.0.jar:lib/netty-all-4.1.17.Final.jar:lib/mitm-2.1.4.jar:lib/bcprov-jdk15on-1.56.jar:lib/bcpkix-jdk15on-1.56.jar:lib/spring-context-4.2.5.RELEASE.jar:lib/spring-aop-4.2.5.RELEASE.jar:lib/aopalliance-1.0.jar:lib/spring-beans-4.2.5.RELEASE.jar:lib/spring-core-4.2.5.RELEASE.jar:lib/spring-expression-4.2.5.RELEASE.jar:lib/slf4j-api-1.7.21.jar:lib/slf4j-log4j12-1.7.7.jar:lib/log4j-1.2.17.jar:lib/metrics-core-3.1.2.jar:lib/metrics-graphite-3.1.2.jar:lib/metrics-log4j-3.1.2.jar:lib/metrics-jvm-3.1.2.jar:lib/metrics-spring-3.1.3.jar:lib/metrics-healthchecks-3.1.2.jar:lib/metrics-annotation-3.1.2.jar:lib/spring-context-support-4.1.6.RELEASE.jar:lib/esapi-2.1.0.1.jar:lib/commons-configuration-1.10.jar:lib/commons-lang-2.6.jar:lib/commons-beanutils-core-1.8.3.jar:lib/commons-fileupload-1.3.1.jar:lib/commons-io-2.2.jar:lib/commons-collections-3.2.2.jar:lib/xom-1.2.5.jar:lib/xml-apis-1.3.03.jar:lib/xercesImpl-2.8.0.jar:lib/xalan-2.7.0.jar:lib/bsh-core-2.0b4.jar:lib/antisamy-1.5.3.jar:lib/nekohtml-1.9.16.jar:lib/commons-httpclient-3.1.jar:lib/batik-css-1.8.jar:lib/batik-ext-1.8.jar:lib/batik-util-1.8.jar:lib/xml-apis-ext-1.3.04.jar:lib/guava-20.0.jar:lib/httpclient-4.5.3.jar:lib/commons-logging-1.2.jar:lib/commons-codec-1.9.jar:lib/httpcore-4.4.6.jar:lib/httpmime-4.5.2.jar:lib/joda-time-2.9.9.jar -Dwrapper.key=Q2nBncFVdPijJ62c -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=27838 -Dwrapper.version=3.2.3 -Dwrapper.native_library=wrapper -Dwrapper.service=TRUE -Dwrapper.cpu.timeout=10 -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp info.yangguo.waf.Application</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$1 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$2 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$3 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$4 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyConnection$ResponseReadMonitor from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$5 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$6 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyConnection$RequestWrittenMonitor from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded org.littleshoot.proxy.impl.ProxyToServerConnection$7 from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/littleproxy-1.1.2.jar]</span><br><span class="line">INFO   | jvm 1    | 2018/02/26 17:07:01 | [Loaded com.google.common.net.HostAndPort from file:/Users/guo/work/code/waf/target/waf-1.0-SNAPSHOT/lib/guava-20.0.jar]</span><br></pre></td></tr></table></figure>
 <p>启动命令中jar的顺序控制，如果是手写命令很简单，想怎么写都行，JSW包中只需要改conf/wrapper.conf文件中wrapper.java.classpath.<code>n</code>，n就是顺序，所以改动更加方便。</p>
-<h4 id="场景2"><a href="#场景2" class="headerlink" title="场景2"></a>场景2</h4><p>fat jar有多种格式，此处我们只分析一下springboot fat jar，这是最复杂的一种情况。文章<a href="https://dzone.com/articles/spring-boot-classloader-and-class-override" target="_blank" rel="external">Spring Boot Classloader and Class Overriding</a>花了大篇幅来阐述其中的门门道道。一切都是由于Springboot项目打的fat包不是一个标准的jar包，对于非标准的jar来说，Class的加载肯定是需要自定义Classloader的，Springboot就是通过<a href="https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-tools/spring-boot-loader/src/main/java/org/springframework/boot/loader/LaunchedURLClassLoader.java" target="_blank" rel="external">LaunchedURLClassLoader</a>来解决该问题。正是由于该LaunchedURLClassLoader的引入，导致复杂度提升。作者使用gradle+springboot plugin来构建，不但麻烦而且最后的方案还是一个半成品，我又使用maven+jsw来构建，则可以完全避开作者文章中的各种麻烦，详见<a href="https://github.com/chengdedeng/classloadertest" target="_blank" rel="external">classloadertest</a>。所以很多时候换一种思路，则是柳暗花明。</p>
+<h4 id="场景2"><a href="#场景2" class="headerlink" title="场景2"></a>场景2</h4><p>fat jar有多种格式，此处我们只分析一下springboot fat jar，这是最复杂的一种情况。文章<a href="https://dzone.com/articles/spring-boot-classloader-and-class-override" target="_blank" rel="noopener">Spring Boot Classloader and Class Overriding</a>花了大篇幅来阐述其中的门门道道。一切都是由于Springboot项目打的fat包不是一个标准的jar包，对于非标准的jar来说，Class的加载肯定是需要自定义Classloader的，Springboot就是通过<a href="https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-tools/spring-boot-loader/src/main/java/org/springframework/boot/loader/LaunchedURLClassLoader.java" target="_blank" rel="noopener">LaunchedURLClassLoader</a>来解决该问题。正是由于该LaunchedURLClassLoader的引入，导致复杂度提升。作者使用gradle+springboot plugin来构建，不但麻烦而且最后的方案还是一个半成品，我又使用maven+jsw来构建，则可以完全避开作者文章中的各种麻烦，详见<a href="https://github.com/chengdedeng/classloadertest" target="_blank" rel="noopener">classloadertest</a>。所以很多时候换一种思路，则是柳暗花明。</p>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ol>
 <li>IDE环境下，Classloader优先加载本机编译路径下的class。</li>
 <li>如果是普通jar包，class的加载顺序就是classpath下资源给出的顺序。在顺序的控制上，可以自己写脚本把需要优先加载的放在前面，而jsw会自动把当前项目的jar放在第一位，所以极其方便。</li>
@@ -553,7 +553,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -564,16 +564,14 @@
 
       <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="杨果" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="杨果">
           <p class="site-author-name" itemprop="name">杨果</p>
           <p class="site-description motion-element" itemprop="description">知易行难</p>
         </div>
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-count">36</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -590,7 +588,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-count">53</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -679,7 +677,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy; 
   <span itemprop="copyrightYear">2020</span>
