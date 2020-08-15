@@ -53,6 +53,27 @@
       </tags>
   </entry>
   <entry>
+    <title>Elasticsearch Client Bulk 死锁问题处理</title>
+    <url>/2020/08/15/Elasticsearch%20Client%20Bulk%20%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98%E5%A4%84%E7%90%86/</url>
+    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>最近工作中大量使用到Elasticsearch，需要通过Bulk操作将大量数据推到Elasticsearch中，但是发现有个别推数据的分布式任务一直不能结束，通过Thread Dump发现SchedulerX-ConsumerThread处于休眠状态，Thread Dump信息见下图：</p>
+<p><img src="/images/es-bulk-deadlock.png" alt="es bulk deadlock"></p>
+<a id="more"></a>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>通过上图的调用栈信息可知，SchedulerX-ConsumerThread在等待锁，而该锁又被 <em>elasticsearch[scheduler][T#1]</em> 所占有，通过<code>locked ownable synchronizers</code>可知它不但持有<code>ReentrantLock</code>而且还锁定了<code>ThreadPoolExecutor</code>， <em>elasticsearch[scheduler][T#1]</em> 不释放锁的原因是由于在等待一个信号量。分析到这里，就可以知道从哪儿入手了，接下来就可以进入到代码里面去看看到底发生了什么事情。</p>
+<p>elasticsearch-rest-high-level-client 7.4.2版本中的BulkRequestHandler.java代码54行-&gt;92行如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public void execute(BulkRequest bulkRequest, long executionId) &#123;</span><br><span class="line">        Runnable toRelease = () -&gt; &#123;&#125;;</span><br><span class="line">        boolean bulkRequestSetupSuccessful = false;</span><br><span class="line">        try &#123;</span><br><span class="line">            listener.beforeBulk(executionId, bulkRequest);</span><br><span class="line">            semaphore.acquire();</span><br><span class="line">            toRelease = semaphore::release;</span><br><span class="line">            CountDownLatch latch = new CountDownLatch(1);</span><br><span class="line">            retry.withBackoff(consumer, bulkRequest, ActionListener.runAfter(new ActionListener&lt;BulkResponse&gt;() &#123;</span><br><span class="line">                @Override</span><br><span class="line">                public void onResponse(BulkResponse response) &#123;</span><br><span class="line">                    listener.afterBulk(executionId, bulkRequest, response);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                @Override</span><br><span class="line">                public void onFailure(Exception e) &#123;</span><br><span class="line">                    listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;, () -&gt; &#123;</span><br><span class="line">                semaphore.release();</span><br><span class="line">                latch.countDown();</span><br><span class="line">            &#125;));</span><br><span class="line">            bulkRequestSetupSuccessful = true;</span><br><span class="line">            if (concurrentRequests == 0) &#123;</span><br><span class="line">                latch.await();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            Thread.currentThread().interrupt();</span><br><span class="line">            logger.info(() -&gt; new ParameterizedMessage(&quot;Bulk request &#123;&#125; has been cancelled.&quot;, executionId), e);</span><br><span class="line">            listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            logger.warn(() -&gt; new ParameterizedMessage(&quot;Failed to execute bulk request &#123;&#125;.&quot;, executionId), e);</span><br><span class="line">            listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            if (bulkRequestSetupSuccessful == false) &#123;  // if we fail on client.bulk() release the semaphore</span><br><span class="line">                toRelease.run();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过代码可知，semaphore的释放是由ActionListener.runAfter来完成。也就是说是bulk flush成功那么就顺利释放，如果失败就进入retry逻辑，semaphore暂时不释放，得等到retry之后再判断是否释放。由于flush和retry公用一个scheduler，每个scheduler会有一个线程池，加上前面 <em>elasticsearch[scheduler][T#1]</em> 锁定了一个<code>ThreadPoolExecutor</code>，所以问题的核心点随之浮出水面。</p>
+<p>elasticsearch-rest-high-level-client 7.4.2版本中的Scheduler.java代码56行-&gt;63行如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static ScheduledThreadPoolExecutor initScheduler(Settings settings) &#123;</span><br><span class="line">    final ScheduledThreadPoolExecutor scheduler = new SafeScheduledThreadPoolExecutor(1,</span><br><span class="line">            EsExecutors.daemonThreadFactory(settings, &quot;scheduler&quot;), new EsAbortPolicy());</span><br><span class="line">    scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);</span><br><span class="line">    scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);</span><br><span class="line">    scheduler.setRemoveOnCancelPolicy(true);</span><br><span class="line">    return scheduler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>通过上面的代码可知，线程池只有一个线程，flush任务占用了一个线程就是上面的 <em>elasticsearch[scheduler][T#1]</em> ，导致retry任务没有线程资源可用，但是retry的任务却又占有信号量，所以这样便完成了一个环状等待。这是一种高级的死锁，不能简单的通过锁的依赖来排查到循环等待的情况。</p>
+<p>当我们分析出问题的关键点，那么就简单了。通过Github和Stack Overflow一搜会发现bulk操作长久以来都存在这种问题，最新的<a href="https://github.com/elastic/elasticsearch/pull/48697" target="_blank" rel="noopener">pull request</a>能够解决该问题，只需要升级client到7.5.0及以上即可。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Elasticsearch</tag>
+        <tag>死锁</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Classloader之三方库class overriding</title>
     <url>/2018/02/25/ClassLoader_ClassOverriding/</url>
     <content><![CDATA[<h3 id="上下文"><a href="#上下文" class="headerlink" title="上下文"></a>上下文</h3><p>假如我们项目中引入的三方包出现了一个小的bug，我们通常会fixed它，然后创建一个pull request，但是通常我们等不到pull request被merge之后的release版本。<br>这种现象非常普遍，对于这种情况，我们通过有如下三种方案：</p>
@@ -96,24 +117,52 @@
       </tags>
   </entry>
   <entry>
-    <title>Elasticsearch Client Bulk 死锁问题处理</title>
-    <url>/2020/08/15/Elasticsearch%20Client%20Bulk%20%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98%E5%A4%84%E7%90%86/</url>
-    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>最近工作中大量使用到Elasticsearch，需要通过Bulk操作将大量数据推到Elasticsearch中，但是发现有个别推数据的分布式任务一直不能结束，通过Thread Dump发现SchedulerX-ConsumerThread处于休眠状态，Thread Dump信息见下图：</p>
-<p><img src="/images/es-bulk-deadlock.png" alt="es bulk deadlock"></p>
+    <title>JVM最大线程数</title>
+    <url>/2013/06/17/JVM%E6%9C%80%E5%A4%A7%E7%BA%BF%E7%A8%8B%E6%95%B0/</url>
+    <content><![CDATA[<blockquote>
+<p>最近研发<strong>推送方案</strong>，需要大量线程来模拟手机客户端。在模拟手机客户端的时候，单个JVM线程数量始终卡在一万多一点，然后就报如下的错误<code>java.lang.OutOfMemoryError: unable to create new native thread</code>。我在网上找了很多资料，都是分析32位的，都是准备模拟几千个或者几万个水平。因为我是使用64位的linux,并且要模拟50万，发现很多都不是很详细，所以写了这篇文章。</p>
+</blockquote>
+<p>对于这个OOM，根本无需多言，网上一堆关于JVM线程数的计算公式，此处我不妨再次引用一次:<code>(MaxProcessMemory - JVMMemory – ReservedOsMemory) / (ThreadStackSize) = Number of threads</code>。MaxProcessMemory：进程最大的寻址空间，关于不同系统的进程默认的最大寻址空间，可以参考下图。</p>
+<p><img src="/images/max-space-per-process.jpg" alt="进程的寻址空间"></p>
 <a id="more"></a>
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>通过上图的调用栈信息可知，SchedulerX-ConsumerThread在等待锁，而该锁又被 <em>elasticsearch[scheduler][T#1]</em> 所占有，通过<code>locked ownable synchronizers</code>可知它不但持有<code>ReentrantLock</code>而且还锁定了<code>ThreadPoolExecutor</code>， <em>elasticsearch[scheduler][T#1]</em> 不释放锁的原因是由于在等待一个信号量。分析到这里，就可以知道从哪儿入手了，接下来就可以进入到代码里面去看看到底发生了什么事情。</p>
-<p>elasticsearch-rest-high-level-client 7.4.2版本中的BulkRequestHandler.java代码54行-&gt;92行如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public void execute(BulkRequest bulkRequest, long executionId) &#123;</span><br><span class="line">        Runnable toRelease = () -&gt; &#123;&#125;;</span><br><span class="line">        boolean bulkRequestSetupSuccessful = false;</span><br><span class="line">        try &#123;</span><br><span class="line">            listener.beforeBulk(executionId, bulkRequest);</span><br><span class="line">            semaphore.acquire();</span><br><span class="line">            toRelease = semaphore::release;</span><br><span class="line">            CountDownLatch latch = new CountDownLatch(1);</span><br><span class="line">            retry.withBackoff(consumer, bulkRequest, ActionListener.runAfter(new ActionListener&lt;BulkResponse&gt;() &#123;</span><br><span class="line">                @Override</span><br><span class="line">                public void onResponse(BulkResponse response) &#123;</span><br><span class="line">                    listener.afterBulk(executionId, bulkRequest, response);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                @Override</span><br><span class="line">                public void onFailure(Exception e) &#123;</span><br><span class="line">                    listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;, () -&gt; &#123;</span><br><span class="line">                semaphore.release();</span><br><span class="line">                latch.countDown();</span><br><span class="line">            &#125;));</span><br><span class="line">            bulkRequestSetupSuccessful = true;</span><br><span class="line">            if (concurrentRequests == 0) &#123;</span><br><span class="line">                latch.await();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            Thread.currentThread().interrupt();</span><br><span class="line">            logger.info(() -&gt; new ParameterizedMessage(&quot;Bulk request &#123;&#125; has been cancelled.&quot;, executionId), e);</span><br><span class="line">            listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            logger.warn(() -&gt; new ParameterizedMessage(&quot;Failed to execute bulk request &#123;&#125;.&quot;, executionId), e);</span><br><span class="line">            listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            if (bulkRequestSetupSuccessful == false) &#123;  // if we fail on client.bulk() release the semaphore</span><br><span class="line">                toRelease.run();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
-<p>通过代码可知，semaphore的释放是由ActionListener.runAfter来完成。也就是说是bulk flush成功那么就顺利释放，如果失败就进入retry逻辑，semaphore暂时不释放，得等到retry之后再判断是否释放。由于flush和retry公用一个scheduler，每个scheduler会有一个线程池，加上前面 <em>elasticsearch[scheduler][T#1]</em> 锁定了一个<code>ThreadPoolExecutor</code>，所以问题的核心点随之浮出水面。</p>
-<p>elasticsearch-rest-high-level-client 7.4.2版本中的Scheduler.java代码56行-&gt;63行如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static ScheduledThreadPoolExecutor initScheduler(Settings settings) &#123;</span><br><span class="line">    final ScheduledThreadPoolExecutor scheduler = new SafeScheduledThreadPoolExecutor(1,</span><br><span class="line">            EsExecutors.daemonThreadFactory(settings, &quot;scheduler&quot;), new EsAbortPolicy());</span><br><span class="line">    scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);</span><br><span class="line">    scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);</span><br><span class="line">    scheduler.setRemoveOnCancelPolicy(true);</span><br><span class="line">    return scheduler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>通过上面的代码可知，线程池只有一个线程，flush任务占用了一个线程就是上面的 <em>elasticsearch[scheduler][T#1]</em> ，导致retry任务没有线程资源可用，但是retry的任务却又占有信号量，所以这样便完成了一个环状等待。这是一种高级的死锁，不能简单的通过锁的依赖来排查到循环等待的情况。</p>
-<p>当我们分析出问题的关键点，那么就简单了。通过Github和Stack Overflow一搜会发现bulk操作长久以来都存在这种问题，最新的<a href="https://github.com/elastic/elasticsearch/pull/48697" target="_blank" rel="noopener">pull request</a>能够解决该问题，只需要升级client到7.5.0及以上即可。</p>
+<h3 id="JVM层面"><a href="#JVM层面" class="headerlink" title="JVM层面"></a>JVM层面</h3><ul>
+<li>JVMMemory:Heap + PermGen</li>
+<li>ReservedOSMemory:Native heap，JNI</li>
+</ul>
+<p>通过上面的说明大概就能估算出线程数量，公式如下:</p>
+<p><code>(MaxProcessMemory&lt;固定值&gt; – Xms&lt;初始化值，最小值&gt; – XX:PermSize&lt;初始化值，最小值&gt; – 100m&lt;估算值&gt;) / Xss = Number of threads&lt;最大值&gt;</code></p>
+<p><em>-Xms，-Xmx，-Xss</em>，这三个变量就是JVM层面可以调节的。</p>
+<hr>
+<h3 id="系统层面"><a href="#系统层面" class="headerlink" title="系统层面:"></a>系统层面:</h3><h4 id="proc-sys-kernel-pid-max"><a href="#proc-sys-kernel-pid-max" class="headerlink" title="/proc/sys/kernel/pid_max"></a>/proc/sys/kernel/pid_max</h4><p><strong>开始我也觉得奇怪，为什么需要修改pid呢？pid不是进程id嘛，我只是创建线程，并不创建进程，pid的大小跟我好像没有关系。查阅资料才发现，同一个进程的多个线程的pid其实是不同的。</strong></p>
+<h4 id="proc-sys-vm-max-map-count"><a href="#proc-sys-vm-max-map-count" class="headerlink" title="/proc/sys/vm/max_map_count"></a>/proc/sys/vm/max_map_count</h4><p><strong>max_map_count文件包含限制一个进程可以拥有的VMA(虚拟内存区域)的数量。虚拟内存区域是一个连续的虚拟地址空间区域。在进程的生命周期中，每当程序尝试在内存中映射文件，链接到共享内存段，或者分配堆空间的时候，这些区域将被创建。调优这个值将限制进程可拥有VMA的数量。限制一个进程拥有VMA的总数可能导致应用程序出错，因为当进程达到了VMA上线但又只能释放少量的内存给其他的内核进程使用时，操作系统会抛出内存不足的错误。如果你的操作系统在NORMAL区域仅占用少量的内存，那么调低这个值可以帮助释放内存给内核用。具体的可以查看redhat的这篇文章:<a href="http://www.redhat.com/magazine/001nov04/features/vm/" target="_blank" rel="noopener">http://www.redhat.com/magazine/001nov04/features/vm/</a>，中文的话是这篇:<a href="http://www.oschina.net/translate/understanding-virtual-memory?print" target="_blank" rel="noopener">http://www.oschina.net/translate/understanding-virtual-memory?print</a></strong></p>
+<p><strong>注意：</strong>ulimit -a中参数的大小</p>
+<p>当然有人说下面这个两个需要修改，但是我测试下来，好像不用修改也行，反正我没有修改。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/proc/sys/kernel/thread-max</span><br><span class="line">/etc/security/limits.d/90-nproc.conf</span><br></pre></td></tr></table></figure>
+<p>注意如果使用</p>
+<ul>
+<li>sysctl -w vm.max_map_count=200000</li>
+<li>sysctl -p</li>
+</ul>
+<p>来修改，重启后值会改变，如果想永久改变需要采用如下形式。</p>
+<ul>
+<li>vm.max_map_count=200000直接写到/etc/sysctl.conf中</li>
+<li>然后执行sysctl -p</li>
+</ul>
+<p>对于我的应用，此处还要设置一个socket端口的取值范围</p>
+<ul>
+<li>net.ipv4.ip_local_port_range = 1024 65535</li>
+</ul>
+<p>当然对于非socket应用是不需要设置该值的</p>
+<blockquote>
+<p><strong>最后说明</strong>:上面各个参数的设置，可以去查看linux方面的一些资料。至于值到底多大，得根据你机器的性能来确定。</p>
+</blockquote>
 ]]></content>
       <categories>
         <category>技术</category>
       </categories>
       <tags>
-        <tag>Elasticsearch</tag>
-        <tag>死锁</tag>
+        <tag>Java</tag>
+        <tag>线程</tag>
       </tags>
   </entry>
   <entry>
@@ -225,55 +274,6 @@
         <tag>ShadowSocks</tag>
         <tag>Netty</tag>
         <tag>LittleProxy</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>JVM最大线程数</title>
-    <url>/2013/06/17/JVM%E6%9C%80%E5%A4%A7%E7%BA%BF%E7%A8%8B%E6%95%B0/</url>
-    <content><![CDATA[<blockquote>
-<p>最近研发<strong>推送方案</strong>，需要大量线程来模拟手机客户端。在模拟手机客户端的时候，单个JVM线程数量始终卡在一万多一点，然后就报如下的错误<code>java.lang.OutOfMemoryError: unable to create new native thread</code>。我在网上找了很多资料，都是分析32位的，都是准备模拟几千个或者几万个水平。因为我是使用64位的linux,并且要模拟50万，发现很多都不是很详细，所以写了这篇文章。</p>
-</blockquote>
-<p>对于这个OOM，根本无需多言，网上一堆关于JVM线程数的计算公式，此处我不妨再次引用一次:<code>(MaxProcessMemory - JVMMemory – ReservedOsMemory) / (ThreadStackSize) = Number of threads</code>。MaxProcessMemory：进程最大的寻址空间，关于不同系统的进程默认的最大寻址空间，可以参考下图。</p>
-<p><img src="/images/max-space-per-process.jpg" alt="进程的寻址空间"></p>
-<a id="more"></a>
-<h3 id="JVM层面"><a href="#JVM层面" class="headerlink" title="JVM层面"></a>JVM层面</h3><ul>
-<li>JVMMemory:Heap + PermGen</li>
-<li>ReservedOSMemory:Native heap，JNI</li>
-</ul>
-<p>通过上面的说明大概就能估算出线程数量，公式如下:</p>
-<p><code>(MaxProcessMemory&lt;固定值&gt; – Xms&lt;初始化值，最小值&gt; – XX:PermSize&lt;初始化值，最小值&gt; – 100m&lt;估算值&gt;) / Xss = Number of threads&lt;最大值&gt;</code></p>
-<p><em>-Xms，-Xmx，-Xss</em>，这三个变量就是JVM层面可以调节的。</p>
-<hr>
-<h3 id="系统层面"><a href="#系统层面" class="headerlink" title="系统层面:"></a>系统层面:</h3><h4 id="proc-sys-kernel-pid-max"><a href="#proc-sys-kernel-pid-max" class="headerlink" title="/proc/sys/kernel/pid_max"></a>/proc/sys/kernel/pid_max</h4><p><strong>开始我也觉得奇怪，为什么需要修改pid呢？pid不是进程id嘛，我只是创建线程，并不创建进程，pid的大小跟我好像没有关系。查阅资料才发现，同一个进程的多个线程的pid其实是不同的。</strong></p>
-<h4 id="proc-sys-vm-max-map-count"><a href="#proc-sys-vm-max-map-count" class="headerlink" title="/proc/sys/vm/max_map_count"></a>/proc/sys/vm/max_map_count</h4><p><strong>max_map_count文件包含限制一个进程可以拥有的VMA(虚拟内存区域)的数量。虚拟内存区域是一个连续的虚拟地址空间区域。在进程的生命周期中，每当程序尝试在内存中映射文件，链接到共享内存段，或者分配堆空间的时候，这些区域将被创建。调优这个值将限制进程可拥有VMA的数量。限制一个进程拥有VMA的总数可能导致应用程序出错，因为当进程达到了VMA上线但又只能释放少量的内存给其他的内核进程使用时，操作系统会抛出内存不足的错误。如果你的操作系统在NORMAL区域仅占用少量的内存，那么调低这个值可以帮助释放内存给内核用。具体的可以查看redhat的这篇文章:<a href="http://www.redhat.com/magazine/001nov04/features/vm/" target="_blank" rel="noopener">http://www.redhat.com/magazine/001nov04/features/vm/</a>，中文的话是这篇:<a href="http://www.oschina.net/translate/understanding-virtual-memory?print" target="_blank" rel="noopener">http://www.oschina.net/translate/understanding-virtual-memory?print</a></strong></p>
-<p><strong>注意：</strong>ulimit -a中参数的大小</p>
-<p>当然有人说下面这个两个需要修改，但是我测试下来，好像不用修改也行，反正我没有修改。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/proc/sys/kernel/thread-max</span><br><span class="line">/etc/security/limits.d/90-nproc.conf</span><br></pre></td></tr></table></figure>
-<p>注意如果使用</p>
-<ul>
-<li>sysctl -w vm.max_map_count=200000</li>
-<li>sysctl -p</li>
-</ul>
-<p>来修改，重启后值会改变，如果想永久改变需要采用如下形式。</p>
-<ul>
-<li>vm.max_map_count=200000直接写到/etc/sysctl.conf中</li>
-<li>然后执行sysctl -p</li>
-</ul>
-<p>对于我的应用，此处还要设置一个socket端口的取值范围</p>
-<ul>
-<li>net.ipv4.ip_local_port_range = 1024 65535</li>
-</ul>
-<p>当然对于非socket应用是不需要设置该值的</p>
-<blockquote>
-<p><strong>最后说明</strong>:上面各个参数的设置，可以去查看linux方面的一些资料。至于值到底多大，得根据你机器的性能来确定。</p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-        <tag>线程</tag>
       </tags>
   </entry>
   <entry>
@@ -617,49 +617,6 @@
       </tags>
   </entry>
   <entry>
-    <title>TCP RST引发的一场血案</title>
-    <url>/2018/04/19/TCP%20RST%E5%BC%95%E5%8F%91%E7%9A%84%E4%B8%80%E5%9C%BA%E8%A1%80%E6%A1%88/</url>
-    <content><![CDATA[<p>最近利用业余时间写了一个简单的分布式对象存储<a href="https://github.com/chengdedeng/yfs" target="_blank" rel="noopener">yfs</a>，分布式一致性构建在<a href="https://github.com/atomix/atomix" target="_blank" rel="noopener">atomix</a>之上。atomix实现了<a href="https://raft.github.io/" target="_blank" rel="noopener">raft</a>，并且提供了更高层次的抽象，例如Map、Set、DistributedLock等。为了详细的阐述遇到问题的来龙去脉，有必要简单阐述下yfs的架构，架构图如下：</p>
-<p><img src="/images/yfs_architecture.jpg" alt="yfs_architecture"></p>
-<a id="more"></a>
-<p>从上图可知yfs由Gateway和分组的Store两部分组成，Gateway主要负责路由、鉴权、流控、安全等非存储功能，Store主要负责存储。每个Group至少由三个Store节点组成，这三个Store所存储的数据一模一样，也就是说每个文件至少有三个备份。Gateway也至少有三个节点，Store节点会自动上报metadata给Gateway，Gateway根据Store节点上报的信息来调整自己的路由策略。Gateway是在我的例外一个开源项目<a href="https://github.com/chengdedeng/waf" target="_blank" rel="noopener">waf</a>的基础上改造的而来的，每个Store节点都运行着一个Springboot服务，用来提供上传和下载服务。</p>
-<h1 id="问题一"><a href="#问题一" class="headerlink" title="问题一"></a>问题一</h1><p>当上传的文件大于Store允许上传的文件size时，发现前端一直在等待响应结果，HTTP请求传递过程是<code>Browser-&gt;Gateway-&gt;Store</code>。</p>
-<h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><ol>
-<li>首先尝试在Store上debug上传接口，发现请求压根就没有进入到controller，一搜发现<a href="https://stackoverflow.com/questions/21089106/converting-multipartfile-to-java-io-file-without-copying-to-local-machine" target="_blank" rel="noopener">https://stackoverflow.com/questions/21089106/converting-multipartfile-to-java-io-file-without-copying-to-local-machine</a>里面已经说的很清楚，原来只有等文件上传完成之后，才会进入到controller中。</li>
-<li>那为什么没有上传完成呢，wireshark一抓包发现，当数据上传部分之后，Tomcat TCP端口突然发送了一个<strong>RST</strong>，为什么会出现这种情况呢？一查原来当Tomcat发现上传的文件大于允许上传的文件时，Tomcat就直接RST TCP链接。其实原因很简单，既然上传的文件不符合规范，后面的数据包即使发送过来也会被扔掉，那与其这样，不如不要上传了，还节省上传宝贵的网络带宽。思路是没有错，但是这样HTTP层面就拿不到任何数据，浏览器最多报一个网络异常，例如Chrome会出现<strong>net::ERR_CONNECTION_RESET</strong>。假如我们允许上传的最大文件是10M，如果上传的文件大于10M小于20M，我们希望返回一个http response告诉前端上传的文件不符合规范，20M以上我们就认为是异常流量或者攻击直接RST TCP。这样的方案既方便测试，又对使用者友好，那该如何实施呢？</li>
-<li>Tomcat的配置参数<strong>MaxSwallowSize</strong>从意思上来说已经非常清晰，由于Store节点运行的是Springboot服务，所以需要重新配置<strong>TomcatEmbeddedServletContainerFactory</strong>。设置之后经测试发现20M以下的，前端会迅速收到响应结果，但是20M以上的还是存在问题，因为20M以上的Tomcat还是会RST TCP。</li>
-<li>通过netstat发现Gateway-&gt;Store之间的链路RST之后，Browser-&gt;Gateway之间的链路并没有断开，看来问题的关键就在这里了。发现问题的关键点之后，改起来就简单，我在Gateway上给Gateway-&gt;Store之间的channel加了一个CloseFuture Listener从而去关闭Browser-&gt;Gateway之间的channel，经测试发现问题解决。</li>
-</ol>
-<h1 id="问题二"><a href="#问题二" class="headerlink" title="问题二"></a>问题二</h1><p>正当我准备逛下论坛庆祝一下的时候，运维部署到了测试环境，结果任何请求Nginx都报<code>upstream prematurely closed connection while reading upstream</code>，顿时我就懵逼了。</p>
-<h1 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h1><p>测试环境HTTP请求传递过程是<code>Browser-&gt;Nginx-&gt;Gateway-&gt;Store</code>，跟我开发环境不太一样，多了一层Nginx，通过错误信息可以知道Nginx的upstream也就是Gateway出现了问题。</p>
-<ol>
-<li>connection close，那么必然会出现TCP关闭，在Nginx服务器上经过抓包一看，发现Gateway主动关闭了Nginx-&gt;Gateway之间的TCP通道。到Gateway服务器上抓包，发现Gateway先关闭了Gateway-&gt;Store之间的通道，然后由于CloseFuture Listener接着关闭Nginx-&gt;Gateway之间的通道。Gateway每次都主动发起关闭，为什么会这样呢？我本地从来没有出现过这样的现象，Gateway和Store之间应该是长连接才对啊。</li>
-<li>仔细分析整个链路，先是Browser-&gt;Nginx，发现走的HTTP1.1，没有任何问题，但是Nginx-&gt;Gateway却走的HTTP1.0，看来问题的关键就出在这个地方了。原来当Store返回响应结果之后，由于HTTP1.0是短链接，所以Gateway主动发起关闭。由于我前面给Gateway-&gt;Store的channel加了关闭的监听，所以Nginx-&gt;Gateway之间的channel也会立即关闭，所以导致Nginx会报上面的错误。</li>
-<li><p>接着检查了Nginx的配置，果然发现Nginx到Gateway之前HTTP1.1的配置不正确，加入如下配置之后问题解决。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">proxy_http_version 1.1;</span><br><span class="line">proxy_set_header Connection &quot;&quot;;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>所以<code>CloseFuture Listener</code>方案只能工作在HTTP1.1之上，也就是说Gateway-&gt;Store之间channel的关闭，只可能是由于idle超时或者异常关闭，否者就不应选择上面的方案。</p>
-</li>
-</ol>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>网络问题的定位，通常都不是非常容易，但是如果通过wireshark等抓包工具来配合研究协议和报文，一般会事半功倍。TCP和HTTP是值得投入时间来学习和研究的协议，因为它们就是迷雾中的灯塔，虽然你不知道岸在何处，但是你却知道没有偏离航向，到达彼岸只是时间问题。</p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>Http</tag>
-        <tag>Proxy</tag>
-        <tag>ShadowSocks</tag>
-        <tag>Netty</tag>
-        <tag>LittleProxy</tag>
-        <tag>TCP</tag>
-        <tag>Http1.0</tag>
-        <tag>Http1.1</tag>
-        <tag>YFS</tag>
-        <tag>Atomix</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Tigase Watchdog分析及优化</title>
     <url>/2014/09/10/Tigase_Watchdog%E5%88%86%E6%9E%90%E5%8F%8A%E4%BC%98%E5%8C%96/</url>
     <content><![CDATA[<blockquote>
@@ -744,48 +701,46 @@
       </tags>
   </entry>
   <entry>
-    <title>Hadoop节点动态管理</title>
-    <url>/2012/11/30/hadoop%E8%8A%82%E7%82%B9%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<blockquote>
-<p>hadoop在线运行已经很长一段时间了，下面就是我在上下线datanode和tasktracker步骤。因为datanode节点不一定是tasktracker，即使datanode和tasktracker在同一节点，你也可能只上下线其中一个，所以我在配置dfs和mr的include和exclude的时候，分开配置。</p>
-</blockquote>
-<h3 id="namenode中hdfs-site-xml配置"><a href="#namenode中hdfs-site-xml配置" class="headerlink" title="namenode中hdfs-site.xml配置"></a>namenode中hdfs-site.xml配置</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.hosts<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/hdfs_include<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.hosts.exclude<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/hdfs_exclude<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p>dfs.hosts所对应的文件中列出了所有可以连接到namenode的datanode，如果为空则所有的都可以连入。dfs.hosts.exclude所对应的文件中列出了禁止连接namenode的datanode节点。如果一个节点在这两个文件中都存在，则不允许连入。</p>
+    <title>TCP RST引发的一场血案</title>
+    <url>/2018/04/19/TCP%20RST%E5%BC%95%E5%8F%91%E7%9A%84%E4%B8%80%E5%9C%BA%E8%A1%80%E6%A1%88/</url>
+    <content><![CDATA[<p>最近利用业余时间写了一个简单的分布式对象存储<a href="https://github.com/chengdedeng/yfs" target="_blank" rel="noopener">yfs</a>，分布式一致性构建在<a href="https://github.com/atomix/atomix" target="_blank" rel="noopener">atomix</a>之上。atomix实现了<a href="https://raft.github.io/" target="_blank" rel="noopener">raft</a>，并且提供了更高层次的抽象，例如Map、Set、DistributedLock等。为了详细的阐述遇到问题的来龙去脉，有必要简单阐述下yfs的架构，架构图如下：</p>
+<p><img src="/images/yfs_architecture.jpg" alt="yfs_architecture"></p>
 <a id="more"></a>
-<hr>
-<h3 id="下线datanode步骤"><a href="#下线datanode步骤" class="headerlink" title="下线datanode步骤"></a>下线datanode步骤</h3><ol>
-<li>将要下线的机器加入到dfs.hosts.exclude指定的文件中（使用主机名，ip基本不靠谱），然后刷新配置hadoop dfsadmin -refreshNodes。</li>
-<li>通过hadoop dfsadmin -report或者web界面，可以看到，该datanode状态转为Decommission In Progress。</li>
-<li>当decommission进程完成数据移动，datanode状态会转变为Decommissioned，然后datanode会自动停止datnode进程。然后你可以看见dead nodes下多了一个你想要下线的节点。</li>
-<li>然后删除include和exclude中该节点的hosts，重新刷新hadoop dfsadmin -refreshNodes。</li>
-<li>最后别忘了删除slaves中该节点的配置，防止下次整个集群重启时，该节点不能通过namenode自动启动。</li>
+<p>从上图可知yfs由Gateway和分组的Store两部分组成，Gateway主要负责路由、鉴权、流控、安全等非存储功能，Store主要负责存储。每个Group至少由三个Store节点组成，这三个Store所存储的数据一模一样，也就是说每个文件至少有三个备份。Gateway也至少有三个节点，Store节点会自动上报metadata给Gateway，Gateway根据Store节点上报的信息来调整自己的路由策略。Gateway是在我的例外一个开源项目<a href="https://github.com/chengdedeng/waf" target="_blank" rel="noopener">waf</a>的基础上改造的而来的，每个Store节点都运行着一个Springboot服务，用来提供上传和下载服务。</p>
+<h1 id="问题一"><a href="#问题一" class="headerlink" title="问题一"></a>问题一</h1><p>当上传的文件大于Store允许上传的文件size时，发现前端一直在等待响应结果，HTTP请求传递过程是<code>Browser-&gt;Gateway-&gt;Store</code>。</p>
+<h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><ol>
+<li>首先尝试在Store上debug上传接口，发现请求压根就没有进入到controller，一搜发现<a href="https://stackoverflow.com/questions/21089106/converting-multipartfile-to-java-io-file-without-copying-to-local-machine" target="_blank" rel="noopener">https://stackoverflow.com/questions/21089106/converting-multipartfile-to-java-io-file-without-copying-to-local-machine</a>里面已经说的很清楚，原来只有等文件上传完成之后，才会进入到controller中。</li>
+<li>那为什么没有上传完成呢，wireshark一抓包发现，当数据上传部分之后，Tomcat TCP端口突然发送了一个<strong>RST</strong>，为什么会出现这种情况呢？一查原来当Tomcat发现上传的文件大于允许上传的文件时，Tomcat就直接RST TCP链接。其实原因很简单，既然上传的文件不符合规范，后面的数据包即使发送过来也会被扔掉，那与其这样，不如不要上传了，还节省上传宝贵的网络带宽。思路是没有错，但是这样HTTP层面就拿不到任何数据，浏览器最多报一个网络异常，例如Chrome会出现<strong>net::ERR_CONNECTION_RESET</strong>。假如我们允许上传的最大文件是10M，如果上传的文件大于10M小于20M，我们希望返回一个http response告诉前端上传的文件不符合规范，20M以上我们就认为是异常流量或者攻击直接RST TCP。这样的方案既方便测试，又对使用者友好，那该如何实施呢？</li>
+<li>Tomcat的配置参数<strong>MaxSwallowSize</strong>从意思上来说已经非常清晰，由于Store节点运行的是Springboot服务，所以需要重新配置<strong>TomcatEmbeddedServletContainerFactory</strong>。设置之后经测试发现20M以下的，前端会迅速收到响应结果，但是20M以上的还是存在问题，因为20M以上的Tomcat还是会RST TCP。</li>
+<li>通过netstat发现Gateway-&gt;Store之间的链路RST之后，Browser-&gt;Gateway之间的链路并没有断开，看来问题的关键就在这里了。发现问题的关键点之后，改起来就简单，我在Gateway上给Gateway-&gt;Store之间的channel加了一个CloseFuture Listener从而去关闭Browser-&gt;Gateway之间的channel，经测试发现问题解决。</li>
 </ol>
-<p><strong>注意</strong>:当你下线一个datanode节点，有可能该节点长时间处于Decommission In Progress状态，一直不能转变为Decommissioned。请你用hadoop fsck /检查下是否有些块少于指定的块数，特别注意那些mapreduce的临时文件。将这些删除，并且从垃圾箱移除，该节点就可以顺利下线。这是我解决该问题的办法。</p>
-<hr>
-<h3 id="上线一个节点的步骤"><a href="#上线一个节点的步骤" class="headerlink" title="上线一个节点的步骤"></a>上线一个节点的步骤</h3><ol>
-<li>保证将要上线的机器不存在于dfs.hosts.exclude所对应的的文件中，并且存在于dfs.hosts所对应的文件中。</li>
-<li>在namenode上刷新配置：hadoop dfsadmin -refreshNodes。</li>
-<li>在要上线的节点重启datanode,hadoop-daemon.sh start datanode。</li>
-<li>通过hadoop dfsadmin -report或者web界面，可以看到，节点已经上线。</li>
-<li>还是老话最后别忘了修改slaves。</li>
+<h1 id="问题二"><a href="#问题二" class="headerlink" title="问题二"></a>问题二</h1><p>正当我准备逛下论坛庆祝一下的时候，运维部署到了测试环境，结果任何请求Nginx都报<code>upstream prematurely closed connection while reading upstream</code>，顿时我就懵逼了。</p>
+<h1 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h1><p>测试环境HTTP请求传递过程是<code>Browser-&gt;Nginx-&gt;Gateway-&gt;Store</code>，跟我开发环境不太一样，多了一层Nginx，通过错误信息可以知道Nginx的upstream也就是Gateway出现了问题。</p>
+<ol>
+<li>connection close，那么必然会出现TCP关闭，在Nginx服务器上经过抓包一看，发现Gateway主动关闭了Nginx-&gt;Gateway之间的TCP通道。到Gateway服务器上抓包，发现Gateway先关闭了Gateway-&gt;Store之间的通道，然后由于CloseFuture Listener接着关闭Nginx-&gt;Gateway之间的通道。Gateway每次都主动发起关闭，为什么会这样呢？我本地从来没有出现过这样的现象，Gateway和Store之间应该是长连接才对啊。</li>
+<li>仔细分析整个链路，先是Browser-&gt;Nginx，发现走的HTTP1.1，没有任何问题，但是Nginx-&gt;Gateway却走的HTTP1.0，看来问题的关键就出在这个地方了。原来当Store返回响应结果之后，由于HTTP1.0是短链接，所以Gateway主动发起关闭。由于我前面给Gateway-&gt;Store的channel加了关闭的监听，所以Nginx-&gt;Gateway之间的channel也会立即关闭，所以导致Nginx会报上面的错误。</li>
+<li><p>接着检查了Nginx的配置，果然发现Nginx到Gateway之前HTTP1.1的配置不正确，加入如下配置之后问题解决。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">proxy_http_version 1.1;</span><br><span class="line">proxy_set_header Connection &quot;&quot;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>所以<code>CloseFuture Listener</code>方案只能工作在HTTP1.1之上，也就是说Gateway-&gt;Store之间channel的关闭，只可能是由于idle超时或者异常关闭，否者就不应选择上面的方案。</p>
+</li>
 </ol>
-<hr>
-<h3 id="jobtracker中mapred-site-xml的配置"><a href="#jobtracker中mapred-site-xml的配置" class="headerlink" title="jobtracker中mapred-site.xml的配置"></a>jobtracker中mapred-site.xml的配置</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapred.hosts<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/mr_include<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapred.hosts.exclude<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/mr_exclude<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p>tasktracker上下线基本同上。mapred.hosts中的文件是允许连接到jobtracker的机器，mapred.hosts.exclude则刚好相反，如果一台机器在两个配置中都存在，则不允许连接到jobtracker。</p>
-<hr>
-<h3 id="下线tasktracker步骤"><a href="#下线tasktracker步骤" class="headerlink" title="下线tasktracker步骤"></a>下线tasktracker步骤</h3><ol>
-<li>将要下线的机器加入到mapred.hosts.exclude指定的文件中（使用主机名，ip基本不靠谱）。</li>
-<li>刷新配置：hadoop mradmin -refreshNodes，你可以看见web界面Excluded Nodes中多出了一个节点，该节点就是你要下线的节点，最后到你要下线的节点上运行hadoop-daemon.sh stop tasktracker。</li>
-<li>最后将mr_exclude和mr_include中该节点的hosts删除，并在jobtracker上再次刷新该配置，hadoop mradmin -refreshNodes。</li>
-<li>再次提醒别忘了修改slaves。</li>
-</ol>
-<p>tasktracker上线基本上和datnode上线原理和步骤都差不多，此处就不说了。<br>tasktracker上下线问题不是很大，最多就是任务失败，我想这个对于很多人来说都是可以忍受的，但是datanode上下线需要注意，因为datanode上下线如果不得当，可能导致数据丢失，特别是同事操作2个以上的节点。如果集群不是非常大，最好的每次下线一至两台，通过检查发现数据没有问题的时候再下线别的。这样虽然麻烦，但是是最安全的。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>网络问题的定位，通常都不是非常容易，但是如果通过wireshark等抓包工具来配合研究协议和报文，一般会事半功倍。TCP和HTTP是值得投入时间来学习和研究的协议，因为它们就是迷雾中的灯塔，虽然你不知道岸在何处，但是你却知道没有偏离航向，到达彼岸只是时间问题。</p>
 ]]></content>
       <categories>
         <category>技术</category>
       </categories>
       <tags>
-        <tag>BigData</tag>
+        <tag>Http</tag>
+        <tag>Proxy</tag>
+        <tag>ShadowSocks</tag>
+        <tag>Netty</tag>
+        <tag>LittleProxy</tag>
+        <tag>TCP</tag>
+        <tag>Http1.0</tag>
+        <tag>Http1.1</tag>
+        <tag>YFS</tag>
+        <tag>Atomix</tag>
       </tags>
   </entry>
   <entry>
@@ -1753,90 +1708,48 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </tags>
   </entry>
   <entry>
-    <title>TOP100案例分享</title>
-    <url>/2016/12/15/%E4%BC%A0%E7%BB%9F%E4%BC%81%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E8%BD%AC%E5%9E%8B%E7%9A%84%E6%9E%B6%E6%9E%84%E4%B9%8B%E9%81%93/</url>
+    <title>Hadoop节点动态管理</title>
+    <url>/2012/11/30/hadoop%E8%8A%82%E7%82%B9%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86/</url>
     <content><![CDATA[<blockquote>
-<p>受MSUP TOP100组委会的邀请，12月12号在国际会议中心分享了《传统互联网转型的架构之道》，会后也和一些业界的朋友做了更深层的探讨，收货很多。下面是我分享内容的PPT，供感兴趣的朋友参考。由于图片经过压缩之后不是很清晰，如果阅读清晰版，可以下载<a href="/images/top100.pdf">PDF</a>查看。</p>
+<p>hadoop在线运行已经很长一段时间了，下面就是我在上下线datanode和tasktracker步骤。因为datanode节点不一定是tasktracker，即使datanode和tasktracker在同一节点，你也可能只上下线其中一个，所以我在配置dfs和mr的include和exclude的时候，分开配置。</p>
 </blockquote>
+<h3 id="namenode中hdfs-site-xml配置"><a href="#namenode中hdfs-site-xml配置" class="headerlink" title="namenode中hdfs-site.xml配置"></a>namenode中hdfs-site.xml配置</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.hosts<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/hdfs_include<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.hosts.exclude<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/hdfs_exclude<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>dfs.hosts所对应的文件中列出了所有可以连接到namenode的datanode，如果为空则所有的都可以连入。dfs.hosts.exclude所对应的文件中列出了禁止连接namenode的datanode节点。如果一个节点在这两个文件中都存在，则不允许连入。</p>
+<a id="more"></a>
 <hr>
-<p><img src="/images/top100/幻灯片01.jpg" alt="幻灯片01.jpg"></p>
-<a id="more"></a>
-<p><img src="/images/top100/幻灯片02.jpg" alt="幻灯片02.jpg"></p>
-<p><img src="/images/top100/幻灯片03.jpg" alt="幻灯片03.jpg"></p>
-<p><img src="/images/top100/幻灯片04.jpg" alt="幻灯片04.jpg"></p>
-<p><img src="/images/top100/幻灯片05.jpg" alt="幻灯片05.jpg"></p>
-<p><img src="/images/top100/幻灯片06.jpg" alt="幻灯片06.jpg"></p>
-<p><img src="/images/top100/幻灯片07.jpg" alt="幻灯片07.jpg"></p>
-<p><img src="/images/top100/幻灯片08.jpg" alt="幻灯片08.jpg"></p>
-<p><img src="/images/top100/幻灯片09.jpg" alt="幻灯片09.jpg"></p>
-<p><img src="/images/top100/幻灯片10.jpg" alt="幻灯片10.jpg"></p>
-<p><img src="/images/top100/幻灯片11.jpg" alt="幻灯片11.jpg"></p>
-<p><img src="/images/top100/幻灯片12.jpg" alt="幻灯片12.jpg"></p>
-<p><img src="/images/top100/幻灯片13.jpg" alt="幻灯片13.jpg"></p>
-<p><img src="/images/top100/幻灯片14.jpg" alt="幻灯片14.jpg"></p>
-<p><img src="/images/top100/幻灯片15.jpg" alt="幻灯片15.jpg"></p>
-<p><img src="/images/top100/幻灯片16.jpg" alt="幻灯片16.jpg"></p>
-<p><img src="/images/top100/幻灯片17.jpg" alt="幻灯片17.jpg"></p>
-<p><img src="/images/top100/幻灯片18.jpg" alt="幻灯片18.jpg"></p>
-<p><img src="/images/top100/幻灯片19.jpg" alt="幻灯片19.jpg"></p>
-<p><img src="/images/top100/幻灯片20.jpg" alt="幻灯片20.jpg"></p>
-<p><img src="/images/top100/幻灯片21.jpg" alt="幻灯片21.jpg"></p>
-<p><img src="/images/top100/幻灯片22.jpg" alt="幻灯片22.jpg"></p>
-<p><img src="/images/top100/幻灯片23.jpg" alt="幻灯片23.jpg"></p>
-<p><img src="/images/top100/幻灯片24.jpg" alt="幻灯片24.jpg"></p>
-<p><img src="/images/top100/幻灯片25.jpg" alt="幻灯片25.jpg"></p>
-<p><img src="/images/top100/幻灯片26.jpg" alt="幻灯片26.jpg"></p>
-<p><img src="/images/top100/幻灯片27.jpg" alt="幻灯片27.jpg"></p>
-<p><img src="/images/top100/幻灯片28.jpg" alt="幻灯片28.jpg"></p>
-<p><img src="/images/top100/幻灯片29.jpg" alt="幻灯片29.jpg"></p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>管理、架构</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>分布式事务笔记</title>
-    <url>/2016/05/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>最近研究避免分布式事务，有幸读到<a href="https://twitter.com/david_syer" target="_blank" rel="noopener">David Syer</a>于09年发布在JavaWorld的<a href="http://www.javaworld.com/article/2077963/open-source-tools/distributed-transactions-in-spring--with-and-without-xa.html" target="_blank" rel="noopener">HOW-TO<br>Distributed transactions in Spring, with and without XA</a>，虽然文章和测试代码都老了点，但是思想不变。</p>
-<h3 id="Full-XA-with-2PC"><a href="#Full-XA-with-2PC" class="headerlink" title="Full XA with 2PC"></a>Full XA with 2PC</h3><p>如果需要近乎完美的防护，2PC绝对是不二之选，但是它的性能损耗是显而易见的，这也是为什么大家谈分布式事务而闻之色变的原因。此处我们不谈性能，只谈Spring是如何支持2PC XA的。Spring为我们提供了JtaTransactionManager和声明式事务，将复杂的同步细节进行了托管。我们只需要关注DataSource的配置，例如通过开源的JTA实现<a href="https://www.atomikos.com/" target="_blank" rel="noopener">Atomikos</a>来配置DataSource。</p>
-<h3 id="XA-with-1PC-Optimization"><a href="#XA-with-1PC-Optimization" class="headerlink" title="XA with 1PC Optimization"></a>XA with 1PC Optimization</h3><p>1PC可以看做是单一事务资源下2PC的的优化版本，许多的事务管理器通过这种模式来优化2PC的过度开销。但是并不是单一事务资源，就表示一定走的是1PC，因为XA事务管理器会根据通讯时间的长度，来判断网络通讯的危险期，即使连接一个数据库也应该使用两阶段提交，如果通讯危险期很短，多个事务资源也有可能使用一阶段提交。</p>
-<a id="more"></a>
-<h3 id="XA-and-the-Last-Resource-Gambit"><a href="#XA-and-the-Last-Resource-Gambit" class="headerlink" title="XA and the Last Resource Gambit"></a>XA and the Last Resource Gambit</h3><p>目前市面上绝大多数的XA事务管理都有一个特点，那就是不论资源是部分XA兼容还是所有的都XA兼容，事务管理器都能够提供相同的事务保障。当资源经过排序，并且非XA资源通过投票机制，可以保证事务失败时所有的资源都能回滚。它对事务的保证是可以完全放心的，但是如果事务失败不会留下太多信息，如果想获取这些信息，就需要一些高级实现了。</p>
-<h3 id="XA模式总结"><a href="#XA模式总结" class="headerlink" title="XA模式总结"></a>XA模式总结</h3><p>前面介绍了三种基于XA协议的模式，不过从性能的方面来考虑，这些模式可能不能让我们满意，尤其是特别关注并发的互联网业务。我们可以了解并学习它，知道何时、如何避免使用XA，何时又必须使用。当然也有开发能力很强的团队，自己研发了两阶段提交事务框架，例如支付宝。</p>
-<h3 id="Shared-Transaction-Resource-pattern"><a href="#Shared-Transaction-Resource-pattern" class="headerlink" title="Shared Transaction Resource pattern"></a>Shared Transaction Resource pattern</h3><p>这个模式就是将所有的事务资源绑定到一个相同的资源，从而实现分布式事务，提升系统吞吐量。该模式的使用场景是受限制的，不能拿来处理所有的用例，但是它如XA一样坚固可靠。为了详细说明该模式，我通过两个案例来阐述。</p>
-<h4 id="共享数据库Connection"><a href="#共享数据库Connection" class="headerlink" title="共享数据库Connection"></a>共享数据库Connection</h4><p>我们在使用spring的声明式事务的时候，通常都是由service层来控制的，这点是基础共识。这样不论我们是使用ORM还是JDBC抽象框架，只要底层的Connection是共享的，那么我们即使配置了多个上层的模板(Mybatis or JdbcTemplate)，事务的安全就能够得到保证。这便是共享资源模式最简单最直接的体现，只是我们平时没有关注而已。</p>
-<h4 id="消息驱动的单Database更新"><a href="#消息驱动的单Database更新" class="headerlink" title="消息驱动的单Database更新"></a>消息驱动的单Database更新</h4><p>这种模式就是将消息中间件的Connection和数据库的Connection交给一个代理，这个代理依赖于消息中间厂商的存储策略细节，并且不是所有的供应商都提供这种模式。这种模式的使用并不常见，因为我们更喜欢用<code>Best Efforts 1PC pattern</code>中消息驱动模式，因为它更简单。下面的配置可以让我们窥一斑而见全豹，如果想更清晰的了解消息驱动的单Database的更新，请下载原文的代码研究。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"brokerService"</span> <span class="attr">class</span>=<span class="string">"org.apache.activemq.broker.BrokerService"</span></span></span><br><span class="line"><span class="tag">		<span class="attr">init-method</span>=<span class="string">"start"</span> <span class="attr">destroy-method</span>=<span class="string">"stop"</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"brokerName"</span> <span class="attr">value</span>=<span class="string">"broker"</span> /&gt;</span></span><br><span class="line">		<span class="comment">&lt;!-- Enable this if you need to inspect with JMX --&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useJmx"</span> <span class="attr">value</span>=<span class="string">"false"</span> /&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"transportConnectorURIs"</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">list</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">value</span>&gt;</span>vm://localhost<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"persistenceAdapter"</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.apache.activemq.store.jdbc.JDBCPersistenceAdapter"</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span>&gt;</span></span><br><span class="line">					<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"com.springsource.open.jms.JmsTransactionAwareDataSourceProxy"</span>&gt;</span></span><br><span class="line">						<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"targetDataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span>/&gt;</span></span><br><span class="line">						<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jmsTemplate"</span> <span class="attr">ref</span>=<span class="string">"jmsTemplate"</span>/&gt;</span></span><br><span class="line">					<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"createTablesOnStartup"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<h3 id="Best-Efforts-1PC-pattern"><a href="#Best-Efforts-1PC-pattern" class="headerlink" title="Best Efforts 1PC pattern"></a>Best Efforts 1PC pattern</h3><p>该模式应用相当广泛，这也是我最喜欢的模式之一。虽然在安全性上不如XA，但是在大数据、高并发等性能上却得到了极大的提升。那我们如何判断我们的系统是否可以使用该模式，建议参考下面的两点：</p>
-<ol>
-<li>各个事务资源基础组件出错概率非常小。</li>
-<li>业务可以设计为幂等性。</li>
+<h3 id="下线datanode步骤"><a href="#下线datanode步骤" class="headerlink" title="下线datanode步骤"></a>下线datanode步骤</h3><ol>
+<li>将要下线的机器加入到dfs.hosts.exclude指定的文件中（使用主机名，ip基本不靠谱），然后刷新配置hadoop dfsadmin -refreshNodes。</li>
+<li>通过hadoop dfsadmin -report或者web界面，可以看到，该datanode状态转为Decommission In Progress。</li>
+<li>当decommission进程完成数据移动，datanode状态会转变为Decommissioned，然后datanode会自动停止datnode进程。然后你可以看见dead nodes下多了一个你想要下线的节点。</li>
+<li>然后删除include和exclude中该节点的hosts，重新刷新hadoop dfsadmin -refreshNodes。</li>
+<li>最后别忘了删除slaves中该节点的配置，防止下次整个集群重启时，该节点不能通过namenode自动启动。</li>
 </ol>
-<p>只要满足以上两点，事务发生错误的可能性就非常小了。为了简单的说明此模式，我结合Rabbitmq和Mysql来说明，先简单的来一段配置。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jsonMessageConverter"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">class</span>=<span class="string">"org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">rabbit:connection-factory</span> <span class="attr">id</span>=<span class="string">"rabbitConnectionFactory"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">addresses</span>=<span class="string">"10.11.25.222"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">username</span>=<span class="string">"yangguo"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">password</span>=<span class="string">"yangguo"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">rabbit:template</span> <span class="attr">id</span>=<span class="string">"rabbitTemplate"</span> <span class="attr">connection-factory</span>=<span class="string">"rabbitConnectionFactory"</span></span></span><br><span class="line"><span class="tag">                   <span class="attr">message-converter</span>=<span class="string">"jsonMessageConverter"</span> <span class="attr">channel-transacted</span>=<span class="string">"true"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
-<p>再来两段Java代码</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"> <span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">provierSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     User user = <span class="keyword">new</span> User();</span><br><span class="line">     user.setUserName(<span class="string">"yangguo"</span>);</span><br><span class="line">     user.setPassword(<span class="string">"yangguo"</span>);</span><br><span class="line">     userMapper.insert(user);</span><br><span class="line"></span><br><span class="line">     rabbitTemplate.convertAndSend(<span class="string">"amq.topic"</span>, <span class="keyword">null</span>, user);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-<p>上面代码处理的业务逻辑是将用户插入到用户表的同时向消息队列发一条消息，插入DB和发送消息到MQ是包在一个事务中。下面的代码则是消费消息，也是包在一个事务中。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">consumeSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    User user= (User) rabbitTemplate.receiveAndConvert(<span class="string">"test-queue"</span>);</span><br><span class="line">    friendMapper.update(user);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码其实很简单，首先配置一个支持事务的RabbitTemplate，主要设置<code>channel-transacted=&quot;true&quot;</code>，当然Mysql DataSource和Mybatis的配置，我就省略了，然后剩下的事情就交给Spring的Transaction吧。不过原文是使用ActiveMQ来讲解的，不过思想都是一样的。当然作者在原文中还解释了一种链式事务管理器，其实上面的例子也是一种链式思路，链式事务管理器非常注重顺序性，因为回滚和业务顺序正好相反。现阶段的spring事务处理，默认就是一种链式思路，只要你在service上面加了@Transaction或者在XML里面配置了切面，那么处于切面中的方法中的分布式资源就会受到spring事务管理器的托管。这也是最大努力一次提交模式流行的真正原因，因为它就是Spring事务管理器的核心。当然如果我们使用消息队列的Topic模式，是可以绕过<code>消息驱动的单Database更新</code>的，因为我们只要能够实现最终一致性就OK了。</p>
-<h3 id="Nontransactional-Access-pattern"><a href="#Nontransactional-Access-pattern" class="headerlink" title="Nontransactional Access pattern"></a>Nontransactional Access pattern</h3><p>这个模式是需要特殊的业务场景，理想情况是非事务或者本地事务的逻辑是边缘业务，该业务具备幂等性或者从逻辑的角度来说具备幂等性。当然该模式可以是分布式事务和非事务的组合，也可以全部都是非事务逻辑，还可以是分布式事务和本地事务的组合。这种模式需要细致的分析，只有对业务充分了解，才能确定哪些可以走非事务或者本地事务。当然业务出错，你可以使用补偿机制，不过请注意通用的事务补偿通常都很麻烦。</p>
-<h3 id="HALF消息-本地事务表-消息回查"><a href="#HALF消息-本地事务表-消息回查" class="headerlink" title="HALF消息+本地事务表+消息回查"></a>HALF消息+本地事务表+消息回查</h3><p>这种模式并不是David Syer文章中所提到的模式，不过该模式我认为是最简单和安全的模式，不过需要中间件支持，该类型中间件的代表就是<a href="https://rocketmq.apache.org/" target="_blank" rel="noopener">RocketMQ</a>。为了简单阐述该模式的，我就直接拿RocketMQ的交互流程。</p>
-<p><img src="/images/rocketmq_flow.png" alt="rocketmq_flow"></p>
-<p>该模式在性能和易用性上都有非常好的表现，不过就是需要自己消息回查逻辑，这种模式也是我使用最多的模式。该模式通过本地事务表和消息中间件的状态管理，将复杂的分布式问题简单化，唯一牺牲的就是时效性，因为它只能保证最终一致性。</p>
-<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.ibm.com/developerworks/cn/java/j-lo-spring-ts1/" target="_blank" rel="noopener">Spring 事务管理高级应用难点剖析: 第 1 部分</a></p>
-<p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-spring-ts2/" target="_blank" rel="noopener">Spring 事务管理高级应用难点剖析: 第 2 部分</a></p>
-<p><a href="http://www.ibm.com/developerworks/cn/java/j-ts1.html" target="_blank" rel="noopener">事务策略: 了解事务陷阱</a></p>
+<p><strong>注意</strong>:当你下线一个datanode节点，有可能该节点长时间处于Decommission In Progress状态，一直不能转变为Decommissioned。请你用hadoop fsck /检查下是否有些块少于指定的块数，特别注意那些mapreduce的临时文件。将这些删除，并且从垃圾箱移除，该节点就可以顺利下线。这是我解决该问题的办法。</p>
+<hr>
+<h3 id="上线一个节点的步骤"><a href="#上线一个节点的步骤" class="headerlink" title="上线一个节点的步骤"></a>上线一个节点的步骤</h3><ol>
+<li>保证将要上线的机器不存在于dfs.hosts.exclude所对应的的文件中，并且存在于dfs.hosts所对应的文件中。</li>
+<li>在namenode上刷新配置：hadoop dfsadmin -refreshNodes。</li>
+<li>在要上线的节点重启datanode,hadoop-daemon.sh start datanode。</li>
+<li>通过hadoop dfsadmin -report或者web界面，可以看到，节点已经上线。</li>
+<li>还是老话最后别忘了修改slaves。</li>
+</ol>
+<hr>
+<h3 id="jobtracker中mapred-site-xml的配置"><a href="#jobtracker中mapred-site-xml的配置" class="headerlink" title="jobtracker中mapred-site.xml的配置"></a>jobtracker中mapred-site.xml的配置</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapred.hosts<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/mr_include<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapred.hosts.exclude<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/mr_exclude<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>tasktracker上下线基本同上。mapred.hosts中的文件是允许连接到jobtracker的机器，mapred.hosts.exclude则刚好相反，如果一台机器在两个配置中都存在，则不允许连接到jobtracker。</p>
+<hr>
+<h3 id="下线tasktracker步骤"><a href="#下线tasktracker步骤" class="headerlink" title="下线tasktracker步骤"></a>下线tasktracker步骤</h3><ol>
+<li>将要下线的机器加入到mapred.hosts.exclude指定的文件中（使用主机名，ip基本不靠谱）。</li>
+<li>刷新配置：hadoop mradmin -refreshNodes，你可以看见web界面Excluded Nodes中多出了一个节点，该节点就是你要下线的节点，最后到你要下线的节点上运行hadoop-daemon.sh stop tasktracker。</li>
+<li>最后将mr_exclude和mr_include中该节点的hosts删除，并在jobtracker上再次刷新该配置，hadoop mradmin -refreshNodes。</li>
+<li>再次提醒别忘了修改slaves。</li>
+</ol>
+<p>tasktracker上线基本上和datnode上线原理和步骤都差不多，此处就不说了。<br>tasktracker上下线问题不是很大，最多就是任务失败，我想这个对于很多人来说都是可以忍受的，但是datanode上下线需要注意，因为datanode上下线如果不得当，可能导致数据丢失，特别是同事操作2个以上的节点。如果集群不是非常大，最好的每次下线一至两台，通过检查发现数据没有问题的时候再下线别的。这样虽然麻烦，但是是最安全的。</p>
 ]]></content>
       <categories>
         <category>技术</category>
       </categories>
       <tags>
-        <tag>Spring</tag>
-        <tag>事务</tag>
-        <tag>分布式事务</tag>
+        <tag>BigData</tag>
       </tags>
   </entry>
   <entry>
@@ -1908,6 +1821,51 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </categories>
       <tags>
         <tag>管理、架构、DDD</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TOP100案例分享</title>
+    <url>/2016/12/15/%E4%BC%A0%E7%BB%9F%E4%BC%81%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E8%BD%AC%E5%9E%8B%E7%9A%84%E6%9E%B6%E6%9E%84%E4%B9%8B%E9%81%93/</url>
+    <content><![CDATA[<blockquote>
+<p>受MSUP TOP100组委会的邀请，12月12号在国际会议中心分享了《传统互联网转型的架构之道》，会后也和一些业界的朋友做了更深层的探讨，收货很多。下面是我分享内容的PPT，供感兴趣的朋友参考。由于图片经过压缩之后不是很清晰，如果阅读清晰版，可以下载<a href="/images/top100.pdf">PDF</a>查看。</p>
+</blockquote>
+<hr>
+<p><img src="/images/top100/幻灯片01.jpg" alt="幻灯片01.jpg"></p>
+<a id="more"></a>
+<p><img src="/images/top100/幻灯片02.jpg" alt="幻灯片02.jpg"></p>
+<p><img src="/images/top100/幻灯片03.jpg" alt="幻灯片03.jpg"></p>
+<p><img src="/images/top100/幻灯片04.jpg" alt="幻灯片04.jpg"></p>
+<p><img src="/images/top100/幻灯片05.jpg" alt="幻灯片05.jpg"></p>
+<p><img src="/images/top100/幻灯片06.jpg" alt="幻灯片06.jpg"></p>
+<p><img src="/images/top100/幻灯片07.jpg" alt="幻灯片07.jpg"></p>
+<p><img src="/images/top100/幻灯片08.jpg" alt="幻灯片08.jpg"></p>
+<p><img src="/images/top100/幻灯片09.jpg" alt="幻灯片09.jpg"></p>
+<p><img src="/images/top100/幻灯片10.jpg" alt="幻灯片10.jpg"></p>
+<p><img src="/images/top100/幻灯片11.jpg" alt="幻灯片11.jpg"></p>
+<p><img src="/images/top100/幻灯片12.jpg" alt="幻灯片12.jpg"></p>
+<p><img src="/images/top100/幻灯片13.jpg" alt="幻灯片13.jpg"></p>
+<p><img src="/images/top100/幻灯片14.jpg" alt="幻灯片14.jpg"></p>
+<p><img src="/images/top100/幻灯片15.jpg" alt="幻灯片15.jpg"></p>
+<p><img src="/images/top100/幻灯片16.jpg" alt="幻灯片16.jpg"></p>
+<p><img src="/images/top100/幻灯片17.jpg" alt="幻灯片17.jpg"></p>
+<p><img src="/images/top100/幻灯片18.jpg" alt="幻灯片18.jpg"></p>
+<p><img src="/images/top100/幻灯片19.jpg" alt="幻灯片19.jpg"></p>
+<p><img src="/images/top100/幻灯片20.jpg" alt="幻灯片20.jpg"></p>
+<p><img src="/images/top100/幻灯片21.jpg" alt="幻灯片21.jpg"></p>
+<p><img src="/images/top100/幻灯片22.jpg" alt="幻灯片22.jpg"></p>
+<p><img src="/images/top100/幻灯片23.jpg" alt="幻灯片23.jpg"></p>
+<p><img src="/images/top100/幻灯片24.jpg" alt="幻灯片24.jpg"></p>
+<p><img src="/images/top100/幻灯片25.jpg" alt="幻灯片25.jpg"></p>
+<p><img src="/images/top100/幻灯片26.jpg" alt="幻灯片26.jpg"></p>
+<p><img src="/images/top100/幻灯片27.jpg" alt="幻灯片27.jpg"></p>
+<p><img src="/images/top100/幻灯片28.jpg" alt="幻灯片28.jpg"></p>
+<p><img src="/images/top100/幻灯片29.jpg" alt="幻灯片29.jpg"></p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>管理、架构</tag>
       </tags>
   </entry>
   <entry>
@@ -2186,6 +2144,56 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </tags>
   </entry>
   <entry>
+    <title>生产环境难题解决方案</title>
+    <url>/2015/06/25/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%B0%83%E8%AF%95%E9%9A%BE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/</url>
+    <content><![CDATA[<h3 id="生产环境调试难题"><a href="#生产环境调试难题" class="headerlink" title="生产环境调试难题"></a>生产环境调试难题</h3><p>当我们的代码运行在生产环境时，各种千奇百怪的事情都有可能发生，而此时我们已经离开了舒服的开发环境，不能使用自己习惯的IDE来单步调试。当我们生产环境出现问题时，我们需要第一时间知道问题出在哪里。因此我们需要未雨绸缪做好准备，否者等问题发生时才通过漫无目的的查找日志，不但时间成本太高，并且不见得有效。</p>
+<p>SOA，分布式，微服务….虽然带来了高可用和可扩展，但是同时也将系统架构的复杂度提升了好几个等级。经常我们会发现一个服务的不可用，是由于例外一个它依赖的服务导致的。持续交付和代码的不断更改，生产环境错误被找到的速度越来越快。然而如今，我们面对更大的困难是当错误发生时，我们如何提取错误的状态，比如变量值，错误，甚至逻辑代码块。</p>
+<p>目前主流的解决方案有如下几种:</p>
+<ol>
+<li>分布式日志</li>
+<li>高级的jstack</li>
+<li>Btrack</li>
+<li>定制的JVM代理</li>
+</ol>
+<a id="more"></a>
+<hr>
+<h3 id="分布式日志"><a href="#分布式日志" class="headerlink" title="分布式日志"></a>分布式日志</h3><p>分布式日志，就是我们每行日志都有清楚的上下文，我们只需要通过这行日志就能知道整个RPC调用链上发生的整个情况。对于分布式日志系统，业界成熟的产品有<strong>淘宝的鹰眼</strong>和<strong>点评的cat</strong>。原理就是RPC的第一跳，就生成一个全局唯一的UUID，该UUID会在整个RPC调用链中传递，并在需要打印日志的地方表现出来。很多日志库可以修改<strong>MDC(Mapped Diagnostic Context)</strong>来实现，如果没有也可以通过ThreadLocal来实现。至于该UUID如何在RPC调用链上传递，就需要自己在协议层面完善了。于此同时我们还可以结合<a href="https://www.elastic.co/products/logstash" target="_blank" rel="noopener">Logstash</a>或者<a href="https://www.loggly.com/" target="_blank" rel="noopener">Loggly</a>等日志管理工具，来简化日志管理。当然也有很多公司，通过<strong>rsyslog</strong>和<strong>syslog-ng</strong>甚至通过<strong>rsync</strong>来实现日志的集中化管理。</p>
+<p>导致线程终结的未捕获异常点，通常包含许多有用信息。绝大多数的框架能够将这些异常信息打印出来，如果要自己实现，可以通过一个全局的<strong>Exception Handler</strong>来实现。在未捕获的异常发生时，我们在打印日志时，注意以下的3点。</p>
+<ol>
+<li>线程名字：根据你请求的参数来修改线程名，比如RPCID或者事务ID，这样我们查找日志时，便能一眼知道该线程在干嘛。</li>
+<li>ThreadLocal(TLS)：在未捕获异常发生时，我们最好将ThreadLocal中的数据打印出来。因为除了数据和线程的名字，没有太多的程序能够到达异常点来记录TLS中的数据。这些现场数据保留的越多越好，当你追查问题时，便会从中受益。</li>
+<li>MDC：它类似与TLS，MDC是Log4j或者Logback日志框架的一部分。它就是在指定的日志级别上创建了一个静态Map，相比TLS，它的功能更高级些。</li>
+</ol>
+<h3 id="先发制人的Jstack"><a href="#先发制人的Jstack" class="headerlink" title="先发制人的Jstack"></a>先发制人的Jstack</h3><p>jstack作为一款jdk自带的强大工具，被大多数的程序员所熟悉。它能够hook进正在运行的程序和输出被hook程序的堆栈，数据帧，Java虚拟机或者native，锁以及其它各种各样的元数据，它还能分析已经dump出来的堆栈信息。</p>
+<p>虽然它很强大，但是我们都主要用在问题已出的事后，通过它来寻找蛛丝马迹定位问题所在。如果说能够在问题发生前或者问题发生中，我们就能够知道，并且将现场给保存下来，那么这无疑会降低问题的定位难度。下面给出一个当吞吐量达到一定阀值，自动jstack的例子。具体代码详见<a href="https://github.com/chengdedeng/jstack" target="_blank" rel="noopener">链接</a></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startScheduleTask</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   scheduler.scheduleAtFixedRate(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">           checkThroughput();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;, APP_WARMUP, POLLING_CYCLE, TimeUnit.SECONDS);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkThroughput</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> throughput = adder.intValue(); <span class="comment">//the adder is inc’d when a message is processed</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (throughput &lt; MIN_THROUGHPUT) &#123;</span><br><span class="line"></span><br><span class="line">       Thread.currentThread().setName(<span class="string">"Throughput jstack thread: "</span> + throughput);</span><br><span class="line"></span><br><span class="line">       System.err.println(<span class="string">"Minimal throughput failed: executing jstack"</span>);</span><br><span class="line"></span><br><span class="line">       executeJstack();  <span class="comment">// See the code on GitHub to learn how this is done</span></span><br><span class="line"></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   adder.reset();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="有状态的Jstack"><a href="#有状态的Jstack" class="headerlink" title="有状态的Jstack"></a>有状态的Jstack</h3><p>Jstack存在的例外一个问题就是，虽然他提供了非常丰富的元数据，但是我们缺乏导致错误的实际状态。我们可以设置线程名称来解决。为了能够找到错误的根源，我们需要的不仅仅是一个堆栈追踪信息。我们以数据库查询为例，我们在程序中加入这样一行代码：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Thread.currentThread().setName(Context + TID + Params + current Time, ...);</span><br></pre></td></tr></table></figure>
+<p>没有设置前，数据的元数据如下：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">“ pool-1-thread-1 ″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
+<p>现在看起来是这样的：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">”Queue Processing Thread, MessageID: AB5CAD, <span class="built_in">type</span>: AnalyzeGraph, queue: ACTIVE_PROD, Transaction_ID: 5678956, Start Time: 10/8/2014 18:34″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
+<p>现在的输出可以帮助我们更好的了解程序到底发生了什么。现在我们可以知道线程接收的参数，事务ID，消息ID。有了这些参数，我们就可以追溯问题，发现错误和解决问题。</p>
+<h3 id="BTrace"><a href="#BTrace" class="headerlink" title="BTrace"></a>BTrace</h3><p>不论是日志还是jstack都不能对JVM的运行状态进行很好的可视化，BTrace使用Java的<strong>Attach</strong>技术，可以让我们无缝的将我们BTrace脚本挂到JVM上。通过脚本你可以获取到任何你想拿到的数据，在侵入性和安全性上都非常可靠，特别是定位线上问题的神器。BTrace的详细使用，可以见我的例外<a href="/2015/06/08/btrace笔记">一篇文章</a>。</p>
+<p>让我们简单的看一段<strong>BTrace</strong>脚本：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Profiling</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Property</span></span><br><span class="line">    Profiler profiler = BTraceUtils.Profiling.newProfiler();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">entry</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordEntry(profiler, probeMethod);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>, location = <span class="meta">@Location</span>(value = Kind.RETURN))</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod, @Duration <span class="keyword">long</span> duration) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordExit(profiler, probeMethod, duration);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnTimer</span>(<span class="number">5000</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">timer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.printSnapshot(<span class="string">"Performance profile"</span>, profiler);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>BTrace是定位具体问题的有效工具，但是它的开销是非常显著的，使用的时候要小心，避免过高的开销影响重要业务。</p>
+<h3 id="自定义代理"><a href="#自定义代理" class="headerlink" title="自定义代理"></a>自定义代理</h3><p>跟BTrace一样，我们也可以自己定义Java代理。在Java SE5中，Instrument就已经被加入，Java SE6中，更是实现了动态Instrument。Instrument功能从本地代码中解放出来，使之可以使用使用Java代码在不改变现有代码的前提下，在不重启应用的前提下实现对JVM的监测甚至替换和修改某些类的定义。它有点类似于虚拟机级别的AOP，使开发者不用对jdk做任何改动，就可以实现AOP功能。BTrace的实现就是依靠该功能实现的。</p>
+<p>“java.lang.instrument”包的具体实现，依赖于 JVMTI。JVMTI（Java Virtual Machine Tool Interface）是一套由 Java 虚拟机提供的，为 JVM 相关的工具提供的本地编程接口集合。JVMTI 是从 Java SE 5 开始引入，整合和取代了以前使用的 Java Virtual Machine Profiler Interface (JVMPI) 和 the Java Virtual Machine Debug Interface (JVMDI)，而在 Java SE 6 中，JVMPI 和 JVMDI 已经消失了。JVMTI 提供了一套”代理”程序机制，可以支持第三方工具程序以代理的方式连接和访问 JVM，并利用 JVMTI 提供的丰富的编程接口，完成很多跟 JVM 相关的功能。</p>
+<p>另外，对 native 的 Instrumentation 也是 Java SE 6 的一个崭新的功能，这使以前无法完成的功能 —— 对 native 接口的 instrumentation 可以在 Java SE 6 中，通过一个或者一系列的 prefix 添加而得以完成。</p>
+<p>测试代码可以具体参考<a href="https://github.com/chengdedeng/demo" target="_blank" rel="noopener">该项目</a>中的<strong>attch_api</strong>包下面的代码。</p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>很多时候个人价值的体现就是当有问题发生时，看谁能够更快速的解决问题。今天对于一个需要提供7*24小时服务的应用来说，别说停机，就是部分服务出现问题都是不可容忍的。谁能在最短的时间修复问题，并且快速部署，谁就更能创造价值。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Thread</tag>
+        <tag>BTrace</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>漫谈IM通信架构</title>
     <url>/2015/08/17/%E6%BC%AB%E8%B0%88%E9%80%9A%E8%AE%AF%E6%9E%B6%E6%9E%84/</url>
     <content><![CDATA[<blockquote>
@@ -2256,53 +2264,45 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </tags>
   </entry>
   <entry>
-    <title>生产环境难题解决方案</title>
-    <url>/2015/06/25/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%B0%83%E8%AF%95%E9%9A%BE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/</url>
-    <content><![CDATA[<h3 id="生产环境调试难题"><a href="#生产环境调试难题" class="headerlink" title="生产环境调试难题"></a>生产环境调试难题</h3><p>当我们的代码运行在生产环境时，各种千奇百怪的事情都有可能发生，而此时我们已经离开了舒服的开发环境，不能使用自己习惯的IDE来单步调试。当我们生产环境出现问题时，我们需要第一时间知道问题出在哪里。因此我们需要未雨绸缪做好准备，否者等问题发生时才通过漫无目的的查找日志，不但时间成本太高，并且不见得有效。</p>
-<p>SOA，分布式，微服务….虽然带来了高可用和可扩展，但是同时也将系统架构的复杂度提升了好几个等级。经常我们会发现一个服务的不可用，是由于例外一个它依赖的服务导致的。持续交付和代码的不断更改，生产环境错误被找到的速度越来越快。然而如今，我们面对更大的困难是当错误发生时，我们如何提取错误的状态，比如变量值，错误，甚至逻辑代码块。</p>
-<p>目前主流的解决方案有如下几种:</p>
-<ol>
-<li>分布式日志</li>
-<li>高级的jstack</li>
-<li>Btrack</li>
-<li>定制的JVM代理</li>
-</ol>
+    <title>分布式事务笔记</title>
+    <url>/2016/05/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>最近研究避免分布式事务，有幸读到<a href="https://twitter.com/david_syer" target="_blank" rel="noopener">David Syer</a>于09年发布在JavaWorld的<a href="http://www.javaworld.com/article/2077963/open-source-tools/distributed-transactions-in-spring--with-and-without-xa.html" target="_blank" rel="noopener">HOW-TO<br>Distributed transactions in Spring, with and without XA</a>，虽然文章和测试代码都老了点，但是思想不变。</p>
+<h3 id="Full-XA-with-2PC"><a href="#Full-XA-with-2PC" class="headerlink" title="Full XA with 2PC"></a>Full XA with 2PC</h3><p>如果需要近乎完美的防护，2PC绝对是不二之选，但是它的性能损耗是显而易见的，这也是为什么大家谈分布式事务而闻之色变的原因。此处我们不谈性能，只谈Spring是如何支持2PC XA的。Spring为我们提供了JtaTransactionManager和声明式事务，将复杂的同步细节进行了托管。我们只需要关注DataSource的配置，例如通过开源的JTA实现<a href="https://www.atomikos.com/" target="_blank" rel="noopener">Atomikos</a>来配置DataSource。</p>
+<h3 id="XA-with-1PC-Optimization"><a href="#XA-with-1PC-Optimization" class="headerlink" title="XA with 1PC Optimization"></a>XA with 1PC Optimization</h3><p>1PC可以看做是单一事务资源下2PC的的优化版本，许多的事务管理器通过这种模式来优化2PC的过度开销。但是并不是单一事务资源，就表示一定走的是1PC，因为XA事务管理器会根据通讯时间的长度，来判断网络通讯的危险期，即使连接一个数据库也应该使用两阶段提交，如果通讯危险期很短，多个事务资源也有可能使用一阶段提交。</p>
 <a id="more"></a>
-<hr>
-<h3 id="分布式日志"><a href="#分布式日志" class="headerlink" title="分布式日志"></a>分布式日志</h3><p>分布式日志，就是我们每行日志都有清楚的上下文，我们只需要通过这行日志就能知道整个RPC调用链上发生的整个情况。对于分布式日志系统，业界成熟的产品有<strong>淘宝的鹰眼</strong>和<strong>点评的cat</strong>。原理就是RPC的第一跳，就生成一个全局唯一的UUID，该UUID会在整个RPC调用链中传递，并在需要打印日志的地方表现出来。很多日志库可以修改<strong>MDC(Mapped Diagnostic Context)</strong>来实现，如果没有也可以通过ThreadLocal来实现。至于该UUID如何在RPC调用链上传递，就需要自己在协议层面完善了。于此同时我们还可以结合<a href="https://www.elastic.co/products/logstash" target="_blank" rel="noopener">Logstash</a>或者<a href="https://www.loggly.com/" target="_blank" rel="noopener">Loggly</a>等日志管理工具，来简化日志管理。当然也有很多公司，通过<strong>rsyslog</strong>和<strong>syslog-ng</strong>甚至通过<strong>rsync</strong>来实现日志的集中化管理。</p>
-<p>导致线程终结的未捕获异常点，通常包含许多有用信息。绝大多数的框架能够将这些异常信息打印出来，如果要自己实现，可以通过一个全局的<strong>Exception Handler</strong>来实现。在未捕获的异常发生时，我们在打印日志时，注意以下的3点。</p>
+<h3 id="XA-and-the-Last-Resource-Gambit"><a href="#XA-and-the-Last-Resource-Gambit" class="headerlink" title="XA and the Last Resource Gambit"></a>XA and the Last Resource Gambit</h3><p>目前市面上绝大多数的XA事务管理都有一个特点，那就是不论资源是部分XA兼容还是所有的都XA兼容，事务管理器都能够提供相同的事务保障。当资源经过排序，并且非XA资源通过投票机制，可以保证事务失败时所有的资源都能回滚。它对事务的保证是可以完全放心的，但是如果事务失败不会留下太多信息，如果想获取这些信息，就需要一些高级实现了。</p>
+<h3 id="XA模式总结"><a href="#XA模式总结" class="headerlink" title="XA模式总结"></a>XA模式总结</h3><p>前面介绍了三种基于XA协议的模式，不过从性能的方面来考虑，这些模式可能不能让我们满意，尤其是特别关注并发的互联网业务。我们可以了解并学习它，知道何时、如何避免使用XA，何时又必须使用。当然也有开发能力很强的团队，自己研发了两阶段提交事务框架，例如支付宝。</p>
+<h3 id="Shared-Transaction-Resource-pattern"><a href="#Shared-Transaction-Resource-pattern" class="headerlink" title="Shared Transaction Resource pattern"></a>Shared Transaction Resource pattern</h3><p>这个模式就是将所有的事务资源绑定到一个相同的资源，从而实现分布式事务，提升系统吞吐量。该模式的使用场景是受限制的，不能拿来处理所有的用例，但是它如XA一样坚固可靠。为了详细说明该模式，我通过两个案例来阐述。</p>
+<h4 id="共享数据库Connection"><a href="#共享数据库Connection" class="headerlink" title="共享数据库Connection"></a>共享数据库Connection</h4><p>我们在使用spring的声明式事务的时候，通常都是由service层来控制的，这点是基础共识。这样不论我们是使用ORM还是JDBC抽象框架，只要底层的Connection是共享的，那么我们即使配置了多个上层的模板(Mybatis or JdbcTemplate)，事务的安全就能够得到保证。这便是共享资源模式最简单最直接的体现，只是我们平时没有关注而已。</p>
+<h4 id="消息驱动的单Database更新"><a href="#消息驱动的单Database更新" class="headerlink" title="消息驱动的单Database更新"></a>消息驱动的单Database更新</h4><p>这种模式就是将消息中间件的Connection和数据库的Connection交给一个代理，这个代理依赖于消息中间厂商的存储策略细节，并且不是所有的供应商都提供这种模式。这种模式的使用并不常见，因为我们更喜欢用<code>Best Efforts 1PC pattern</code>中消息驱动模式，因为它更简单。下面的配置可以让我们窥一斑而见全豹，如果想更清晰的了解消息驱动的单Database的更新，请下载原文的代码研究。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"brokerService"</span> <span class="attr">class</span>=<span class="string">"org.apache.activemq.broker.BrokerService"</span></span></span><br><span class="line"><span class="tag">		<span class="attr">init-method</span>=<span class="string">"start"</span> <span class="attr">destroy-method</span>=<span class="string">"stop"</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"brokerName"</span> <span class="attr">value</span>=<span class="string">"broker"</span> /&gt;</span></span><br><span class="line">		<span class="comment">&lt;!-- Enable this if you need to inspect with JMX --&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useJmx"</span> <span class="attr">value</span>=<span class="string">"false"</span> /&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"transportConnectorURIs"</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">list</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">value</span>&gt;</span>vm://localhost<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"persistenceAdapter"</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.apache.activemq.store.jdbc.JDBCPersistenceAdapter"</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span>&gt;</span></span><br><span class="line">					<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"com.springsource.open.jms.JmsTransactionAwareDataSourceProxy"</span>&gt;</span></span><br><span class="line">						<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"targetDataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span>/&gt;</span></span><br><span class="line">						<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jmsTemplate"</span> <span class="attr">ref</span>=<span class="string">"jmsTemplate"</span>/&gt;</span></span><br><span class="line">					<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"createTablesOnStartup"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="Best-Efforts-1PC-pattern"><a href="#Best-Efforts-1PC-pattern" class="headerlink" title="Best Efforts 1PC pattern"></a>Best Efforts 1PC pattern</h3><p>该模式应用相当广泛，这也是我最喜欢的模式之一。虽然在安全性上不如XA，但是在大数据、高并发等性能上却得到了极大的提升。那我们如何判断我们的系统是否可以使用该模式，建议参考下面的两点：</p>
 <ol>
-<li>线程名字：根据你请求的参数来修改线程名，比如RPCID或者事务ID，这样我们查找日志时，便能一眼知道该线程在干嘛。</li>
-<li>ThreadLocal(TLS)：在未捕获异常发生时，我们最好将ThreadLocal中的数据打印出来。因为除了数据和线程的名字，没有太多的程序能够到达异常点来记录TLS中的数据。这些现场数据保留的越多越好，当你追查问题时，便会从中受益。</li>
-<li>MDC：它类似与TLS，MDC是Log4j或者Logback日志框架的一部分。它就是在指定的日志级别上创建了一个静态Map，相比TLS，它的功能更高级些。</li>
+<li>各个事务资源基础组件出错概率非常小。</li>
+<li>业务可以设计为幂等性。</li>
 </ol>
-<h3 id="先发制人的Jstack"><a href="#先发制人的Jstack" class="headerlink" title="先发制人的Jstack"></a>先发制人的Jstack</h3><p>jstack作为一款jdk自带的强大工具，被大多数的程序员所熟悉。它能够hook进正在运行的程序和输出被hook程序的堆栈，数据帧，Java虚拟机或者native，锁以及其它各种各样的元数据，它还能分析已经dump出来的堆栈信息。</p>
-<p>虽然它很强大，但是我们都主要用在问题已出的事后，通过它来寻找蛛丝马迹定位问题所在。如果说能够在问题发生前或者问题发生中，我们就能够知道，并且将现场给保存下来，那么这无疑会降低问题的定位难度。下面给出一个当吞吐量达到一定阀值，自动jstack的例子。具体代码详见<a href="https://github.com/chengdedeng/jstack" target="_blank" rel="noopener">链接</a></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startScheduleTask</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   scheduler.scheduleAtFixedRate(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">           checkThroughput();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;, APP_WARMUP, POLLING_CYCLE, TimeUnit.SECONDS);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkThroughput</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> throughput = adder.intValue(); <span class="comment">//the adder is inc’d when a message is processed</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (throughput &lt; MIN_THROUGHPUT) &#123;</span><br><span class="line"></span><br><span class="line">       Thread.currentThread().setName(<span class="string">"Throughput jstack thread: "</span> + throughput);</span><br><span class="line"></span><br><span class="line">       System.err.println(<span class="string">"Minimal throughput failed: executing jstack"</span>);</span><br><span class="line"></span><br><span class="line">       executeJstack();  <span class="comment">// See the code on GitHub to learn how this is done</span></span><br><span class="line"></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   adder.reset();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<hr>
-<h3 id="有状态的Jstack"><a href="#有状态的Jstack" class="headerlink" title="有状态的Jstack"></a>有状态的Jstack</h3><p>Jstack存在的例外一个问题就是，虽然他提供了非常丰富的元数据，但是我们缺乏导致错误的实际状态。我们可以设置线程名称来解决。为了能够找到错误的根源，我们需要的不仅仅是一个堆栈追踪信息。我们以数据库查询为例，我们在程序中加入这样一行代码：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Thread.currentThread().setName(Context + TID + Params + current Time, ...);</span><br></pre></td></tr></table></figure>
-<p>没有设置前，数据的元数据如下：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">“ pool-1-thread-1 ″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
-<p>现在看起来是这样的：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">”Queue Processing Thread, MessageID: AB5CAD, <span class="built_in">type</span>: AnalyzeGraph, queue: ACTIVE_PROD, Transaction_ID: 5678956, Start Time: 10/8/2014 18:34″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
-<p>现在的输出可以帮助我们更好的了解程序到底发生了什么。现在我们可以知道线程接收的参数，事务ID，消息ID。有了这些参数，我们就可以追溯问题，发现错误和解决问题。</p>
-<h3 id="BTrace"><a href="#BTrace" class="headerlink" title="BTrace"></a>BTrace</h3><p>不论是日志还是jstack都不能对JVM的运行状态进行很好的可视化，BTrace使用Java的<strong>Attach</strong>技术，可以让我们无缝的将我们BTrace脚本挂到JVM上。通过脚本你可以获取到任何你想拿到的数据，在侵入性和安全性上都非常可靠，特别是定位线上问题的神器。BTrace的详细使用，可以见我的例外<a href="/2015/06/08/btrace笔记">一篇文章</a>。</p>
-<p>让我们简单的看一段<strong>BTrace</strong>脚本：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Profiling</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Property</span></span><br><span class="line">    Profiler profiler = BTraceUtils.Profiling.newProfiler();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">entry</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordEntry(profiler, probeMethod);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>, location = <span class="meta">@Location</span>(value = Kind.RETURN))</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod, @Duration <span class="keyword">long</span> duration) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordExit(profiler, probeMethod, duration);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnTimer</span>(<span class="number">5000</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">timer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.printSnapshot(<span class="string">"Performance profile"</span>, profiler);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>BTrace是定位具体问题的有效工具，但是它的开销是非常显著的，使用的时候要小心，避免过高的开销影响重要业务。</p>
-<h3 id="自定义代理"><a href="#自定义代理" class="headerlink" title="自定义代理"></a>自定义代理</h3><p>跟BTrace一样，我们也可以自己定义Java代理。在Java SE5中，Instrument就已经被加入，Java SE6中，更是实现了动态Instrument。Instrument功能从本地代码中解放出来，使之可以使用使用Java代码在不改变现有代码的前提下，在不重启应用的前提下实现对JVM的监测甚至替换和修改某些类的定义。它有点类似于虚拟机级别的AOP，使开发者不用对jdk做任何改动，就可以实现AOP功能。BTrace的实现就是依靠该功能实现的。</p>
-<p>“java.lang.instrument”包的具体实现，依赖于 JVMTI。JVMTI（Java Virtual Machine Tool Interface）是一套由 Java 虚拟机提供的，为 JVM 相关的工具提供的本地编程接口集合。JVMTI 是从 Java SE 5 开始引入，整合和取代了以前使用的 Java Virtual Machine Profiler Interface (JVMPI) 和 the Java Virtual Machine Debug Interface (JVMDI)，而在 Java SE 6 中，JVMPI 和 JVMDI 已经消失了。JVMTI 提供了一套”代理”程序机制，可以支持第三方工具程序以代理的方式连接和访问 JVM，并利用 JVMTI 提供的丰富的编程接口，完成很多跟 JVM 相关的功能。</p>
-<p>另外，对 native 的 Instrumentation 也是 Java SE 6 的一个崭新的功能，这使以前无法完成的功能 —— 对 native 接口的 instrumentation 可以在 Java SE 6 中，通过一个或者一系列的 prefix 添加而得以完成。</p>
-<p>测试代码可以具体参考<a href="https://github.com/chengdedeng/demo" target="_blank" rel="noopener">该项目</a>中的<strong>attch_api</strong>包下面的代码。</p>
-<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>很多时候个人价值的体现就是当有问题发生时，看谁能够更快速的解决问题。今天对于一个需要提供7*24小时服务的应用来说，别说停机，就是部分服务出现问题都是不可容忍的。谁能在最短的时间修复问题，并且快速部署，谁就更能创造价值。</p>
+<p>只要满足以上两点，事务发生错误的可能性就非常小了。为了简单的说明此模式，我结合Rabbitmq和Mysql来说明，先简单的来一段配置。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jsonMessageConverter"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">class</span>=<span class="string">"org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">rabbit:connection-factory</span> <span class="attr">id</span>=<span class="string">"rabbitConnectionFactory"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">addresses</span>=<span class="string">"10.11.25.222"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">username</span>=<span class="string">"yangguo"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">password</span>=<span class="string">"yangguo"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">rabbit:template</span> <span class="attr">id</span>=<span class="string">"rabbitTemplate"</span> <span class="attr">connection-factory</span>=<span class="string">"rabbitConnectionFactory"</span></span></span><br><span class="line"><span class="tag">                   <span class="attr">message-converter</span>=<span class="string">"jsonMessageConverter"</span> <span class="attr">channel-transacted</span>=<span class="string">"true"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<p>再来两段Java代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"> <span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">provierSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     User user = <span class="keyword">new</span> User();</span><br><span class="line">     user.setUserName(<span class="string">"yangguo"</span>);</span><br><span class="line">     user.setPassword(<span class="string">"yangguo"</span>);</span><br><span class="line">     userMapper.insert(user);</span><br><span class="line"></span><br><span class="line">     rabbitTemplate.convertAndSend(<span class="string">"amq.topic"</span>, <span class="keyword">null</span>, user);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>上面代码处理的业务逻辑是将用户插入到用户表的同时向消息队列发一条消息，插入DB和发送消息到MQ是包在一个事务中。下面的代码则是消费消息，也是包在一个事务中。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">consumeSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    User user= (User) rabbitTemplate.receiveAndConvert(<span class="string">"test-queue"</span>);</span><br><span class="line">    friendMapper.update(user);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码其实很简单，首先配置一个支持事务的RabbitTemplate，主要设置<code>channel-transacted=&quot;true&quot;</code>，当然Mysql DataSource和Mybatis的配置，我就省略了，然后剩下的事情就交给Spring的Transaction吧。不过原文是使用ActiveMQ来讲解的，不过思想都是一样的。当然作者在原文中还解释了一种链式事务管理器，其实上面的例子也是一种链式思路，链式事务管理器非常注重顺序性，因为回滚和业务顺序正好相反。现阶段的spring事务处理，默认就是一种链式思路，只要你在service上面加了@Transaction或者在XML里面配置了切面，那么处于切面中的方法中的分布式资源就会受到spring事务管理器的托管。这也是最大努力一次提交模式流行的真正原因，因为它就是Spring事务管理器的核心。当然如果我们使用消息队列的Topic模式，是可以绕过<code>消息驱动的单Database更新</code>的，因为我们只要能够实现最终一致性就OK了。</p>
+<h3 id="Nontransactional-Access-pattern"><a href="#Nontransactional-Access-pattern" class="headerlink" title="Nontransactional Access pattern"></a>Nontransactional Access pattern</h3><p>这个模式是需要特殊的业务场景，理想情况是非事务或者本地事务的逻辑是边缘业务，该业务具备幂等性或者从逻辑的角度来说具备幂等性。当然该模式可以是分布式事务和非事务的组合，也可以全部都是非事务逻辑，还可以是分布式事务和本地事务的组合。这种模式需要细致的分析，只有对业务充分了解，才能确定哪些可以走非事务或者本地事务。当然业务出错，你可以使用补偿机制，不过请注意通用的事务补偿通常都很麻烦。</p>
+<h3 id="HALF消息-本地事务表-消息回查"><a href="#HALF消息-本地事务表-消息回查" class="headerlink" title="HALF消息+本地事务表+消息回查"></a>HALF消息+本地事务表+消息回查</h3><p>这种模式并不是David Syer文章中所提到的模式，不过该模式我认为是最简单和安全的模式，不过需要中间件支持，该类型中间件的代表就是<a href="https://rocketmq.apache.org/" target="_blank" rel="noopener">RocketMQ</a>。为了简单阐述该模式的，我就直接拿RocketMQ的交互流程。</p>
+<p><img src="/images/rocketmq_flow.png" alt="rocketmq_flow"></p>
+<p>该模式在性能和易用性上都有非常好的表现，不过就是需要自己消息回查逻辑，这种模式也是我使用最多的模式。该模式通过本地事务表和消息中间件的状态管理，将复杂的分布式问题简单化，唯一牺牲的就是时效性，因为它只能保证最终一致性。</p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.ibm.com/developerworks/cn/java/j-lo-spring-ts1/" target="_blank" rel="noopener">Spring 事务管理高级应用难点剖析: 第 1 部分</a></p>
+<p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-spring-ts2/" target="_blank" rel="noopener">Spring 事务管理高级应用难点剖析: 第 2 部分</a></p>
+<p><a href="http://www.ibm.com/developerworks/cn/java/j-ts1.html" target="_blank" rel="noopener">事务策略: 了解事务陷阱</a></p>
 ]]></content>
       <categories>
         <category>技术</category>
       </categories>
       <tags>
-        <tag>Thread</tag>
-        <tag>BTrace</tag>
+        <tag>Spring</tag>
+        <tag>事务</tag>
+        <tag>分布式事务</tag>
       </tags>
   </entry>
   <entry>
@@ -2440,154 +2440,6 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </categories>
       <tags>
         <tag>Thread</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>编译原理之Javacc使用</title>
-    <url>/2014/12/13/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-Javacc%E4%BD%BF%E7%94%A8/</url>
-    <content><![CDATA[<blockquote>
-<p>最近由于需要解析Eterm指令结果，对于这种不遵循标准格式（XML/JSON/HTML）的文本，我又不想大量的堆叠大量的正则表达式，因此借助Javacc来解决我的问题。</p>
-</blockquote>
-<h3 id="编译知识"><a href="#编译知识" class="headerlink" title="编译知识"></a>编译知识</h3><p>对于码农来说，应该不需要再解释编译这回事了。一般我们将语言分为编译型语言和解释型语言，但是不管是哪种语言，都少不了<strong>词法分析</strong>、<strong>语法分析</strong>。</p>
-<hr>
-<h3 id="词法分析（lexing）"><a href="#词法分析（lexing）" class="headerlink" title="词法分析（lexing）"></a>词法分析（lexing）</h3><p>词法分析就是将文本分解成token，token就是具有特殊含义的原子单位，如果语言的保留字、标点符号、数字、字符串，当然包含空白等等，只不过有些如空白会在词法分析时忽略掉。</p>
-<a id="more"></a>
-<hr>
-<h3 id="语法分析（paring）"><a href="#语法分析（paring）" class="headerlink" title="语法分析（paring）"></a>语法分析（paring）</h3><p>它的作用是进行语法检查、并构建由输入的token组成的数据结构（一般是语法分析树、抽象语法树等层次化的数据结构）。语法分析器通常使用一个独立的词法分析器从输入字符流中分离出一个个的token，并将token流作为其输入。</p>
-<p>语法分析器的任务主要是确定是否可以以及如何从语法的起始符号推导出输入符号串（输入文本），主要可以通过两种方式完成：</p>
-<ol>
-<li>自顶向下分析：根据形式语法规则，在语法分析树的<strong>自顶向下</strong>展开中搜索输入符号串可能的<strong>最左推导</strong>。单词按从左到右的顺序依次使用。它对应<strong>LL分析器</strong>，由于Javacc使用<strong>LL分析器</strong>，所以它是本文默认讨论的分析器。</li>
-<li>自底向上分析：语法分析器从现有的输入符号串开始，尝试将其根据给定的形式语法规则进行改写，最终改写为语法的起始符号，它对应<strong>LR分析器</strong>。</li>
-</ol>
-<p>此处有必要将最左推导（规范规约）和最右推导说明下，例子如下：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">文法：</span><br><span class="line">S---&gt;AB</span><br><span class="line">A---&gt;a|t</span><br><span class="line">B----&gt;+CD</span><br><span class="line">C---&gt;a</span><br><span class="line">D----&gt;a</span><br><span class="line">最右推导：</span><br><span class="line">S---&gt;AB----&gt;A+CD---&gt;A+Ca----&gt;A+aa-----&gt;a+aa</span><br><span class="line">最左推导：</span><br><span class="line">S----&gt;AB-----&gt;aB---&gt;a+CD---&gt;a+aD-----&gt;a+aa</span><br></pre></td></tr></table></figure>
-<p>讲完分析方式和推导方式，那么接下来，我介绍<a href="http://zh.wikipedia.org/wiki/%E6%89%A9%E5%B1%95%E5%B7%B4%E7%A7%91%E6%96%AF%E8%8C%83%E5%BC%8F" target="_blank" rel="noopener">EBNF</a>(扩展巴科斯范式),它是描述语言的<strong>元语法</strong>。</p>
-<p>代码，是由<a href="http://zh.wikipedia.org/wiki/%E7%B5%82%E7%B5%90%E7%AC%A6%E8%88%87%E9%9D%9E%E7%BB%88%E7%B5%90%E7%AC%A6" target="_blank" rel="noopener">终结符</a>即可视字符、数字、标点符号、空白等字符组成的 计算机源代码。<strong>EBNF</strong>定义了把<strong>终结符</strong>指派到<strong>非终结符</strong>的产生规则。</p>
-<h4 id="扩展巴科斯范式的一些规则"><a href="#扩展巴科斯范式的一些规则" class="headerlink" title="扩展巴科斯范式的一些规则"></a>扩展巴科斯范式的一些规则</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">digit excluding zero = &quot;1&quot; | &quot;2&quot; | &quot;3&quot; | &quot;4&quot; | &quot;5&quot; | &quot;6&quot; | &quot;7&quot; | &quot;8&quot; | &quot;9&quot; ;</span><br><span class="line">digit                = &quot;0&quot; | digit excluding zero ;</span><br><span class="line"></span><br><span class="line">这个产生规则定义了在这个指派的左端的非终结符digit。竖杠表示可供选择，而终结符被引号包围，最后跟着分号作为终止字符，所以digit可以是一个0-9中的任意一个数。</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">natural number = digit excluding zero , &#123; digit &#125; ;</span><br><span class="line"></span><br><span class="line">可以省略或重复的表达式可以通过花括号 &#123; ... &#125; 表示。在这种情况下，字符串 1，2，...，10，...，12345，... 都是正确的表达式。要表示这种情况，于花括号内设立的所有东西可以重复任何次，包括根本不出现。</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">integer = &quot;0&quot; | [ &quot;-&quot; ] , natural number ;</span><br><span class="line"></span><br><span class="line">可选项可以通过方括号 [ ... ] 表示，所以integer是一个零(0)或可能前导可选的负号的一个自然数。</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">twelve                          = &quot;1&quot; , &quot;2&quot; ;</span><br><span class="line">two hundred one                 = &quot;2&quot; , &quot;0&quot; , &quot;1&quot; ;</span><br><span class="line">three hundred twelve            = &quot;3&quot; , twelve ;</span><br><span class="line">twelve thousand two hundred one = twelve , two hundred one ;</span><br><span class="line"></span><br><span class="line">产生规则还可以包括由逗号分隔的一序列终结符或非终结符。</span><br></pre></td></tr></table></figure>
-<h3 id="JavaCC"><a href="#JavaCC" class="headerlink" title="JavaCC"></a>JavaCC</h3><p>为了简化基于<strong>Java</strong>语言的词法分析器或者语法分析器的开发，Sun公司的开发人员开发了JavaCC(Java Compiler Compiler)。JavaCC是一个基于<strong>Java</strong>语言的分析器的自动生成器。用户只要按照JavaCC的语法规范编写JavaCC的源文件，然后使用JavaCC的编译器编译，就能够生成基于Java语言的某种特定语言的分析器。JavaCC允许我们用类似EBNF的方式来定义语法规则，这样就使得从EBNF语法规则到JavaCC格式的语法规则的转换很容易。这也是我前面讲<strong>EBNF的原因</strong>，并且JavaCC已经成为最受欢迎的Java解析器创建工具，它还自带了的预先设定好的JavaCC语法，以作为应用起点，从而使使用难度进一步降低。</p>
-<p>javaCC抛弃了java中的“&lt;&lt;”，“&gt;&gt;”，“&gt;&gt;&gt;”，“&lt;&lt;=”，“=&gt;&gt;”，“&gt;&gt;&gt;=”被javacc从token列表中抛弃，加入了自己的保留字。</p>
-<table>
-<thead>
-<tr>
-<th>TOKEN</th>
-<th>TOKEN_MGR_DECLS</th>
-<th>SPECIAL_TOKEN</th>
-<th>SKIP</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>PARSER_END</strong></td>
-<td><strong>PARSER_BEGIN</strong></td>
-<td><strong>MORE</strong></td>
-<td><strong>LOOKAHEAD</strong></td>
-</tr>
-<tr>
-<td><strong>JAVACODE</strong></td>
-<td><strong>IGNORE_CASE</strong></td>
-<td><strong>EOF</strong></td>
-</tr>
-</tbody>
-</table>
-<h3 id="JavaCC语法："><a href="#JavaCC语法：" class="headerlink" title="JavaCC语法："></a>JavaCC语法：</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">javacc_options</span><br><span class="line">&quot;PARSER_BEGIN&quot; &quot;(&quot; &lt;IDENTIFIER&gt; &quot;)&quot;</span><br><span class="line">java_compilation_unit</span><br><span class="line">&quot;PARSER_END&quot; &quot;(&quot; &lt;IDENTIFIER&gt; &quot;)&quot;</span><br><span class="line">( production )*</span><br><span class="line">&lt;EOF&gt;</span><br></pre></td></tr></table></figure>
-<p>JavaCC语法文件以options列表开始，这个不是必须的，因为这些选项都有默认值。</p>
-<h4 id="常见的选项如下："><a href="#常见的选项如下：" class="headerlink" title="常见的选项如下："></a>常见的选项如下：</h4><ol>
-<li><strong>LOOKAHEAD</strong>：设置在解析过程中面临choice point可以look ahead的token数量。缺省的值是1，这个值越小，解析的速度就越快。这个设置可能会被特定产生式内部的声明给覆盖掉。</li>
-<li><strong>CHOICE_AMBIGUITY_CHECK</strong>：这个选项的值是数值型，缺省的值是2。这是在形如”A | B | …”这种选择点出现文法二义性的时候，作为参考的token的数量。例如，A和B有着两个相同的开始token序列，但是从第3个token开始就不一样了（在这个例子中假设这个option的值设置成3），这个时候javacc就会告诉你使用值为3的lookahead就可以消除二义性。如果A和B有着3个共同Token的前缀，那么javacc就是告诉你需lookahead 3个或者更多的token了。增加这个选项的值可以以解析的速度换了更详细的二义性信息。但是，对于复杂的语法，比如java，增加这个数字就会导致增加太多的解析时间。</li>
-<li><strong>OTHER_AMBIGUITY_CHECK</strong>：这是一个数值型的选项，默认值是1。这个设置了在其他类型的二义性发生的时候选择lookahead的token数量。例如”(A)*”, “(A)+”, and “(A)?”形式的二义性。这个比上choice checking更加耗时（也就是上面那个选项），所以其默认值是1而不是2。</li>
-<li><strong>STATIC</strong>：boolean类型的选项，默认值是true。如果为true，那么所有在parser和token manager中生成的方法和属性，都会被声明成static。这样做会导致只允许一个parser对象被创建，但是可以提高parser的性能。如果static为true，那么在需要多parser对象的时候，需要调用ReInit方法去重新初始化parser。如果static为false，就可以通过new操作符来创建对象了，然后他们可以在多个线程中同时被使用。这个得非常注意，特别是使用javacc来并行处理一些业务逻辑。</li>
-<li><strong>DEBUG_LOOKAHEAD</strong>：boolean类型的选项，初始值是false。设置为true的时候，可以显示在paraser执行lookahead 的时候把动作打印出来。</li>
-<li><strong>DEBUG_TOKEN_MANAGER</strong>：boolean类型的选项，默认值为false。用于打开token manager的debug日志。当选项为true的时候，token manager就会打印出其所有的动作。这中类型的日志非常多，所有应该在你面对一个文法错误，但是又不知道是怎么回事的时候才被使用。一般来说，你只需要看日志的最后几行应该就能够定位到错误了。</li>
-<li><strong>ERROR_REPORTING</strong>：boolean类型的选项，默认值为true。设置为false的时候，会导致解析错误的信息以更简洁的形式提供。只有在为了提高效率的情况下才需要把这个选项设置为false。</li>
-<li><strong>JAVA_UNICODE_ESCAPE</strong>：boolean类型的选项，默认值为false。当设置为true的时候，生成的解析器会在把字符串传递给token manager之前处理其中的unicode字符。否则形如\u…的字符串是不会被特殊处理的。如果USER_TOKEN_MANAGER, USER_CHAR_STREAM选项设置为true后，这个选项将会被忽略。</li>
-<li><strong>UNICODE_INPUT</strong>：boolean类型的选项，默认值是false。设置为true的时候，生成的解析器将使用一个读取unicode文件的输入流，默认情况下是一个读取ascii文件的输入流。在选项USER_TOKEN_MANAGER，USER_CHAR_STREAM被设置成true的时候，这个选项会被忽略。</li>
-<li><strong>IGNORE_CASE</strong>：boolean类型的选项，默认值是false。当设置成true的时候，生成的token manager会忽略输入的文件和token的声明中的大小写。在书写类似如html的语言的时候，这个选项就会非常有用了，当然你也可以定制化IGNORE_CASE。</li>
-<li><strong>USER_TOKEN_MANAGER</strong>：boolean类型的选项，默认值是false。默认的情况下，生成的token manager仅仅工作在特定的token范围内。如果这个选项设置为true，生成的解析器会接受来自于任何实现了TokenManager对象。</li>
-<li><strong>SUPPORT_CLASS_VISIBILITY_PUBLIC</strong>：boolean类型的选项，默认值是true。在默认的情况下，生成的支撑类（例如Token.java, ParseException.java等等）是具有Public 可见性的对象，如果这个选项被设置成false，那么这些类的可见性将会被设置成package-private级别。</li>
-<li><strong>USER_CHAR_STREAM</strong>：boolean类型的选项，默认值是true。在默认的情况下，按照<strong>JAVA_UNICODE_ESCAPE</strong>和<strong>UNICODE_INPUT</strong>选项生成一个字符stream reader。生成的token manager会从这个reader中接受字符串。如果这个选项被设置成true，token manager将从任意一个实现了”CharStream.java”的reader中接受字符串。这个文件可以在解析器生成的文件夹下。在<strong>USER_TOKEN_MANAGER</strong>选项设置成true的时候，这个选项会被忽略。</li>
-<li><strong>BUILD_PARSER</strong>：boolean类型的选项，默认值为true。在默认的情况下，javacc会生成一个解析器对象，例如上面提到的MyParser.java文件。在这个选项被设置成false的时候，解析器将不会被生成。一般情况下，如果仅仅需要生成token manager，那个就可以使用这个选项。</li>
-<li><strong>BUILD_TOKEN_MANAGER</strong>：boolean类型的选项，默认值是true。在默认情况下，javacc会生成一个token manager文件。如果这个选项设置成false，那么token manager文件就不会被生成了。这样做的一个场景是，你在修改语法文件的时候仅仅修改了语法，而且没有修改任何的文法规则，那么就可以通过这个选项来节约解析器的生成时间了。</li>
-<li><strong>TOKEN_MANAGER_USES_PARSER</strong>：boolean类型的选项，默认值是false。当设置为true的时候，生成的token manager会包含一个域指向生成的解析器实例。这样做的好处是，可以在文法分析中使用解析器的一些逻辑。如果static选项设置成true了，那么这个选项将不起作用。</li>
-<li><strong>TOKEN_EXTENDS</strong>：字符串类型的选项，默认值是“”，这意味着生成的Token对象将继承自java.lang.Object。这个选项的值可以设置成一个希望Token继承的基类。</li>
-<li><strong>TOKEN_FACTORY</strong>：字符串类型的选项，默认值是“”，意味着Token是通过调用Token.newToken()方法生成的。通过这个选项可以指定一个Token factory，factory类需要有一个static的newToken(int ofKind, String image)方法。</li>
-<li><strong>SANITY_CHECK</strong>：boolean类型的选项，默认值是true。在解析器生成的过程中，javacc会进行很多的语法和语义检查。诸如左递归、二义性。通过把这个选项设置成false，可以减少这些检查，从而加快生成速度。需要注意的是，即使不做这些检查，上面的现象仍然会导致解析器没有按照你想要的方式去工作。</li>
-<li><strong>COMMON_TOKEN_ACTION</strong>：boolean类型的选项，默认值是false。如果这个选项被设置成true。那么在token被扫描进token manager后，每次调用token manager的getNextToken方法后，会触发一个对方法CommonTokenAction的访问。这个函数必须要在TOKEN_MGR_DECLS中定义。CommonTokenAction的签名如下：void CommonTokenAction(Token t)</li>
-<li><strong>CACHE_TOKENS</strong>：boolean类型的选项，默认值是false。这个选项设置成true会导致解析器提前拿token。这样做可以提高一些性能，但是交互型的工作就能不能完成了。</li>
-<li><strong>OUTPUT_DIRECTORY</strong>：字符串类型的选项，默认值是当前文件夹。这个选项可以控制生成的文件的输出位置。</li>
-<li><strong>DEBUG_PARSER</strong>：boolean类型的选项，默认值是false。这个选项用于从parser中获取debug信息。为true的时候，parser会打印很多日志来显示其工作的路径。日志的跟踪也可以通过调用方法disable_tracing()方法来关闭。然后还可以通过enable_tracing()方法来打开tracing。</li>
-<li><strong>FORCE_LA_CHECK</strong>: boolean类型的选项，默认值是false。这个选项可以控制javacc对二义性的检查。在默认情况下，二义性检查仅仅在使用LOOKAHEAD 为1的choice point进行。对于明确声明了LOOKAHEAD 或者LOOKAHEAD 的值不等于1的choice point是不做检查的。如果这个选项被设置成true，那么二义性检查将在所有的choice point处执行。</li>
-</ol>
-<hr>
-<h4 id="语法分析器类"><a href="#语法分析器类" class="headerlink" title="语法分析器类"></a>语法分析器类</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">PARSER_BEGIN(parser_name)</span><br><span class="line"> . . .</span><br><span class="line"> <span class="class"><span class="keyword">class</span> <span class="title">parser_name</span> . . . </span>&#123;</span><br><span class="line">   . . .</span><br><span class="line"> &#125;</span><br><span class="line"> . . .</span><br><span class="line"> PARSER_END(parser_name)</span><br></pre></td></tr></table></figure>
-<p>语法分析器类的定义以标志<strong>PARSER_BEGIN</strong>和<strong>PARSER_END</strong>括起来，而且语法分析器类的名称必须与<strong>PARSER_BEGIN</strong>和<strong>PARSER_END</strong>后的名称相同。</p>
-<blockquote>
-<p><strong>特别注意</strong>：javaCC不会详细地检查语法文件的中java代码，java代码就是一个黑盒，所以即使通过了javaCC编译的语法文件生成的解析器还是有可能会通不过java编译器。</p>
-</blockquote>
-<p>生成的解析器会对语法文件中的每一个<strong>非终结符</strong>(java产生式和bnf产生式)生成一个对应的public方法。</p>
-<h4 id="JavaCC产生式"><a href="#JavaCC产生式" class="headerlink" title="JavaCC产生式"></a>JavaCC产生式</h4><ol>
-<li><code>javacode_production</code></li>
-<li><code>regular_expr_production</code></li>
-<li><code>bnf_production</code></li>
-<li><code>token_manager_decls</code></li>
-</ol>
-<p><a href="https://javacc.java.net/doc/javaccgrm.html#prod9" target="_blank" rel="noopener">javacode_production</a>和<a href="https://javacc.java.net/doc/javaccgrm.html#prod11" target="_blank" rel="noopener">bnf_production</a>用来定义parser的生成规则，<a href="https://javacc.java.net/doc/javaccgrm.html#prod11" target="_blank" rel="noopener">regular_expr_production</a>用于定义Token的语法，并且javacc将依据这个信息去生成Token Manager（还会使用在Paraser语法中嵌套的Token）。<a href="https://javacc.java.net/doc/javaccgrm.html#prod12" target="_blank" rel="noopener">token_manager_decls</a>是插入到token manager中的一些申明信息。</p>
-<hr>
-<h4 id="javacode-production"><a href="#javacode-production" class="headerlink" title="javacode_production"></a>javacode_production</h4><p>Javacode产生式，是用java代码来书写产生式的一种手段。如果有些规则不好用EBNF来描述，并且上下文相关，就可以使用Javacode产生式，下面的例子是获取流中的一个“)”。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">JAVACODE</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">skip_to_matching_brace</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      Token tok;</span><br><span class="line">      <span class="keyword">int</span> nesting = <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">        tok = getToken(<span class="number">1</span>);</span><br><span class="line">        <span class="keyword">if</span> (tok.kind == LBRACE) nesting++;</span><br><span class="line">        <span class="keyword">if</span> (tok.kind == RBRACE) &#123;</span><br><span class="line">          nesting--;</span><br><span class="line">          <span class="keyword">if</span> (nesting == <span class="number">0</span>) <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        tok = getNextToken();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>上面的代码如果用在<a href="https://javacc.java.net/doc/lookahead.html" target="_blank" rel="noopener">选择点</a>的时候可能会出现问题，JavaCC中有4种选择点，分别如下:</p>
-<ol>
-<li>( exp1 | exp2 | … )：或</li>
-<li>( exp )?：一次或一次都没有</li>
-<li>( exp )*：零次或者多次</li>
-<li>( exp )+：一次或者多次</li>
-</ol>
-<p>有问题的代码:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NT</span><span class="params">()</span> :</span></span><br><span class="line"><span class="function">  </span>&#123;&#125;</span><br><span class="line">  &#123;</span><br><span class="line">    skip_to_matching_brace()</span><br><span class="line">  |</span><br><span class="line">    some_other_production()</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>无问题的代码:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NT</span><span class="params">()</span> :</span></span><br><span class="line"><span class="function">  </span>&#123;&#125;</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="string">"&#123;"</span> skip_to_matching_brace()</span><br><span class="line">  |</span><br><span class="line">    <span class="string">"("</span> parameter_list() <span class="string">")"</span></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>Javacode产生式用在选择点的时候，也可以在其前面加上语义上的或者语法上的LOOKAHEAD来帮助解析器做出选择。例如:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NT</span><span class="params">()</span> :</span></span><br><span class="line"><span class="function"> </span>&#123;&#125;</span><br><span class="line"> &#123;</span><br><span class="line">   LOOKAHEAD( &#123;errorOccurred&#125; ) skip_to_matching_brace()</span><br><span class="line"> |</span><br><span class="line">   <span class="string">"("</span> parameter_list() <span class="string">")"</span></span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-<p>Javacode产生式的访问权限是<code>package private</code></p>
-<hr>
-<h4 id="bnf-production"><a href="#bnf-production" class="headerlink" title="bnf_production"></a>bnf_production</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">java_access_modifier java_return_type java_identifier &quot;(&quot; java_parameter_list &quot;)&quot; &quot;:&quot;</span><br><span class="line"></span><br><span class="line">java_block</span><br><span class="line"></span><br><span class="line">&quot;&#123;&quot; [expansion_choices](https://javacc.java.net/doc/javaccgrm.html#prod16) &quot;&#125;&quot;</span><br></pre></td></tr></table></figure>
-<p>BNF产生式是书写javacc语法的标准产生式。每个BNF产生式的左边是一个非终结符，然后BNF产生式会在右边用BNF展开式定义这个非终结符。非终结符的写法就跟声明一个java方法的函数一样。这种写非终结符的方式非常明显，因为每个非终结符都会翻译成一个paraser类中的方法。非终结符的名字就是函数的名字，参数和返回值就是传进解析树的值和传出解析树的值。后面我们还将看见，右边的非终结符使用写起来就像一个函数调用。在解析树上传递的值跟函数的参数和返回值具有相同的范型。BNF产生式的范文权限默认是public。</p>
-<p>一个BNF产生式的右边有<strong>两个部分</strong>。首先是一个任意的java块（包括java声明和java code）。这些代码会插入生成的方法的开头。因此，每次在解析过程中使用这个非终结符的时候，这块java代码就会被执行。任何在BNF展开式中间的java代码都可以使用这块的java代码。javacc不会对这块代码做任何处理，仅仅是收集这块的代码。因此，经过javacc处理的代码还是有可能通不过java编译器的。</p>
-<hr>
-<h4 id="regular-expr-production"><a href="#regular-expr-production" class="headerlink" title="regular_expr_production"></a>regular_expr_production</h4><p><strong>[ <a href="https://javacc.java.net/doc/javaccgrm.html#newprod1" target="_blank" rel="noopener">lexical_state_list</a> ]</strong></p>
-<p><strong><a href="https://javacc.java.net/doc/javaccgrm.html#prod17" target="_blank" rel="noopener">regexpr_kind</a> [ “[“ “IGNORE_CASE” “]” ] “:”</strong></p>
-<p><strong>“{“ <a href="https://javacc.java.net/doc/javaccgrm.html#prod18" target="_blank" rel="noopener">regexpr_spec</a> ( “|” <a href="https://javacc.java.net/doc/javaccgrm.html#prod18" target="_blank" rel="noopener">regexpr_spec</a> )* “}”</strong></p>
-<p>正则表达式产生式用于定于被token manager处理的词法实体。关于token manager是怎么工作的可以参考：<a href="https://javacc.java.net/doc/tokenmanager.html" target="_blank" rel="noopener">this minitutorial (click here)</a>。在这里介绍的是文法实体的语法。<a href="https://javacc.java.net/doc/tokenmanager.html" target="_blank" rel="noopener">这个教程</a>会告诉你这些语法构造是怎样和token manager的实际工作联系起来的。</p>
-<p>一个正则表达式产生式以一个文法状态开始，可以通过<a href="https://javacc.java.net/doc/javaccgrm.html#newprod1" target="_blank" rel="noopener">lexical state list</a>指定状态。token manager有一个默认的词法状态叫”DEFAULT”。如果<a href="https://javacc.java.net/doc/javaccgrm.html#newprod1" target="_blank" rel="noopener">lexical state list</a>被省略了，那么DEFAULT状态就会被使用。</p>
-<p>状态声明的后面是一个对正则表达产生式类型的描述。<a href="https://javacc.java.net/doc/javaccgrm.html#prod17" target="_blank" rel="noopener">(see below for what this means)</a>.</p>
-<p>然后是可选的”IGNORE_CASE”。如果出现了这个选项，那么这个正则表达式就是大小写无关的，和前面提到的<a href="https://javacc.java.net/doc/javaccgrm.html#prod6" target="_blank" rel="noopener">IGNORE_CASE</a>选项有同样的作用，区别仅仅是作用于的不同。前面提到的IGNORE_CASE的作用域是全局的。</p>
-<p>接下来就是一些对这个正则表达式产生式的词法实体进行更详细描述的正则表达式了。</p>
-<hr>
-<h4 id="token-manager-decls"><a href="#token-manager-decls" class="headerlink" title="token_manager_decls"></a>token_manager_decls</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&quot;TOKEN_MGR_DECLS&quot; &quot;:&quot; java_block</span><br></pre></td></tr></table></figure>
-<p>Token manager的声明以”TOKEN_MGR_DECLS”保留字开始，然后是 “:” ，然后再是一些列的java声明和语句（也就是一个java block）。这些声明和语句会被写进生成的Token Manager，并且可以在<a href="https://javacc.java.net/doc/javaccgrm.html#prod18" target="_blank" rel="noopener">lexical actions</a>中访问。更多详情见 <a href="https://javacc.java.net/doc/tokenmanager.html" target="_blank" rel="noopener">the minitutorial on the token manager</a>。</p>
-<p>在一个javacc语法文件中仅仅只能有一个Token Manager声明。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">lexical_state_list::=<span class="string">"&lt;"</span> <span class="string">"*"</span> <span class="string">"&gt;"</span>|</span><br><span class="line"><span class="string">"&lt;"</span> java_identifier ( <span class="string">","</span> java_identifier )* <span class="string">"&gt;"</span></span><br></pre></td></tr></table></figure>
-<p>文法的状态列表描述的是对应的正则表达式产生式生效的范围，可以视为一个作用域。如果使用了“&lt;&gt;”，那么这个正则表达式产生式可以在所用的状态中使用。否则对应的正则表达式产生式仅仅能够在尖括号中指定的状态中使用。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">regexpr_kind::=<span class="string">"TOKEN"</span>|</span><br><span class="line"><span class="string">"SPECIAL_TOKEN"</span>|</span><br><span class="line"><span class="string">"SKIP"</span>|</span><br><span class="line"><span class="string">"MORE"</span></span><br></pre></td></tr></table></figure>
-<p>这个定义了正则表达式产生式的类型，包括：</p>
-<ul>
-<li>TOKEN: 这个产生式中的正则表达式描述了tokens的语法，主要定义语法分析阶段用到的非终结符。<br>Token Manager会根据这些正则表达式生成<a href="https://javacc.java.net/doc/apiroutines.html" target="_blank" rel="noopener">Token</a>对象并返回给parser。</li>
-<li>SPECIAL_TOKEN: 这产生式中的正则表达式描述了特殊的Token。特殊的Token是在解析过程中没有意义的Token，也就是本BNF产生式忽略的Token。但是，这些Token还是会被传递给parser，并且parser也可以访问他们。访问特殊Token的方式是通过其相邻的Token的specialToken域。特殊Token在处理像注释这种token的时候会非常有用。可以参考这个文档以了解更多关于特殊token的知识。</li>
-<li>SKIP: 这个产生式的规则命中的Token会被Token Manager丢弃掉。</li>
-<li>MORE: 有时候会需要逐步地构建Token。被这种规则命中的Token会存到一个Buffer中，直到遇到下一个Token或者Special_token，然后他们和最后一个Token或者Special_token会连在一起作为一个Token返回给parser。如果一个More后面紧跟了一个SKIP，那么整个Buffer中的内容都会被丢弃掉。</li>
-</ul>
-<p>以上就是最核心的部分，还有很多没有讲到。下面再附带一个二元运算计算器的例子，仅供大家参考，文章有部分是借用了网友的文字，特别说明。如果想更详细的理解，请移步<a href="https://javacc.java.net/doc/javaccgrm.html" target="_blank" rel="noopener">官方文档</a>。</p>
-<p><strong>例子：</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Author: yangguo@outlook.com</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">options</span><br><span class="line">&#123;</span><br><span class="line">  LOOKAHEAD= <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  CHOICE_AMBIGUITY_CHECK = <span class="number">2</span>;</span><br><span class="line">  OTHER_AMBIGUITY_CHECK = <span class="number">1</span>;</span><br><span class="line">  STATIC = <span class="keyword">false</span>;</span><br><span class="line">  DEBUG_PARSER = <span class="keyword">false</span>;</span><br><span class="line">  DEBUG_LOOKAHEAD = <span class="keyword">false</span>;</span><br><span class="line">  DEBUG_TOKEN_MANAGER = <span class="keyword">false</span>;</span><br><span class="line">  ERROR_REPORTING = <span class="keyword">true</span>;</span><br><span class="line">  JAVA_UNICODE_ESCAPE = <span class="keyword">false</span>;</span><br><span class="line">  UNICODE_INPUT = <span class="keyword">false</span>;</span><br><span class="line">  IGNORE_CASE = <span class="keyword">false</span>;</span><br><span class="line">  USER_TOKEN_MANAGER = <span class="keyword">false</span>;</span><br><span class="line">  USER_CHAR_STREAM = <span class="keyword">false</span>;</span><br><span class="line">  BUILD_PARSER = <span class="keyword">true</span>;</span><br><span class="line">  BUILD_TOKEN_MANAGER = <span class="keyword">true</span>;</span><br><span class="line">  SANITY_CHECK = <span class="keyword">true</span>;</span><br><span class="line">  FORCE_LA_CHECK = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PARSER_BEGIN(Calculator)</span><br><span class="line"><span class="keyword">package</span> info.yangguo.test1.javacc;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Calculator</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span> <span class="keyword">throws</span> ParseException</span></span><br><span class="line"><span class="function"> </span>&#123;</span><br><span class="line"> Calculator parser = <span class="keyword">new</span> Calculator(System.in);</span><br><span class="line"> <span class="keyword">while</span> (<span class="keyword">true</span>)</span><br><span class="line"> &#123;</span><br><span class="line"> parser.parse();</span><br><span class="line"> &#125;</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br><span class="line">PARSER_END(Calculator)</span><br><span class="line">SKIP :</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">" "</span></span><br><span class="line">| <span class="string">"\r"</span></span><br><span class="line">| <span class="string">"\t"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">TOKEN:</span><br><span class="line">&#123;</span><br><span class="line"> &lt; NUMBER: (&lt;DIGIT&gt;)+ ( <span class="string">"."</span> (&lt;DIGIT&gt;)+ )? &gt;</span><br><span class="line">| &lt; DIGIT: [<span class="string">"0"</span>-<span class="string">"9"</span>] &gt;</span><br><span class="line">| &lt; EOL: <span class="string">"\n"</span> &gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">parse</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> result=binaryOperation() &lt;EOL&gt;</span><br><span class="line">  &#123;</span><br><span class="line">    System.out.println(result);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125;</span><br><span class="line"> | &lt;EOF&gt; &#123; System.exit(-<span class="number">1</span>); &#125;</span><br><span class="line"> | &lt;EOL&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**二元运算**/</span></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">binaryOperation</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line"> <span class="keyword">double</span> tmp;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> result=binaryOperationHighPriority()</span><br><span class="line"> (</span><br><span class="line"> <span class="string">"+"</span> tmp=binaryOperation() &#123; result += tmp; &#125;</span><br><span class="line"> | <span class="string">"-"</span> tmp=binaryOperation() &#123; result -= tmp; &#125;</span><br><span class="line"> )*</span><br><span class="line"> &#123; <span class="keyword">return</span> result; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**二元运算中高优先级的部分**/</span></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">binaryOperationHighPriority</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line"> <span class="keyword">double</span> tmp;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> result=unaryOperation()</span><br><span class="line"> (</span><br><span class="line"> <span class="string">"*"</span> tmp=binaryOperationHighPriority() &#123; result *= tmp; &#125;</span><br><span class="line">   | <span class="string">"/"</span> tmp=binaryOperationHighPriority() &#123; result /= tmp; &#125;</span><br><span class="line"> )*</span><br><span class="line"> &#123; <span class="keyword">return</span> result; &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/**一元运算**/</span></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">unaryOperation</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> <span class="string">"-"</span> result=element() &#123; <span class="keyword">return</span> -result; &#125;</span><br><span class="line"> | result=element() &#123; <span class="keyword">return</span> result; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">element</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> Token token;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> token=&lt;NUMBER&gt; &#123; <span class="keyword">return</span> Double.parseDouble(token.toString()); &#125;</span><br><span class="line"> | <span class="string">"("</span> result=binaryOperation() <span class="string">")"</span> &#123; <span class="keyword">return</span> result; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-        <tag>Javacc</tag>
       </tags>
   </entry>
   <entry>
@@ -2757,6 +2609,154 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       <tags>
         <tag>Java</tag>
         <tag>设计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>编译原理之Javacc使用</title>
+    <url>/2014/12/13/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-Javacc%E4%BD%BF%E7%94%A8/</url>
+    <content><![CDATA[<blockquote>
+<p>最近由于需要解析Eterm指令结果，对于这种不遵循标准格式（XML/JSON/HTML）的文本，我又不想大量的堆叠大量的正则表达式，因此借助Javacc来解决我的问题。</p>
+</blockquote>
+<h3 id="编译知识"><a href="#编译知识" class="headerlink" title="编译知识"></a>编译知识</h3><p>对于码农来说，应该不需要再解释编译这回事了。一般我们将语言分为编译型语言和解释型语言，但是不管是哪种语言，都少不了<strong>词法分析</strong>、<strong>语法分析</strong>。</p>
+<hr>
+<h3 id="词法分析（lexing）"><a href="#词法分析（lexing）" class="headerlink" title="词法分析（lexing）"></a>词法分析（lexing）</h3><p>词法分析就是将文本分解成token，token就是具有特殊含义的原子单位，如果语言的保留字、标点符号、数字、字符串，当然包含空白等等，只不过有些如空白会在词法分析时忽略掉。</p>
+<a id="more"></a>
+<hr>
+<h3 id="语法分析（paring）"><a href="#语法分析（paring）" class="headerlink" title="语法分析（paring）"></a>语法分析（paring）</h3><p>它的作用是进行语法检查、并构建由输入的token组成的数据结构（一般是语法分析树、抽象语法树等层次化的数据结构）。语法分析器通常使用一个独立的词法分析器从输入字符流中分离出一个个的token，并将token流作为其输入。</p>
+<p>语法分析器的任务主要是确定是否可以以及如何从语法的起始符号推导出输入符号串（输入文本），主要可以通过两种方式完成：</p>
+<ol>
+<li>自顶向下分析：根据形式语法规则，在语法分析树的<strong>自顶向下</strong>展开中搜索输入符号串可能的<strong>最左推导</strong>。单词按从左到右的顺序依次使用。它对应<strong>LL分析器</strong>，由于Javacc使用<strong>LL分析器</strong>，所以它是本文默认讨论的分析器。</li>
+<li>自底向上分析：语法分析器从现有的输入符号串开始，尝试将其根据给定的形式语法规则进行改写，最终改写为语法的起始符号，它对应<strong>LR分析器</strong>。</li>
+</ol>
+<p>此处有必要将最左推导（规范规约）和最右推导说明下，例子如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">文法：</span><br><span class="line">S---&gt;AB</span><br><span class="line">A---&gt;a|t</span><br><span class="line">B----&gt;+CD</span><br><span class="line">C---&gt;a</span><br><span class="line">D----&gt;a</span><br><span class="line">最右推导：</span><br><span class="line">S---&gt;AB----&gt;A+CD---&gt;A+Ca----&gt;A+aa-----&gt;a+aa</span><br><span class="line">最左推导：</span><br><span class="line">S----&gt;AB-----&gt;aB---&gt;a+CD---&gt;a+aD-----&gt;a+aa</span><br></pre></td></tr></table></figure>
+<p>讲完分析方式和推导方式，那么接下来，我介绍<a href="http://zh.wikipedia.org/wiki/%E6%89%A9%E5%B1%95%E5%B7%B4%E7%A7%91%E6%96%AF%E8%8C%83%E5%BC%8F" target="_blank" rel="noopener">EBNF</a>(扩展巴科斯范式),它是描述语言的<strong>元语法</strong>。</p>
+<p>代码，是由<a href="http://zh.wikipedia.org/wiki/%E7%B5%82%E7%B5%90%E7%AC%A6%E8%88%87%E9%9D%9E%E7%BB%88%E7%B5%90%E7%AC%A6" target="_blank" rel="noopener">终结符</a>即可视字符、数字、标点符号、空白等字符组成的 计算机源代码。<strong>EBNF</strong>定义了把<strong>终结符</strong>指派到<strong>非终结符</strong>的产生规则。</p>
+<h4 id="扩展巴科斯范式的一些规则"><a href="#扩展巴科斯范式的一些规则" class="headerlink" title="扩展巴科斯范式的一些规则"></a>扩展巴科斯范式的一些规则</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">digit excluding zero = &quot;1&quot; | &quot;2&quot; | &quot;3&quot; | &quot;4&quot; | &quot;5&quot; | &quot;6&quot; | &quot;7&quot; | &quot;8&quot; | &quot;9&quot; ;</span><br><span class="line">digit                = &quot;0&quot; | digit excluding zero ;</span><br><span class="line"></span><br><span class="line">这个产生规则定义了在这个指派的左端的非终结符digit。竖杠表示可供选择，而终结符被引号包围，最后跟着分号作为终止字符，所以digit可以是一个0-9中的任意一个数。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">natural number = digit excluding zero , &#123; digit &#125; ;</span><br><span class="line"></span><br><span class="line">可以省略或重复的表达式可以通过花括号 &#123; ... &#125; 表示。在这种情况下，字符串 1，2，...，10，...，12345，... 都是正确的表达式。要表示这种情况，于花括号内设立的所有东西可以重复任何次，包括根本不出现。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">integer = &quot;0&quot; | [ &quot;-&quot; ] , natural number ;</span><br><span class="line"></span><br><span class="line">可选项可以通过方括号 [ ... ] 表示，所以integer是一个零(0)或可能前导可选的负号的一个自然数。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">twelve                          = &quot;1&quot; , &quot;2&quot; ;</span><br><span class="line">two hundred one                 = &quot;2&quot; , &quot;0&quot; , &quot;1&quot; ;</span><br><span class="line">three hundred twelve            = &quot;3&quot; , twelve ;</span><br><span class="line">twelve thousand two hundred one = twelve , two hundred one ;</span><br><span class="line"></span><br><span class="line">产生规则还可以包括由逗号分隔的一序列终结符或非终结符。</span><br></pre></td></tr></table></figure>
+<h3 id="JavaCC"><a href="#JavaCC" class="headerlink" title="JavaCC"></a>JavaCC</h3><p>为了简化基于<strong>Java</strong>语言的词法分析器或者语法分析器的开发，Sun公司的开发人员开发了JavaCC(Java Compiler Compiler)。JavaCC是一个基于<strong>Java</strong>语言的分析器的自动生成器。用户只要按照JavaCC的语法规范编写JavaCC的源文件，然后使用JavaCC的编译器编译，就能够生成基于Java语言的某种特定语言的分析器。JavaCC允许我们用类似EBNF的方式来定义语法规则，这样就使得从EBNF语法规则到JavaCC格式的语法规则的转换很容易。这也是我前面讲<strong>EBNF的原因</strong>，并且JavaCC已经成为最受欢迎的Java解析器创建工具，它还自带了的预先设定好的JavaCC语法，以作为应用起点，从而使使用难度进一步降低。</p>
+<p>javaCC抛弃了java中的“&lt;&lt;”，“&gt;&gt;”，“&gt;&gt;&gt;”，“&lt;&lt;=”，“=&gt;&gt;”，“&gt;&gt;&gt;=”被javacc从token列表中抛弃，加入了自己的保留字。</p>
+<table>
+<thead>
+<tr>
+<th>TOKEN</th>
+<th>TOKEN_MGR_DECLS</th>
+<th>SPECIAL_TOKEN</th>
+<th>SKIP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PARSER_END</strong></td>
+<td><strong>PARSER_BEGIN</strong></td>
+<td><strong>MORE</strong></td>
+<td><strong>LOOKAHEAD</strong></td>
+</tr>
+<tr>
+<td><strong>JAVACODE</strong></td>
+<td><strong>IGNORE_CASE</strong></td>
+<td><strong>EOF</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="JavaCC语法："><a href="#JavaCC语法：" class="headerlink" title="JavaCC语法："></a>JavaCC语法：</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">javacc_options</span><br><span class="line">&quot;PARSER_BEGIN&quot; &quot;(&quot; &lt;IDENTIFIER&gt; &quot;)&quot;</span><br><span class="line">java_compilation_unit</span><br><span class="line">&quot;PARSER_END&quot; &quot;(&quot; &lt;IDENTIFIER&gt; &quot;)&quot;</span><br><span class="line">( production )*</span><br><span class="line">&lt;EOF&gt;</span><br></pre></td></tr></table></figure>
+<p>JavaCC语法文件以options列表开始，这个不是必须的，因为这些选项都有默认值。</p>
+<h4 id="常见的选项如下："><a href="#常见的选项如下：" class="headerlink" title="常见的选项如下："></a>常见的选项如下：</h4><ol>
+<li><strong>LOOKAHEAD</strong>：设置在解析过程中面临choice point可以look ahead的token数量。缺省的值是1，这个值越小，解析的速度就越快。这个设置可能会被特定产生式内部的声明给覆盖掉。</li>
+<li><strong>CHOICE_AMBIGUITY_CHECK</strong>：这个选项的值是数值型，缺省的值是2。这是在形如”A | B | …”这种选择点出现文法二义性的时候，作为参考的token的数量。例如，A和B有着两个相同的开始token序列，但是从第3个token开始就不一样了（在这个例子中假设这个option的值设置成3），这个时候javacc就会告诉你使用值为3的lookahead就可以消除二义性。如果A和B有着3个共同Token的前缀，那么javacc就是告诉你需lookahead 3个或者更多的token了。增加这个选项的值可以以解析的速度换了更详细的二义性信息。但是，对于复杂的语法，比如java，增加这个数字就会导致增加太多的解析时间。</li>
+<li><strong>OTHER_AMBIGUITY_CHECK</strong>：这是一个数值型的选项，默认值是1。这个设置了在其他类型的二义性发生的时候选择lookahead的token数量。例如”(A)*”, “(A)+”, and “(A)?”形式的二义性。这个比上choice checking更加耗时（也就是上面那个选项），所以其默认值是1而不是2。</li>
+<li><strong>STATIC</strong>：boolean类型的选项，默认值是true。如果为true，那么所有在parser和token manager中生成的方法和属性，都会被声明成static。这样做会导致只允许一个parser对象被创建，但是可以提高parser的性能。如果static为true，那么在需要多parser对象的时候，需要调用ReInit方法去重新初始化parser。如果static为false，就可以通过new操作符来创建对象了，然后他们可以在多个线程中同时被使用。这个得非常注意，特别是使用javacc来并行处理一些业务逻辑。</li>
+<li><strong>DEBUG_LOOKAHEAD</strong>：boolean类型的选项，初始值是false。设置为true的时候，可以显示在paraser执行lookahead 的时候把动作打印出来。</li>
+<li><strong>DEBUG_TOKEN_MANAGER</strong>：boolean类型的选项，默认值为false。用于打开token manager的debug日志。当选项为true的时候，token manager就会打印出其所有的动作。这中类型的日志非常多，所有应该在你面对一个文法错误，但是又不知道是怎么回事的时候才被使用。一般来说，你只需要看日志的最后几行应该就能够定位到错误了。</li>
+<li><strong>ERROR_REPORTING</strong>：boolean类型的选项，默认值为true。设置为false的时候，会导致解析错误的信息以更简洁的形式提供。只有在为了提高效率的情况下才需要把这个选项设置为false。</li>
+<li><strong>JAVA_UNICODE_ESCAPE</strong>：boolean类型的选项，默认值为false。当设置为true的时候，生成的解析器会在把字符串传递给token manager之前处理其中的unicode字符。否则形如\u…的字符串是不会被特殊处理的。如果USER_TOKEN_MANAGER, USER_CHAR_STREAM选项设置为true后，这个选项将会被忽略。</li>
+<li><strong>UNICODE_INPUT</strong>：boolean类型的选项，默认值是false。设置为true的时候，生成的解析器将使用一个读取unicode文件的输入流，默认情况下是一个读取ascii文件的输入流。在选项USER_TOKEN_MANAGER，USER_CHAR_STREAM被设置成true的时候，这个选项会被忽略。</li>
+<li><strong>IGNORE_CASE</strong>：boolean类型的选项，默认值是false。当设置成true的时候，生成的token manager会忽略输入的文件和token的声明中的大小写。在书写类似如html的语言的时候，这个选项就会非常有用了，当然你也可以定制化IGNORE_CASE。</li>
+<li><strong>USER_TOKEN_MANAGER</strong>：boolean类型的选项，默认值是false。默认的情况下，生成的token manager仅仅工作在特定的token范围内。如果这个选项设置为true，生成的解析器会接受来自于任何实现了TokenManager对象。</li>
+<li><strong>SUPPORT_CLASS_VISIBILITY_PUBLIC</strong>：boolean类型的选项，默认值是true。在默认的情况下，生成的支撑类（例如Token.java, ParseException.java等等）是具有Public 可见性的对象，如果这个选项被设置成false，那么这些类的可见性将会被设置成package-private级别。</li>
+<li><strong>USER_CHAR_STREAM</strong>：boolean类型的选项，默认值是true。在默认的情况下，按照<strong>JAVA_UNICODE_ESCAPE</strong>和<strong>UNICODE_INPUT</strong>选项生成一个字符stream reader。生成的token manager会从这个reader中接受字符串。如果这个选项被设置成true，token manager将从任意一个实现了”CharStream.java”的reader中接受字符串。这个文件可以在解析器生成的文件夹下。在<strong>USER_TOKEN_MANAGER</strong>选项设置成true的时候，这个选项会被忽略。</li>
+<li><strong>BUILD_PARSER</strong>：boolean类型的选项，默认值为true。在默认的情况下，javacc会生成一个解析器对象，例如上面提到的MyParser.java文件。在这个选项被设置成false的时候，解析器将不会被生成。一般情况下，如果仅仅需要生成token manager，那个就可以使用这个选项。</li>
+<li><strong>BUILD_TOKEN_MANAGER</strong>：boolean类型的选项，默认值是true。在默认情况下，javacc会生成一个token manager文件。如果这个选项设置成false，那么token manager文件就不会被生成了。这样做的一个场景是，你在修改语法文件的时候仅仅修改了语法，而且没有修改任何的文法规则，那么就可以通过这个选项来节约解析器的生成时间了。</li>
+<li><strong>TOKEN_MANAGER_USES_PARSER</strong>：boolean类型的选项，默认值是false。当设置为true的时候，生成的token manager会包含一个域指向生成的解析器实例。这样做的好处是，可以在文法分析中使用解析器的一些逻辑。如果static选项设置成true了，那么这个选项将不起作用。</li>
+<li><strong>TOKEN_EXTENDS</strong>：字符串类型的选项，默认值是“”，这意味着生成的Token对象将继承自java.lang.Object。这个选项的值可以设置成一个希望Token继承的基类。</li>
+<li><strong>TOKEN_FACTORY</strong>：字符串类型的选项，默认值是“”，意味着Token是通过调用Token.newToken()方法生成的。通过这个选项可以指定一个Token factory，factory类需要有一个static的newToken(int ofKind, String image)方法。</li>
+<li><strong>SANITY_CHECK</strong>：boolean类型的选项，默认值是true。在解析器生成的过程中，javacc会进行很多的语法和语义检查。诸如左递归、二义性。通过把这个选项设置成false，可以减少这些检查，从而加快生成速度。需要注意的是，即使不做这些检查，上面的现象仍然会导致解析器没有按照你想要的方式去工作。</li>
+<li><strong>COMMON_TOKEN_ACTION</strong>：boolean类型的选项，默认值是false。如果这个选项被设置成true。那么在token被扫描进token manager后，每次调用token manager的getNextToken方法后，会触发一个对方法CommonTokenAction的访问。这个函数必须要在TOKEN_MGR_DECLS中定义。CommonTokenAction的签名如下：void CommonTokenAction(Token t)</li>
+<li><strong>CACHE_TOKENS</strong>：boolean类型的选项，默认值是false。这个选项设置成true会导致解析器提前拿token。这样做可以提高一些性能，但是交互型的工作就能不能完成了。</li>
+<li><strong>OUTPUT_DIRECTORY</strong>：字符串类型的选项，默认值是当前文件夹。这个选项可以控制生成的文件的输出位置。</li>
+<li><strong>DEBUG_PARSER</strong>：boolean类型的选项，默认值是false。这个选项用于从parser中获取debug信息。为true的时候，parser会打印很多日志来显示其工作的路径。日志的跟踪也可以通过调用方法disable_tracing()方法来关闭。然后还可以通过enable_tracing()方法来打开tracing。</li>
+<li><strong>FORCE_LA_CHECK</strong>: boolean类型的选项，默认值是false。这个选项可以控制javacc对二义性的检查。在默认情况下，二义性检查仅仅在使用LOOKAHEAD 为1的choice point进行。对于明确声明了LOOKAHEAD 或者LOOKAHEAD 的值不等于1的choice point是不做检查的。如果这个选项被设置成true，那么二义性检查将在所有的choice point处执行。</li>
+</ol>
+<hr>
+<h4 id="语法分析器类"><a href="#语法分析器类" class="headerlink" title="语法分析器类"></a>语法分析器类</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">PARSER_BEGIN(parser_name)</span><br><span class="line"> . . .</span><br><span class="line"> <span class="class"><span class="keyword">class</span> <span class="title">parser_name</span> . . . </span>&#123;</span><br><span class="line">   . . .</span><br><span class="line"> &#125;</span><br><span class="line"> . . .</span><br><span class="line"> PARSER_END(parser_name)</span><br></pre></td></tr></table></figure>
+<p>语法分析器类的定义以标志<strong>PARSER_BEGIN</strong>和<strong>PARSER_END</strong>括起来，而且语法分析器类的名称必须与<strong>PARSER_BEGIN</strong>和<strong>PARSER_END</strong>后的名称相同。</p>
+<blockquote>
+<p><strong>特别注意</strong>：javaCC不会详细地检查语法文件的中java代码，java代码就是一个黑盒，所以即使通过了javaCC编译的语法文件生成的解析器还是有可能会通不过java编译器。</p>
+</blockquote>
+<p>生成的解析器会对语法文件中的每一个<strong>非终结符</strong>(java产生式和bnf产生式)生成一个对应的public方法。</p>
+<h4 id="JavaCC产生式"><a href="#JavaCC产生式" class="headerlink" title="JavaCC产生式"></a>JavaCC产生式</h4><ol>
+<li><code>javacode_production</code></li>
+<li><code>regular_expr_production</code></li>
+<li><code>bnf_production</code></li>
+<li><code>token_manager_decls</code></li>
+</ol>
+<p><a href="https://javacc.java.net/doc/javaccgrm.html#prod9" target="_blank" rel="noopener">javacode_production</a>和<a href="https://javacc.java.net/doc/javaccgrm.html#prod11" target="_blank" rel="noopener">bnf_production</a>用来定义parser的生成规则，<a href="https://javacc.java.net/doc/javaccgrm.html#prod11" target="_blank" rel="noopener">regular_expr_production</a>用于定义Token的语法，并且javacc将依据这个信息去生成Token Manager（还会使用在Paraser语法中嵌套的Token）。<a href="https://javacc.java.net/doc/javaccgrm.html#prod12" target="_blank" rel="noopener">token_manager_decls</a>是插入到token manager中的一些申明信息。</p>
+<hr>
+<h4 id="javacode-production"><a href="#javacode-production" class="headerlink" title="javacode_production"></a>javacode_production</h4><p>Javacode产生式，是用java代码来书写产生式的一种手段。如果有些规则不好用EBNF来描述，并且上下文相关，就可以使用Javacode产生式，下面的例子是获取流中的一个“)”。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">JAVACODE</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">skip_to_matching_brace</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      Token tok;</span><br><span class="line">      <span class="keyword">int</span> nesting = <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">        tok = getToken(<span class="number">1</span>);</span><br><span class="line">        <span class="keyword">if</span> (tok.kind == LBRACE) nesting++;</span><br><span class="line">        <span class="keyword">if</span> (tok.kind == RBRACE) &#123;</span><br><span class="line">          nesting--;</span><br><span class="line">          <span class="keyword">if</span> (nesting == <span class="number">0</span>) <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        tok = getNextToken();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码如果用在<a href="https://javacc.java.net/doc/lookahead.html" target="_blank" rel="noopener">选择点</a>的时候可能会出现问题，JavaCC中有4种选择点，分别如下:</p>
+<ol>
+<li>( exp1 | exp2 | … )：或</li>
+<li>( exp )?：一次或一次都没有</li>
+<li>( exp )*：零次或者多次</li>
+<li>( exp )+：一次或者多次</li>
+</ol>
+<p>有问题的代码:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NT</span><span class="params">()</span> :</span></span><br><span class="line"><span class="function">  </span>&#123;&#125;</span><br><span class="line">  &#123;</span><br><span class="line">    skip_to_matching_brace()</span><br><span class="line">  |</span><br><span class="line">    some_other_production()</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>无问题的代码:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NT</span><span class="params">()</span> :</span></span><br><span class="line"><span class="function">  </span>&#123;&#125;</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="string">"&#123;"</span> skip_to_matching_brace()</span><br><span class="line">  |</span><br><span class="line">    <span class="string">"("</span> parameter_list() <span class="string">")"</span></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>Javacode产生式用在选择点的时候，也可以在其前面加上语义上的或者语法上的LOOKAHEAD来帮助解析器做出选择。例如:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">NT</span><span class="params">()</span> :</span></span><br><span class="line"><span class="function"> </span>&#123;&#125;</span><br><span class="line"> &#123;</span><br><span class="line">   LOOKAHEAD( &#123;errorOccurred&#125; ) skip_to_matching_brace()</span><br><span class="line"> |</span><br><span class="line">   <span class="string">"("</span> parameter_list() <span class="string">")"</span></span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>Javacode产生式的访问权限是<code>package private</code></p>
+<hr>
+<h4 id="bnf-production"><a href="#bnf-production" class="headerlink" title="bnf_production"></a>bnf_production</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">java_access_modifier java_return_type java_identifier &quot;(&quot; java_parameter_list &quot;)&quot; &quot;:&quot;</span><br><span class="line"></span><br><span class="line">java_block</span><br><span class="line"></span><br><span class="line">&quot;&#123;&quot; [expansion_choices](https://javacc.java.net/doc/javaccgrm.html#prod16) &quot;&#125;&quot;</span><br></pre></td></tr></table></figure>
+<p>BNF产生式是书写javacc语法的标准产生式。每个BNF产生式的左边是一个非终结符，然后BNF产生式会在右边用BNF展开式定义这个非终结符。非终结符的写法就跟声明一个java方法的函数一样。这种写非终结符的方式非常明显，因为每个非终结符都会翻译成一个paraser类中的方法。非终结符的名字就是函数的名字，参数和返回值就是传进解析树的值和传出解析树的值。后面我们还将看见，右边的非终结符使用写起来就像一个函数调用。在解析树上传递的值跟函数的参数和返回值具有相同的范型。BNF产生式的范文权限默认是public。</p>
+<p>一个BNF产生式的右边有<strong>两个部分</strong>。首先是一个任意的java块（包括java声明和java code）。这些代码会插入生成的方法的开头。因此，每次在解析过程中使用这个非终结符的时候，这块java代码就会被执行。任何在BNF展开式中间的java代码都可以使用这块的java代码。javacc不会对这块代码做任何处理，仅仅是收集这块的代码。因此，经过javacc处理的代码还是有可能通不过java编译器的。</p>
+<hr>
+<h4 id="regular-expr-production"><a href="#regular-expr-production" class="headerlink" title="regular_expr_production"></a>regular_expr_production</h4><p><strong>[ <a href="https://javacc.java.net/doc/javaccgrm.html#newprod1" target="_blank" rel="noopener">lexical_state_list</a> ]</strong></p>
+<p><strong><a href="https://javacc.java.net/doc/javaccgrm.html#prod17" target="_blank" rel="noopener">regexpr_kind</a> [ “[“ “IGNORE_CASE” “]” ] “:”</strong></p>
+<p><strong>“{“ <a href="https://javacc.java.net/doc/javaccgrm.html#prod18" target="_blank" rel="noopener">regexpr_spec</a> ( “|” <a href="https://javacc.java.net/doc/javaccgrm.html#prod18" target="_blank" rel="noopener">regexpr_spec</a> )* “}”</strong></p>
+<p>正则表达式产生式用于定于被token manager处理的词法实体。关于token manager是怎么工作的可以参考：<a href="https://javacc.java.net/doc/tokenmanager.html" target="_blank" rel="noopener">this minitutorial (click here)</a>。在这里介绍的是文法实体的语法。<a href="https://javacc.java.net/doc/tokenmanager.html" target="_blank" rel="noopener">这个教程</a>会告诉你这些语法构造是怎样和token manager的实际工作联系起来的。</p>
+<p>一个正则表达式产生式以一个文法状态开始，可以通过<a href="https://javacc.java.net/doc/javaccgrm.html#newprod1" target="_blank" rel="noopener">lexical state list</a>指定状态。token manager有一个默认的词法状态叫”DEFAULT”。如果<a href="https://javacc.java.net/doc/javaccgrm.html#newprod1" target="_blank" rel="noopener">lexical state list</a>被省略了，那么DEFAULT状态就会被使用。</p>
+<p>状态声明的后面是一个对正则表达产生式类型的描述。<a href="https://javacc.java.net/doc/javaccgrm.html#prod17" target="_blank" rel="noopener">(see below for what this means)</a>.</p>
+<p>然后是可选的”IGNORE_CASE”。如果出现了这个选项，那么这个正则表达式就是大小写无关的，和前面提到的<a href="https://javacc.java.net/doc/javaccgrm.html#prod6" target="_blank" rel="noopener">IGNORE_CASE</a>选项有同样的作用，区别仅仅是作用于的不同。前面提到的IGNORE_CASE的作用域是全局的。</p>
+<p>接下来就是一些对这个正则表达式产生式的词法实体进行更详细描述的正则表达式了。</p>
+<hr>
+<h4 id="token-manager-decls"><a href="#token-manager-decls" class="headerlink" title="token_manager_decls"></a>token_manager_decls</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&quot;TOKEN_MGR_DECLS&quot; &quot;:&quot; java_block</span><br></pre></td></tr></table></figure>
+<p>Token manager的声明以”TOKEN_MGR_DECLS”保留字开始，然后是 “:” ，然后再是一些列的java声明和语句（也就是一个java block）。这些声明和语句会被写进生成的Token Manager，并且可以在<a href="https://javacc.java.net/doc/javaccgrm.html#prod18" target="_blank" rel="noopener">lexical actions</a>中访问。更多详情见 <a href="https://javacc.java.net/doc/tokenmanager.html" target="_blank" rel="noopener">the minitutorial on the token manager</a>。</p>
+<p>在一个javacc语法文件中仅仅只能有一个Token Manager声明。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">lexical_state_list::=<span class="string">"&lt;"</span> <span class="string">"*"</span> <span class="string">"&gt;"</span>|</span><br><span class="line"><span class="string">"&lt;"</span> java_identifier ( <span class="string">","</span> java_identifier )* <span class="string">"&gt;"</span></span><br></pre></td></tr></table></figure>
+<p>文法的状态列表描述的是对应的正则表达式产生式生效的范围，可以视为一个作用域。如果使用了“&lt;&gt;”，那么这个正则表达式产生式可以在所用的状态中使用。否则对应的正则表达式产生式仅仅能够在尖括号中指定的状态中使用。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">regexpr_kind::=<span class="string">"TOKEN"</span>|</span><br><span class="line"><span class="string">"SPECIAL_TOKEN"</span>|</span><br><span class="line"><span class="string">"SKIP"</span>|</span><br><span class="line"><span class="string">"MORE"</span></span><br></pre></td></tr></table></figure>
+<p>这个定义了正则表达式产生式的类型，包括：</p>
+<ul>
+<li>TOKEN: 这个产生式中的正则表达式描述了tokens的语法，主要定义语法分析阶段用到的非终结符。<br>Token Manager会根据这些正则表达式生成<a href="https://javacc.java.net/doc/apiroutines.html" target="_blank" rel="noopener">Token</a>对象并返回给parser。</li>
+<li>SPECIAL_TOKEN: 这产生式中的正则表达式描述了特殊的Token。特殊的Token是在解析过程中没有意义的Token，也就是本BNF产生式忽略的Token。但是，这些Token还是会被传递给parser，并且parser也可以访问他们。访问特殊Token的方式是通过其相邻的Token的specialToken域。特殊Token在处理像注释这种token的时候会非常有用。可以参考这个文档以了解更多关于特殊token的知识。</li>
+<li>SKIP: 这个产生式的规则命中的Token会被Token Manager丢弃掉。</li>
+<li>MORE: 有时候会需要逐步地构建Token。被这种规则命中的Token会存到一个Buffer中，直到遇到下一个Token或者Special_token，然后他们和最后一个Token或者Special_token会连在一起作为一个Token返回给parser。如果一个More后面紧跟了一个SKIP，那么整个Buffer中的内容都会被丢弃掉。</li>
+</ul>
+<p>以上就是最核心的部分，还有很多没有讲到。下面再附带一个二元运算计算器的例子，仅供大家参考，文章有部分是借用了网友的文字，特别说明。如果想更详细的理解，请移步<a href="https://javacc.java.net/doc/javaccgrm.html" target="_blank" rel="noopener">官方文档</a>。</p>
+<p><strong>例子：</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Author: yangguo@outlook.com</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">options</span><br><span class="line">&#123;</span><br><span class="line">  LOOKAHEAD= <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  CHOICE_AMBIGUITY_CHECK = <span class="number">2</span>;</span><br><span class="line">  OTHER_AMBIGUITY_CHECK = <span class="number">1</span>;</span><br><span class="line">  STATIC = <span class="keyword">false</span>;</span><br><span class="line">  DEBUG_PARSER = <span class="keyword">false</span>;</span><br><span class="line">  DEBUG_LOOKAHEAD = <span class="keyword">false</span>;</span><br><span class="line">  DEBUG_TOKEN_MANAGER = <span class="keyword">false</span>;</span><br><span class="line">  ERROR_REPORTING = <span class="keyword">true</span>;</span><br><span class="line">  JAVA_UNICODE_ESCAPE = <span class="keyword">false</span>;</span><br><span class="line">  UNICODE_INPUT = <span class="keyword">false</span>;</span><br><span class="line">  IGNORE_CASE = <span class="keyword">false</span>;</span><br><span class="line">  USER_TOKEN_MANAGER = <span class="keyword">false</span>;</span><br><span class="line">  USER_CHAR_STREAM = <span class="keyword">false</span>;</span><br><span class="line">  BUILD_PARSER = <span class="keyword">true</span>;</span><br><span class="line">  BUILD_TOKEN_MANAGER = <span class="keyword">true</span>;</span><br><span class="line">  SANITY_CHECK = <span class="keyword">true</span>;</span><br><span class="line">  FORCE_LA_CHECK = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PARSER_BEGIN(Calculator)</span><br><span class="line"><span class="keyword">package</span> info.yangguo.test1.javacc;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Calculator</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span> <span class="keyword">throws</span> ParseException</span></span><br><span class="line"><span class="function"> </span>&#123;</span><br><span class="line"> Calculator parser = <span class="keyword">new</span> Calculator(System.in);</span><br><span class="line"> <span class="keyword">while</span> (<span class="keyword">true</span>)</span><br><span class="line"> &#123;</span><br><span class="line"> parser.parse();</span><br><span class="line"> &#125;</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br><span class="line">PARSER_END(Calculator)</span><br><span class="line">SKIP :</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">" "</span></span><br><span class="line">| <span class="string">"\r"</span></span><br><span class="line">| <span class="string">"\t"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">TOKEN:</span><br><span class="line">&#123;</span><br><span class="line"> &lt; NUMBER: (&lt;DIGIT&gt;)+ ( <span class="string">"."</span> (&lt;DIGIT&gt;)+ )? &gt;</span><br><span class="line">| &lt; DIGIT: [<span class="string">"0"</span>-<span class="string">"9"</span>] &gt;</span><br><span class="line">| &lt; EOL: <span class="string">"\n"</span> &gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">parse</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> result=binaryOperation() &lt;EOL&gt;</span><br><span class="line">  &#123;</span><br><span class="line">    System.out.println(result);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125;</span><br><span class="line"> | &lt;EOF&gt; &#123; System.exit(-<span class="number">1</span>); &#125;</span><br><span class="line"> | &lt;EOL&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**二元运算**/</span></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">binaryOperation</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line"> <span class="keyword">double</span> tmp;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> result=binaryOperationHighPriority()</span><br><span class="line"> (</span><br><span class="line"> <span class="string">"+"</span> tmp=binaryOperation() &#123; result += tmp; &#125;</span><br><span class="line"> | <span class="string">"-"</span> tmp=binaryOperation() &#123; result -= tmp; &#125;</span><br><span class="line"> )*</span><br><span class="line"> &#123; <span class="keyword">return</span> result; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**二元运算中高优先级的部分**/</span></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">binaryOperationHighPriority</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line"> <span class="keyword">double</span> tmp;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> result=unaryOperation()</span><br><span class="line"> (</span><br><span class="line"> <span class="string">"*"</span> tmp=binaryOperationHighPriority() &#123; result *= tmp; &#125;</span><br><span class="line">   | <span class="string">"/"</span> tmp=binaryOperationHighPriority() &#123; result /= tmp; &#125;</span><br><span class="line"> )*</span><br><span class="line"> &#123; <span class="keyword">return</span> result; &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/**一元运算**/</span></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">unaryOperation</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> <span class="string">"-"</span> result=element() &#123; <span class="keyword">return</span> -result; &#125;</span><br><span class="line"> | result=element() &#123; <span class="keyword">return</span> result; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">element</span><span class="params">()</span>:</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> Token token;</span><br><span class="line"> <span class="keyword">double</span> result;</span><br><span class="line">&#125;</span><br><span class="line">&#123;</span><br><span class="line"> token=&lt;NUMBER&gt; &#123; <span class="keyword">return</span> Double.parseDouble(token.toString()); &#125;</span><br><span class="line"> | <span class="string">"("</span> result=binaryOperation() <span class="string">")"</span> &#123; <span class="keyword">return</span> result; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Javacc</tag>
       </tags>
   </entry>
   <entry>
