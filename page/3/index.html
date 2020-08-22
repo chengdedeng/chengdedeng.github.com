@@ -322,6 +322,163 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/04/01/线程转储/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content>
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src>
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2015/04/01/线程转储/" itemprop="url">
+                  线程转储分析
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-04-01T17:31:29+08:00">
+                2015-04-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2015/04/01/线程转储/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2015/04/01/线程转储/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <blockquote>
+<p>最近好几个同事都向我问起过java<strong>线程转储</strong>方面的知识，都是些常见的问题，如：系统负载过高，系统吞吐率降低，系统挂起等等。这些问题的定位和解决都离不开<strong>线程转储</strong>，因为这些问题在测试环境复现的难度较大，只有在生产环境进行<strong>ThreadDump</strong>，才能快速定位问题。</p>
+</blockquote>
+<h3 id="线程状态"><a href="#线程状态" class="headerlink" title="线程状态"></a>线程状态</h3><p>在具体分析线程转储数据之前，我们首先要明确线程的状态。<strong>java.lang.Thread.State</strong>枚举类中定义了如下几种类型：</p>
+<ol>
+<li><strong>NEW</strong>：线程创建尚未启动。</li>
+<li><strong>RUNNABLE</strong>：包括操作系统线程状态中的Ready和Running，可能在等待时间片或者正在执行。</li>
+<li><strong>BLOCKED</strong>：线程被阻塞。</li>
+<li><strong>WAITING</strong>：不会分配CPU执行时间，直到别的线程显式的唤醒，否则无限期等待。LockSupport.park()，没有设置Timeout参数的Object.wait()和Thread.join()，会导致此现象。</li>
+<li><strong>TIMED_WAITING</strong>：不会分配CPU执行时间，直到系统自动唤醒，不需要别的线程显示唤醒。Thread.sleep()，LockSupport.parkNanos()，LockSupport.parkUntil()，设置了超时时间的Object.wait()和Thread.join()，会让线程进入有限期等待。</li>
+<li><strong>TERMINATED</strong>：线程执行结束。</li>
+</ol>
+          <!--noindex-->
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2015/04/01/线程转储/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
   <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/03/10/高性能编程术语/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1705,157 +1862,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2013/10/30/TCP参数调整/">
-
-  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <meta itemprop="name" content="杨果">
-    <meta itemprop="description" content>
-    <meta itemprop="image" content="/images/avatar.jpg">
-  </span>
-
-  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-    <meta itemprop="name" content="城的灯">
-    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
-      <img style="display:none;" itemprop="url image" alt="城的灯" src>
-    </span>
-  </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2013/10/30/TCP参数调整/" itemprop="url">
-                  TCP参数调整
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-10-30T10:22:30+08:00">
-                2013-10-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-              <span class="post-meta-divider">|</span>
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/technique/" itemprop="url" rel="index">
-                    <span itemprop="name">技术</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <a href="/2013/10/30/TCP参数调整/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2013/10/30/TCP参数调整/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <blockquote>
-<p>最近一直在进行手机推送服务器的研发，代码采用Java实现。netty作为一个优秀基于NIO的客户、服务器端编程框架，当然是首选的。server的研发必然是充满血与泪的，除了要熟悉Java的NIO，还得对tcp的封包、拆包，协议的设计、对象的序列化；压缩方式的选择等等之外，对Linux内核的调优是一件绝对比前面任何一个都要复杂。由于采用Java开发，由于Java的内存墙等诸多因素的影响，服务器支持的长连接我规划在一个server大概50W左右。可能对于一些C、C++服务器编程的码农来说这个链接数还真算不了什么，但是对于Java来说还是相当不错了。关于Java的内存墙方面的东西此处有一篇好文章推荐给大家，链接如下：<a href="http://ifeve.com/jvm-performance-optimization-java-scalability-5" target="_blank" rel="noopener">http://ifeve.com/jvm-performance-optimization-java-scalability-5</a>。既然一台服务器要支持50W的长连接 ，如果不对Linux内核进行调优，server的支撑的链接数和半链接的回收都会存在较大的问题。</p>
-</blockquote>
-<p>前面YY了很多了，OK那我们下面进入正题。调优，顾名思义那就是碰见问题才调优，下面就是我碰见的<strong>问题</strong>和<strong>解决方案</strong>：</p>
-<p>1.要支持50W的长连接，TCP栈对内存的使用需要调大。tcp_rmem和tcp_wmem我们都采用缺省值8KB，那么一个tcp链接，需要占用的内存大概为16KB。<br>一个简单的计算如下：接近8.0GB TCP内存能容纳的连接数，约为  8000000KB/16KB  = 50万。所以下面我分别配置成3G，8G，12G，一定注意单位是page，大小一般为4KB。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;net.ipv4.tcp_mem = 786432 2097152 3145728</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2013/10/30/TCP参数调整/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1899,7 +1905,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-count">37</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -1916,7 +1922,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">53</span>
+                <span class="site-state-item-count">59</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
