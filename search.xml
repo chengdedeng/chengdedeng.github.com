@@ -1,26 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>2015年工作总结</title>
-    <url>/2016/02/05/2015%E5%B9%B4%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[<blockquote>
-<p>2016农历新年假期前1个小时，心思已不专注，随意一写，简单回顾自己的2015！</p>
-</blockquote>
-<h3 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h3><p>如果用一个词来形容2015的工作表现，我觉得<code>波澜不惊</code>应该最为合适。没有大风大浪，没有力挽狂澜，工作按照原有节奏和既定部署开展。在没有重大项目的情况下，我们将大量的精力放在了系统架构升级和业务逻辑优化上面。机票核心系统经过2年的快速迭代和人员的变更，已经有了较多的技术负债，确保系统稳定的前提下并进行技术改造是我们面临的主要课题。</p>
-<p>2014年机票核心模块绝大部分进行了服务化，业务方面带来的好处就是业务划分的更加合理，开发人员更加专注于自己的领域，技术方面就是服务的管理、降级、流控、监控、AB Test等更加容易。14年的成功，让我们对遗留核心业务的改造充满了信心。记忆尤为深刻的是一个<strong>PNR</strong>解析程序当时7000行的代码，各种业务规则的判断，各种语法分析逻辑，我们优化到不到1000行。这在当时绝对是一件值得骄傲的事情，虽然看似简单的一个类，却承载着公司每天5千万交易量的订单生成和2年的领域知识沉淀，之前这个类是很多人都不敢碰，因为这个风险不是谁都愿意承担的。虽然主导者是我，但是操刀者却不是我，这件事情放在14年绝对不敢想象，因为这种核心的业务我是绝对不放心交给下面的小伙伴的。但事实证明只要给他们机会和时间，他们是能够成长起来的，就如当年我的领导信任我一样。在管理上更加注重小伙伴们的发展，让他们快乐的成长，因为他们唯一能够带走的就是自己的能力。当然15年在对外的业务沟通和对内的技术指导，都更加内敛不再锋芒毕露，毕竟谁会拒绝一个好沟通好相处的同事、下属或者领导呢？</p>
-<p>由于工作的变动，16年注定是机遇和挑战并存的一年。从参加工作以来，一直在专注于技术深度的挖掘，在广度的拓展上还需要投入更多精力。16年在做好后端架构本职工作的基础上，更多的是与移动端、web端、测试、运维相互交流学习，创建良好的技术氛围提升公司的技术实力。希望通过这一年的努力，让自己成为一个能够影响他人能够带着大家往前走的人，不仅仅是技术方面。</p>
-<a id="more"></a>
-<hr>
-<h3 id="生活"><a href="#生活" class="headerlink" title="生活"></a>生活</h3><p>都说码农没有什么业余生活，这句话放在2年前，我是认同的。毕竟在这样一个日新月异的行业混饭吃，就如逆水行舟不进则退。要想变得优秀，你就得付出更多的业余时间，当然也有能力超强只需要付出极少努力就能很牛逼的人，但是绝大多数人不在此列，当然我是属于那绝大多数里面的一员。由于2年前女儿的降临，15年我加班的时间明显减少了很多，并没有什么深刻的人生领悟促使我这样。我只是希望能够陪她吃晚饭，在她睡觉前能够看见爸爸，仅此而已。周末需要抽出更多的时间陪小孩，而不只是抱着电脑一坐就是一天，每次回头翻看定格在照片中的那一张张开心的笑脸，还有什么能够形容那种美妙的感觉呢？养儿不易，所以更能够体会父母的艰辛，他们对我的需要就如当年我对他们的需要一样，所以这一年跟父母的电话明显多了很多。陪伴家人的时间多了，你会发现思考和学习的时间少了很多，好在我坚持使用<a href="http://www.publicspace.net/Vitamin-R/" target="_blank" rel="noopener">Vitamin-R</a>的确提升了我不少的效率。最后结果非常不错，并没有因为加班少了影响工作的开展，高度的精神集中使我效率的提升到了平时的2-3倍，这是我15年非常开心的一件事情。虽然这一年收获不少，但是同样也有让我不是很满意的地方，如：阅读量不达标，并且英语学习三天打鱼两天晒网，办的健身卡也不幸蒙尘。但愿16年希望将15年做的好的方面继续保持，将做的不好的继续改进。虽然我坚信生活不能事事都如自己所愿，但是希望16年能够获得一个较好的平衡。</p>
-]]></content>
-      <categories>
-        <category>生活</category>
-      </categories>
-      <tags>
-        <tag>工作总结</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>APM技术总结</title>
     <url>/2016/12/04/APM/</url>
     <content><![CDATA[<p>APM(Application Performance Management)经过2-3年的发展早已经被大家所熟悉了，当Google的Dapper刚发表的时候，就有一大批的公司和组织进行了产品化，大家熟悉的淘宝的鹰眼、点评的Cat、OneAPM等都是这方面的先行者。随着SOA和微服务的普及，越来越多的公司采用了这样的分布式架构，因此对APM的需求更是越来越强烈。本篇文章首先会简单阐述下Dapper的思想，然后会简单阐述下笔者自研的Dragon和放弃它的原因，最后阐述下Pinpoint架构。这篇文章主要的目的，一是记录研发的心路历程，二是希望为那些未做但想做的同行提供一点经验教训。</p>
@@ -53,24 +33,23 @@
       </tags>
   </entry>
   <entry>
-    <title>Elasticsearch Client Bulk 死锁问题处理</title>
-    <url>/2020/08/15/Elasticsearch%20Client%20Bulk%20%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98%E5%A4%84%E7%90%86/</url>
-    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>最近工作中大量使用到Elasticsearch，需要通过Bulk操作将大量数据推到Elasticsearch中，但是发现有个别推数据的分布式任务一直不能结束，通过Thread Dump发现SchedulerX-ConsumerThread处于休眠状态，Thread Dump信息见下图：</p>
-<p><img src="/images/es-bulk-deadlock.png" alt="es bulk deadlock"></p>
+    <title>2015年工作总结</title>
+    <url>/2016/02/05/2015%E5%B9%B4%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<blockquote>
+<p>2016农历新年假期前1个小时，心思已不专注，随意一写，简单回顾自己的2015！</p>
+</blockquote>
+<h3 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h3><p>如果用一个词来形容2015的工作表现，我觉得<code>波澜不惊</code>应该最为合适。没有大风大浪，没有力挽狂澜，工作按照原有节奏和既定部署开展。在没有重大项目的情况下，我们将大量的精力放在了系统架构升级和业务逻辑优化上面。机票核心系统经过2年的快速迭代和人员的变更，已经有了较多的技术负债，确保系统稳定的前提下并进行技术改造是我们面临的主要课题。</p>
+<p>2014年机票核心模块绝大部分进行了服务化，业务方面带来的好处就是业务划分的更加合理，开发人员更加专注于自己的领域，技术方面就是服务的管理、降级、流控、监控、AB Test等更加容易。14年的成功，让我们对遗留核心业务的改造充满了信心。记忆尤为深刻的是一个<strong>PNR</strong>解析程序当时7000行的代码，各种业务规则的判断，各种语法分析逻辑，我们优化到不到1000行。这在当时绝对是一件值得骄傲的事情，虽然看似简单的一个类，却承载着公司每天5千万交易量的订单生成和2年的领域知识沉淀，之前这个类是很多人都不敢碰，因为这个风险不是谁都愿意承担的。虽然主导者是我，但是操刀者却不是我，这件事情放在14年绝对不敢想象，因为这种核心的业务我是绝对不放心交给下面的小伙伴的。但事实证明只要给他们机会和时间，他们是能够成长起来的，就如当年我的领导信任我一样。在管理上更加注重小伙伴们的发展，让他们快乐的成长，因为他们唯一能够带走的就是自己的能力。当然15年在对外的业务沟通和对内的技术指导，都更加内敛不再锋芒毕露，毕竟谁会拒绝一个好沟通好相处的同事、下属或者领导呢？</p>
+<p>由于工作的变动，16年注定是机遇和挑战并存的一年。从参加工作以来，一直在专注于技术深度的挖掘，在广度的拓展上还需要投入更多精力。16年在做好后端架构本职工作的基础上，更多的是与移动端、web端、测试、运维相互交流学习，创建良好的技术氛围提升公司的技术实力。希望通过这一年的努力，让自己成为一个能够影响他人能够带着大家往前走的人，不仅仅是技术方面。</p>
 <a id="more"></a>
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>通过上图的调用栈信息可知，SchedulerX-ConsumerThread在等待锁，而该锁又被 <em>elasticsearch[scheduler][T#1]</em> 所占有，通过<code>locked ownable synchronizers</code>可知它不但持有<code>ReentrantLock</code>而且还锁定了<code>ThreadPoolExecutor</code>， <em>elasticsearch[scheduler][T#1]</em> 不释放锁的原因是由于在等待一个信号量。分析到这里，就可以知道从哪儿入手了，接下来就可以进入到代码里面去看看到底发生了什么事情。</p>
-<p>elasticsearch-rest-high-level-client 7.4.2版本中的BulkRequestHandler.java代码54行-&gt;92行如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public void execute(BulkRequest bulkRequest, long executionId) &#123;</span><br><span class="line">        Runnable toRelease = () -&gt; &#123;&#125;;</span><br><span class="line">        boolean bulkRequestSetupSuccessful = false;</span><br><span class="line">        try &#123;</span><br><span class="line">            listener.beforeBulk(executionId, bulkRequest);</span><br><span class="line">            semaphore.acquire();</span><br><span class="line">            toRelease = semaphore::release;</span><br><span class="line">            CountDownLatch latch = new CountDownLatch(1);</span><br><span class="line">            retry.withBackoff(consumer, bulkRequest, ActionListener.runAfter(new ActionListener&lt;BulkResponse&gt;() &#123;</span><br><span class="line">                @Override</span><br><span class="line">                public void onResponse(BulkResponse response) &#123;</span><br><span class="line">                    listener.afterBulk(executionId, bulkRequest, response);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                @Override</span><br><span class="line">                public void onFailure(Exception e) &#123;</span><br><span class="line">                    listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;, () -&gt; &#123;</span><br><span class="line">                semaphore.release();</span><br><span class="line">                latch.countDown();</span><br><span class="line">            &#125;));</span><br><span class="line">            bulkRequestSetupSuccessful = true;</span><br><span class="line">            if (concurrentRequests == 0) &#123;</span><br><span class="line">                latch.await();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            Thread.currentThread().interrupt();</span><br><span class="line">            logger.info(() -&gt; new ParameterizedMessage(&quot;Bulk request &#123;&#125; has been cancelled.&quot;, executionId), e);</span><br><span class="line">            listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            logger.warn(() -&gt; new ParameterizedMessage(&quot;Failed to execute bulk request &#123;&#125;.&quot;, executionId), e);</span><br><span class="line">            listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            if (bulkRequestSetupSuccessful == false) &#123;  // if we fail on client.bulk() release the semaphore</span><br><span class="line">                toRelease.run();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
-<p>通过代码可知，semaphore的释放是由ActionListener.runAfter来完成。也就是说是bulk flush成功那么就顺利释放，如果失败就进入retry逻辑，semaphore暂时不释放，得等到retry之后再判断是否释放。由于flush和retry公用一个scheduler，每个scheduler会有一个线程池，加上前面 <em>elasticsearch[scheduler][T#1]</em> 锁定了一个<code>ThreadPoolExecutor</code>，所以问题的核心点随之浮出水面。</p>
-<p>elasticsearch-rest-high-level-client 7.4.2版本中的Scheduler.java代码56行-&gt;63行如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static ScheduledThreadPoolExecutor initScheduler(Settings settings) &#123;</span><br><span class="line">    final ScheduledThreadPoolExecutor scheduler = new SafeScheduledThreadPoolExecutor(1,</span><br><span class="line">            EsExecutors.daemonThreadFactory(settings, &quot;scheduler&quot;), new EsAbortPolicy());</span><br><span class="line">    scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);</span><br><span class="line">    scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);</span><br><span class="line">    scheduler.setRemoveOnCancelPolicy(true);</span><br><span class="line">    return scheduler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>通过上面的代码可知，线程池只有一个线程，flush任务占用了一个线程就是上面的 <em>elasticsearch[scheduler][T#1]</em> ，导致retry任务没有线程资源可用，但是retry的任务却又占有信号量，所以这样便完成了一个环状等待。这是一种高级的死锁，不能简单的通过锁的依赖来排查到循环等待的情况。</p>
-<p>当我们分析出问题的关键点，那么就简单了。通过Github和Stack Overflow一搜会发现bulk操作长久以来都存在这种问题，最新的<a href="https://github.com/elastic/elasticsearch/pull/48697" target="_blank" rel="noopener">pull request</a>能够解决该问题，只需要升级client到7.5.0及以上即可。</p>
+<hr>
+<h3 id="生活"><a href="#生活" class="headerlink" title="生活"></a>生活</h3><p>都说码农没有什么业余生活，这句话放在2年前，我是认同的。毕竟在这样一个日新月异的行业混饭吃，就如逆水行舟不进则退。要想变得优秀，你就得付出更多的业余时间，当然也有能力超强只需要付出极少努力就能很牛逼的人，但是绝大多数人不在此列，当然我是属于那绝大多数里面的一员。由于2年前女儿的降临，15年我加班的时间明显减少了很多，并没有什么深刻的人生领悟促使我这样。我只是希望能够陪她吃晚饭，在她睡觉前能够看见爸爸，仅此而已。周末需要抽出更多的时间陪小孩，而不只是抱着电脑一坐就是一天，每次回头翻看定格在照片中的那一张张开心的笑脸，还有什么能够形容那种美妙的感觉呢？养儿不易，所以更能够体会父母的艰辛，他们对我的需要就如当年我对他们的需要一样，所以这一年跟父母的电话明显多了很多。陪伴家人的时间多了，你会发现思考和学习的时间少了很多，好在我坚持使用<a href="http://www.publicspace.net/Vitamin-R/" target="_blank" rel="noopener">Vitamin-R</a>的确提升了我不少的效率。最后结果非常不错，并没有因为加班少了影响工作的开展，高度的精神集中使我效率的提升到了平时的2-3倍，这是我15年非常开心的一件事情。虽然这一年收获不少，但是同样也有让我不是很满意的地方，如：阅读量不达标，并且英语学习三天打鱼两天晒网，办的健身卡也不幸蒙尘。但愿16年希望将15年做的好的方面继续保持，将做的不好的继续改进。虽然我坚信生活不能事事都如自己所愿，但是希望16年能够获得一个较好的平衡。</p>
 ]]></content>
       <categories>
-        <category>技术</category>
+        <category>生活</category>
       </categories>
       <tags>
-        <tag>Elasticsearch</tag>
-        <tag>死锁</tag>
+        <tag>工作总结</tag>
       </tags>
   </entry>
   <entry>
@@ -117,52 +96,24 @@
       </tags>
   </entry>
   <entry>
-    <title>JVM最大线程数</title>
-    <url>/2013/06/17/JVM%E6%9C%80%E5%A4%A7%E7%BA%BF%E7%A8%8B%E6%95%B0/</url>
-    <content><![CDATA[<blockquote>
-<p>最近研发<strong>推送方案</strong>，需要大量线程来模拟手机客户端。在模拟手机客户端的时候，单个JVM线程数量始终卡在一万多一点，然后就报如下的错误<code>java.lang.OutOfMemoryError: unable to create new native thread</code>。我在网上找了很多资料，都是分析32位的，都是准备模拟几千个或者几万个水平。因为我是使用64位的linux,并且要模拟50万，发现很多都不是很详细，所以写了这篇文章。</p>
-</blockquote>
-<p>对于这个OOM，根本无需多言，网上一堆关于JVM线程数的计算公式，此处我不妨再次引用一次:<code>(MaxProcessMemory - JVMMemory – ReservedOsMemory) / (ThreadStackSize) = Number of threads</code>。MaxProcessMemory：进程最大的寻址空间，关于不同系统的进程默认的最大寻址空间，可以参考下图。</p>
-<p><img src="/images/max-space-per-process.jpg" alt="进程的寻址空间"></p>
+    <title>Elasticsearch Client Bulk 死锁问题处理</title>
+    <url>/2020/08/15/Elasticsearch%20Client%20Bulk%20%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98%E5%A4%84%E7%90%86/</url>
+    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>最近工作中大量使用到Elasticsearch，需要通过Bulk操作将大量数据推到Elasticsearch中，但是发现有个别推数据的分布式任务一直不能结束，通过Thread Dump发现SchedulerX-ConsumerThread处于休眠状态，Thread Dump信息见下图：</p>
+<p><img src="/images/es-bulk-deadlock.png" alt="es bulk deadlock"></p>
 <a id="more"></a>
-<h3 id="JVM层面"><a href="#JVM层面" class="headerlink" title="JVM层面"></a>JVM层面</h3><ul>
-<li>JVMMemory:Heap + PermGen</li>
-<li>ReservedOSMemory:Native heap，JNI</li>
-</ul>
-<p>通过上面的说明大概就能估算出线程数量，公式如下:</p>
-<p><code>(MaxProcessMemory&lt;固定值&gt; – Xms&lt;初始化值，最小值&gt; – XX:PermSize&lt;初始化值，最小值&gt; – 100m&lt;估算值&gt;) / Xss = Number of threads&lt;最大值&gt;</code></p>
-<p><em>-Xms，-Xmx，-Xss</em>，这三个变量就是JVM层面可以调节的。</p>
-<hr>
-<h3 id="系统层面"><a href="#系统层面" class="headerlink" title="系统层面:"></a>系统层面:</h3><h4 id="proc-sys-kernel-pid-max"><a href="#proc-sys-kernel-pid-max" class="headerlink" title="/proc/sys/kernel/pid_max"></a>/proc/sys/kernel/pid_max</h4><p><strong>开始我也觉得奇怪，为什么需要修改pid呢？pid不是进程id嘛，我只是创建线程，并不创建进程，pid的大小跟我好像没有关系。查阅资料才发现，同一个进程的多个线程的pid其实是不同的。</strong></p>
-<h4 id="proc-sys-vm-max-map-count"><a href="#proc-sys-vm-max-map-count" class="headerlink" title="/proc/sys/vm/max_map_count"></a>/proc/sys/vm/max_map_count</h4><p><strong>max_map_count文件包含限制一个进程可以拥有的VMA(虚拟内存区域)的数量。虚拟内存区域是一个连续的虚拟地址空间区域。在进程的生命周期中，每当程序尝试在内存中映射文件，链接到共享内存段，或者分配堆空间的时候，这些区域将被创建。调优这个值将限制进程可拥有VMA的数量。限制一个进程拥有VMA的总数可能导致应用程序出错，因为当进程达到了VMA上线但又只能释放少量的内存给其他的内核进程使用时，操作系统会抛出内存不足的错误。如果你的操作系统在NORMAL区域仅占用少量的内存，那么调低这个值可以帮助释放内存给内核用。具体的可以查看redhat的这篇文章:<a href="http://www.redhat.com/magazine/001nov04/features/vm/" target="_blank" rel="noopener">http://www.redhat.com/magazine/001nov04/features/vm/</a>，中文的话是这篇:<a href="http://www.oschina.net/translate/understanding-virtual-memory?print" target="_blank" rel="noopener">http://www.oschina.net/translate/understanding-virtual-memory?print</a></strong></p>
-<p><strong>注意：</strong>ulimit -a中参数的大小</p>
-<p>当然有人说下面这个两个需要修改，但是我测试下来，好像不用修改也行，反正我没有修改。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/proc/sys/kernel/thread-max</span><br><span class="line">/etc/security/limits.d/90-nproc.conf</span><br></pre></td></tr></table></figure>
-<p>注意如果使用</p>
-<ul>
-<li>sysctl -w vm.max_map_count=200000</li>
-<li>sysctl -p</li>
-</ul>
-<p>来修改，重启后值会改变，如果想永久改变需要采用如下形式。</p>
-<ul>
-<li>vm.max_map_count=200000直接写到/etc/sysctl.conf中</li>
-<li>然后执行sysctl -p</li>
-</ul>
-<p>对于我的应用，此处还要设置一个socket端口的取值范围</p>
-<ul>
-<li>net.ipv4.ip_local_port_range = 1024 65535</li>
-</ul>
-<p>当然对于非socket应用是不需要设置该值的</p>
-<blockquote>
-<p><strong>最后说明</strong>:上面各个参数的设置，可以去查看linux方面的一些资料。至于值到底多大，得根据你机器的性能来确定。</p>
-</blockquote>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>通过上图的调用栈信息可知，SchedulerX-ConsumerThread在等待锁，而该锁又被 <em>elasticsearch[scheduler][T#1]</em> 所占有，通过<code>locked ownable synchronizers</code>可知它不但持有<code>ReentrantLock</code>而且还锁定了<code>ThreadPoolExecutor</code>， <em>elasticsearch[scheduler][T#1]</em> 不释放锁的原因是由于在等待一个信号量。分析到这里，就可以知道从哪儿入手了，接下来就可以进入到代码里面去看看到底发生了什么事情。</p>
+<p>elasticsearch-rest-high-level-client 7.4.2版本中的BulkRequestHandler.java代码54行-&gt;92行如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public void execute(BulkRequest bulkRequest, long executionId) &#123;</span><br><span class="line">        Runnable toRelease = () -&gt; &#123;&#125;;</span><br><span class="line">        boolean bulkRequestSetupSuccessful = false;</span><br><span class="line">        try &#123;</span><br><span class="line">            listener.beforeBulk(executionId, bulkRequest);</span><br><span class="line">            semaphore.acquire();</span><br><span class="line">            toRelease = semaphore::release;</span><br><span class="line">            CountDownLatch latch = new CountDownLatch(1);</span><br><span class="line">            retry.withBackoff(consumer, bulkRequest, ActionListener.runAfter(new ActionListener&lt;BulkResponse&gt;() &#123;</span><br><span class="line">                @Override</span><br><span class="line">                public void onResponse(BulkResponse response) &#123;</span><br><span class="line">                    listener.afterBulk(executionId, bulkRequest, response);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                @Override</span><br><span class="line">                public void onFailure(Exception e) &#123;</span><br><span class="line">                    listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;, () -&gt; &#123;</span><br><span class="line">                semaphore.release();</span><br><span class="line">                latch.countDown();</span><br><span class="line">            &#125;));</span><br><span class="line">            bulkRequestSetupSuccessful = true;</span><br><span class="line">            if (concurrentRequests == 0) &#123;</span><br><span class="line">                latch.await();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            Thread.currentThread().interrupt();</span><br><span class="line">            logger.info(() -&gt; new ParameterizedMessage(&quot;Bulk request &#123;&#125; has been cancelled.&quot;, executionId), e);</span><br><span class="line">            listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            logger.warn(() -&gt; new ParameterizedMessage(&quot;Failed to execute bulk request &#123;&#125;.&quot;, executionId), e);</span><br><span class="line">            listener.afterBulk(executionId, bulkRequest, e);</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            if (bulkRequestSetupSuccessful == false) &#123;  // if we fail on client.bulk() release the semaphore</span><br><span class="line">                toRelease.run();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过代码可知，semaphore的释放是由ActionListener.runAfter来完成。也就是说是bulk flush成功那么就顺利释放，如果失败就进入retry逻辑，semaphore暂时不释放，得等到retry之后再判断是否释放。由于flush和retry公用一个scheduler，每个scheduler会有一个线程池，加上前面 <em>elasticsearch[scheduler][T#1]</em> 锁定了一个<code>ThreadPoolExecutor</code>，所以问题的核心点随之浮出水面。</p>
+<p>elasticsearch-rest-high-level-client 7.4.2版本中的Scheduler.java代码56行-&gt;63行如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static ScheduledThreadPoolExecutor initScheduler(Settings settings) &#123;</span><br><span class="line">    final ScheduledThreadPoolExecutor scheduler = new SafeScheduledThreadPoolExecutor(1,</span><br><span class="line">            EsExecutors.daemonThreadFactory(settings, &quot;scheduler&quot;), new EsAbortPolicy());</span><br><span class="line">    scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);</span><br><span class="line">    scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);</span><br><span class="line">    scheduler.setRemoveOnCancelPolicy(true);</span><br><span class="line">    return scheduler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>通过上面的代码可知，线程池只有一个线程，flush任务占用了一个线程就是上面的 <em>elasticsearch[scheduler][T#1]</em> ，导致retry任务没有线程资源可用，但是retry的任务却又占有信号量，所以这样便完成了一个环状等待。这是一种高级的死锁，不能简单的通过锁的依赖来排查到循环等待的情况。</p>
+<p>当我们分析出问题的关键点，那么就简单了。通过Github和Stack Overflow一搜会发现bulk操作长久以来都存在这种问题，最新的<a href="https://github.com/elastic/elasticsearch/pull/48697" target="_blank" rel="noopener">pull request</a>能够解决该问题，只需要升级client到7.5.0及以上即可。</p>
 ]]></content>
       <categories>
         <category>技术</category>
       </categories>
       <tags>
-        <tag>Java</tag>
-        <tag>线程</tag>
+        <tag>Elasticsearch</tag>
+        <tag>死锁</tag>
       </tags>
   </entry>
   <entry>
@@ -277,6 +228,26 @@
       </tags>
   </entry>
   <entry>
+    <title>Java版WAF技术细节</title>
+    <url>/2017/06/06/Java%E7%89%88WAF%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<p>最近一直在研究应用安全相关的技术和产品，因为随着产品不断推广放量，安全体系的建设已经刻不容缓。谈到应用安全大家想到最多就是各种商业级的WAF防火墙，但是这个不是我想谈的重点，这次我们主要谈谈软件WAF。说到软件WAF，大家最熟悉的就是<a href="https://modsecurity.org/" target="_blank" rel="noopener">ModSecurity</a>、<a href="https://github.com/ESAPI/esapi-java-legacy" target="_blank" rel="noopener">esapi-java-legacy</a>、<a href="https://github.com/p0pr0ck5/lua-resty-waf" target="_blank" rel="noopener">lua-resty-waf</a>、<a href="https://github.com/loveshell/ngx_lua_waf" target="_blank" rel="noopener">ngx_lua_waf</a>等众多解决方案。虽然笔者所在公司使用了以上方案中的一种，但是为了研究和学习，笔者用Java重新造了一个轮子，本篇文章主要是阐述笔者设计和研发的思路，供大家参考。项目地址为：<a href="https://github.com/chengdedeng/waf。" target="_blank" rel="noopener">https://github.com/chengdedeng/waf。</a></p>
+<a id="more"></a>
+<h3 id="HTTP代理"><a href="#HTTP代理" class="headerlink" title="HTTP代理"></a>HTTP代理</h3><p>上面提到的软件WAF，除了esapi-java-legacy之外，其余几种都是基于代理模式。代理的优点就在于对WEB应用没有任何侵入，对业务的干扰几乎为零，这种方案是毫无疑问是最应该被采纳的。ModSecurity基于Apache，lua-resty-waf和ngx_lua_waf基于Nginx，Apache和Nginx作为业界最优秀的开源Proxy，它们的性能及稳定性是毫无疑问的。Java之上要想构建一套稳定可靠的网络通讯，必然绕不开Netty，所以在HTTP代理层面我选择了基于Netty研发的<a href="https://github.com/adamfisk/LittleProxy" target="_blank" rel="noopener">LittleProxy</a>，它的programmers也是<a href="https://www.getlantern.org/" target="_blank" rel="noopener">LANTERN</a>的维护者。关于蓝灯的介绍，可以移步<a href="https://zh.wikipedia.org/wiki/%E8%93%9D%E7%81%AF" target="_blank" rel="noopener">维基百科</a>。</p>
+<p>HTTP代理分为正向和反向两种，作为应用防火墙，肯定要选择反向模式。由于LittleProxy原生支持Proxy Chain，所以WAF提供了透明模式和反向代理两种模式。透明模式就是使用LittleProxy的ChainProxyManager，把真正目标机的映射交给下游的Proxy，反向代理就是WAF直接管理目标机的映射关系。透明代理最为简单，只需要实现ChainedProxyManager就行，但是对于反向代理却需要考虑loadbalance和心跳检测。特别需要注意的是，当节点不健康的时候需要将节点从路由表中移除，当节点恢复健康状态，要能够及时的将节点新增到路由表,在WAF中的具体实现可以参考<a href="https://github.com/chengdedeng/waf/blob/master/src/main/java/info/yangguo/waf/HostResolverImpl.java" target="_blank" rel="noopener">HostResolverImpl</a>。</p>
+<p>由于HTTP1.1支持chunked，对于client传递上来的数据别尝试配置较大的buffer，从而获取FullHttpRequest。因为当有大文件上传时，当你配置的buffer放不整个文件时，就会导致请求失败，在Nett的ChannelPipeline上也需要移除<strong>inflater</strong>和<strong>aggregator</strong>两个handler。为了支持TLS，可以自己实现SslEngineSource，WAF中的实现可以参考<a href="https://github.com/chengdedeng/waf/blob/master/src/main/java/info/yangguo/waf/util/SelfSignedSslEngineSource2.java" target="_blank" rel="noopener">SelfSignedSslEngineSource2</a>，WAF的证书是自签名的，大家可以换成CA签名的即可，浏览器就不会报不可信任了。</p>
+<p>要写一个稳定可靠的HTTP代理服务器，虽然已经有了Netty和LittleProxy，但是还远远不够。一定要仔细研究HTTP协议，开源程序只是协议的实现，协议才是核心中的核心。因为一旦对协议理解的不是很清楚，你就可能给自己埋一个坑，所以在协议的研究上多花点时间是绝对值得，并且可以取得事半功倍的效果。</p>
+<h3 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h3><p>应用程序的数据安全，在WAF中被分为两种类型，一种是进来的数据另外一种是出去的数据，也就是Request和Response，它们分别对应<strong>HttpRequestFilterChain</strong>和<strong>HttpResponseFilterChain</strong>责任链。</p>
+<p>RequestFilter又分为黑名单Filter和白名单Filter，Request拦截又分为黑白名单两种,Response拦截主要给输出的数据进行安全加固.在Request的拦截规则方面,我参考了loveshell/ngx_lua_waf.<br>Request Content-Type又为<code>form-data</code>,<code>x-www-form-urlencoded</code>、<code>raw</code>、<code>binary</code>等多种类型，所以这里又牵涉到是否需要对url decode，同时还要考虑大小写的问题，只有方方面面了解透了，才能做到较高质量的防护。Response作为一种可扩展的增强，例如已经有不可信的数据进入系统，拦截已经晚了，这时我们就可以通过Response进行转义之后输出，或者做一些例如防止Clickjack的攻击。安全方面因为笔者能力和精力有限，只做了极少的一部分，需要大家仔细阅读例如<a href="https://www.owasp.org/images/5/51/OWASP_Top_10_2013-Chinese-V1.2.pdf" target="_blank" rel="noopener">OWASP_Top_10</a>之类的文章来完善防护细节。</p>
+<h3 id="性能"><a href="#性能" class="headerlink" title="性能"></a>性能</h3><p>作为中间代理服务器，性能肯定是大多数人会首先关心的，所以我做了一个基准测试，具体的测试数据见<a href="https://github.com/chengdedeng/waf#性能" target="_blank" rel="noopener">GitHub</a>。从测试数据可以看出，Java的Proxy跟Nginx比，<br>的确有不小的差距，但是我觉得作为一个无状态的中间件，只要性能不是太差同时能够水平扩展，那么这个中间件就是可以被接受的。enjoy yourself!</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>架构、HTTP、安全</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java agent笔记</title>
     <url>/2015/07/18/JavaAgent%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%B7%AF/</url>
     <content><![CDATA[<blockquote>
@@ -316,26 +287,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Java版WAF技术细节</title>
-    <url>/2017/06/06/Java%E7%89%88WAF%E5%AE%9E%E7%8E%B0/</url>
-    <content><![CDATA[<p>最近一直在研究应用安全相关的技术和产品，因为随着产品不断推广放量，安全体系的建设已经刻不容缓。谈到应用安全大家想到最多就是各种商业级的WAF防火墙，但是这个不是我想谈的重点，这次我们主要谈谈软件WAF。说到软件WAF，大家最熟悉的就是<a href="https://modsecurity.org/" target="_blank" rel="noopener">ModSecurity</a>、<a href="https://github.com/ESAPI/esapi-java-legacy" target="_blank" rel="noopener">esapi-java-legacy</a>、<a href="https://github.com/p0pr0ck5/lua-resty-waf" target="_blank" rel="noopener">lua-resty-waf</a>、<a href="https://github.com/loveshell/ngx_lua_waf" target="_blank" rel="noopener">ngx_lua_waf</a>等众多解决方案。虽然笔者所在公司使用了以上方案中的一种，但是为了研究和学习，笔者用Java重新造了一个轮子，本篇文章主要是阐述笔者设计和研发的思路，供大家参考。项目地址为：<a href="https://github.com/chengdedeng/waf。" target="_blank" rel="noopener">https://github.com/chengdedeng/waf。</a></p>
-<a id="more"></a>
-<h3 id="HTTP代理"><a href="#HTTP代理" class="headerlink" title="HTTP代理"></a>HTTP代理</h3><p>上面提到的软件WAF，除了esapi-java-legacy之外，其余几种都是基于代理模式。代理的优点就在于对WEB应用没有任何侵入，对业务的干扰几乎为零，这种方案是毫无疑问是最应该被采纳的。ModSecurity基于Apache，lua-resty-waf和ngx_lua_waf基于Nginx，Apache和Nginx作为业界最优秀的开源Proxy，它们的性能及稳定性是毫无疑问的。Java之上要想构建一套稳定可靠的网络通讯，必然绕不开Netty，所以在HTTP代理层面我选择了基于Netty研发的<a href="https://github.com/adamfisk/LittleProxy" target="_blank" rel="noopener">LittleProxy</a>，它的programmers也是<a href="https://www.getlantern.org/" target="_blank" rel="noopener">LANTERN</a>的维护者。关于蓝灯的介绍，可以移步<a href="https://zh.wikipedia.org/wiki/%E8%93%9D%E7%81%AF" target="_blank" rel="noopener">维基百科</a>。</p>
-<p>HTTP代理分为正向和反向两种，作为应用防火墙，肯定要选择反向模式。由于LittleProxy原生支持Proxy Chain，所以WAF提供了透明模式和反向代理两种模式。透明模式就是使用LittleProxy的ChainProxyManager，把真正目标机的映射交给下游的Proxy，反向代理就是WAF直接管理目标机的映射关系。透明代理最为简单，只需要实现ChainedProxyManager就行，但是对于反向代理却需要考虑loadbalance和心跳检测。特别需要注意的是，当节点不健康的时候需要将节点从路由表中移除，当节点恢复健康状态，要能够及时的将节点新增到路由表,在WAF中的具体实现可以参考<a href="https://github.com/chengdedeng/waf/blob/master/src/main/java/info/yangguo/waf/HostResolverImpl.java" target="_blank" rel="noopener">HostResolverImpl</a>。</p>
-<p>由于HTTP1.1支持chunked，对于client传递上来的数据别尝试配置较大的buffer，从而获取FullHttpRequest。因为当有大文件上传时，当你配置的buffer放不整个文件时，就会导致请求失败，在Nett的ChannelPipeline上也需要移除<strong>inflater</strong>和<strong>aggregator</strong>两个handler。为了支持TLS，可以自己实现SslEngineSource，WAF中的实现可以参考<a href="https://github.com/chengdedeng/waf/blob/master/src/main/java/info/yangguo/waf/util/SelfSignedSslEngineSource2.java" target="_blank" rel="noopener">SelfSignedSslEngineSource2</a>，WAF的证书是自签名的，大家可以换成CA签名的即可，浏览器就不会报不可信任了。</p>
-<p>要写一个稳定可靠的HTTP代理服务器，虽然已经有了Netty和LittleProxy，但是还远远不够。一定要仔细研究HTTP协议，开源程序只是协议的实现，协议才是核心中的核心。因为一旦对协议理解的不是很清楚，你就可能给自己埋一个坑，所以在协议的研究上多花点时间是绝对值得，并且可以取得事半功倍的效果。</p>
-<h3 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h3><p>应用程序的数据安全，在WAF中被分为两种类型，一种是进来的数据另外一种是出去的数据，也就是Request和Response，它们分别对应<strong>HttpRequestFilterChain</strong>和<strong>HttpResponseFilterChain</strong>责任链。</p>
-<p>RequestFilter又分为黑名单Filter和白名单Filter，Request拦截又分为黑白名单两种,Response拦截主要给输出的数据进行安全加固.在Request的拦截规则方面,我参考了loveshell/ngx_lua_waf.<br>Request Content-Type又为<code>form-data</code>,<code>x-www-form-urlencoded</code>、<code>raw</code>、<code>binary</code>等多种类型，所以这里又牵涉到是否需要对url decode，同时还要考虑大小写的问题，只有方方面面了解透了，才能做到较高质量的防护。Response作为一种可扩展的增强，例如已经有不可信的数据进入系统，拦截已经晚了，这时我们就可以通过Response进行转义之后输出，或者做一些例如防止Clickjack的攻击。安全方面因为笔者能力和精力有限，只做了极少的一部分，需要大家仔细阅读例如<a href="https://www.owasp.org/images/5/51/OWASP_Top_10_2013-Chinese-V1.2.pdf" target="_blank" rel="noopener">OWASP_Top_10</a>之类的文章来完善防护细节。</p>
-<h3 id="性能"><a href="#性能" class="headerlink" title="性能"></a>性能</h3><p>作为中间代理服务器，性能肯定是大多数人会首先关心的，所以我做了一个基准测试，具体的测试数据见<a href="https://github.com/chengdedeng/waf#性能" target="_blank" rel="noopener">GitHub</a>。从测试数据可以看出，Java的Proxy跟Nginx比，<br>的确有不小的差距，但是我觉得作为一个无状态的中间件，只要性能不是太差同时能够水平扩展，那么这个中间件就是可以被接受的。enjoy yourself!</p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>架构、HTTP、安全</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java观察者模式笔记</title>
     <url>/2014/09/02/Java%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<blockquote>
@@ -355,6 +306,98 @@
       <tags>
         <tag>Java</tag>
         <tag>设计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JVM最大线程数</title>
+    <url>/2013/06/17/JVM%E6%9C%80%E5%A4%A7%E7%BA%BF%E7%A8%8B%E6%95%B0/</url>
+    <content><![CDATA[<blockquote>
+<p>最近研发<strong>推送方案</strong>，需要大量线程来模拟手机客户端。在模拟手机客户端的时候，单个JVM线程数量始终卡在一万多一点，然后就报如下的错误<code>java.lang.OutOfMemoryError: unable to create new native thread</code>。我在网上找了很多资料，都是分析32位的，都是准备模拟几千个或者几万个水平。因为我是使用64位的linux,并且要模拟50万，发现很多都不是很详细，所以写了这篇文章。</p>
+</blockquote>
+<p>对于这个OOM，根本无需多言，网上一堆关于JVM线程数的计算公式，此处我不妨再次引用一次:<code>(MaxProcessMemory - JVMMemory – ReservedOsMemory) / (ThreadStackSize) = Number of threads</code>。MaxProcessMemory：进程最大的寻址空间，关于不同系统的进程默认的最大寻址空间，可以参考下图。</p>
+<p><img src="/images/max-space-per-process.jpg" alt="进程的寻址空间"></p>
+<a id="more"></a>
+<h3 id="JVM层面"><a href="#JVM层面" class="headerlink" title="JVM层面"></a>JVM层面</h3><ul>
+<li>JVMMemory:Heap + PermGen</li>
+<li>ReservedOSMemory:Native heap，JNI</li>
+</ul>
+<p>通过上面的说明大概就能估算出线程数量，公式如下:</p>
+<p><code>(MaxProcessMemory&lt;固定值&gt; – Xms&lt;初始化值，最小值&gt; – XX:PermSize&lt;初始化值，最小值&gt; – 100m&lt;估算值&gt;) / Xss = Number of threads&lt;最大值&gt;</code></p>
+<p><em>-Xms，-Xmx，-Xss</em>，这三个变量就是JVM层面可以调节的。</p>
+<hr>
+<h3 id="系统层面"><a href="#系统层面" class="headerlink" title="系统层面:"></a>系统层面:</h3><h4 id="proc-sys-kernel-pid-max"><a href="#proc-sys-kernel-pid-max" class="headerlink" title="/proc/sys/kernel/pid_max"></a>/proc/sys/kernel/pid_max</h4><p><strong>开始我也觉得奇怪，为什么需要修改pid呢？pid不是进程id嘛，我只是创建线程，并不创建进程，pid的大小跟我好像没有关系。查阅资料才发现，同一个进程的多个线程的pid其实是不同的。</strong></p>
+<h4 id="proc-sys-vm-max-map-count"><a href="#proc-sys-vm-max-map-count" class="headerlink" title="/proc/sys/vm/max_map_count"></a>/proc/sys/vm/max_map_count</h4><p><strong>max_map_count文件包含限制一个进程可以拥有的VMA(虚拟内存区域)的数量。虚拟内存区域是一个连续的虚拟地址空间区域。在进程的生命周期中，每当程序尝试在内存中映射文件，链接到共享内存段，或者分配堆空间的时候，这些区域将被创建。调优这个值将限制进程可拥有VMA的数量。限制一个进程拥有VMA的总数可能导致应用程序出错，因为当进程达到了VMA上线但又只能释放少量的内存给其他的内核进程使用时，操作系统会抛出内存不足的错误。如果你的操作系统在NORMAL区域仅占用少量的内存，那么调低这个值可以帮助释放内存给内核用。具体的可以查看redhat的这篇文章:<a href="http://www.redhat.com/magazine/001nov04/features/vm/" target="_blank" rel="noopener">http://www.redhat.com/magazine/001nov04/features/vm/</a>，中文的话是这篇:<a href="http://www.oschina.net/translate/understanding-virtual-memory?print" target="_blank" rel="noopener">http://www.oschina.net/translate/understanding-virtual-memory?print</a></strong></p>
+<p><strong>注意：</strong>ulimit -a中参数的大小</p>
+<p>当然有人说下面这个两个需要修改，但是我测试下来，好像不用修改也行，反正我没有修改。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/proc/sys/kernel/thread-max</span><br><span class="line">/etc/security/limits.d/90-nproc.conf</span><br></pre></td></tr></table></figure>
+<p>注意如果使用</p>
+<ul>
+<li>sysctl -w vm.max_map_count=200000</li>
+<li>sysctl -p</li>
+</ul>
+<p>来修改，重启后值会改变，如果想永久改变需要采用如下形式。</p>
+<ul>
+<li>vm.max_map_count=200000直接写到/etc/sysctl.conf中</li>
+<li>然后执行sysctl -p</li>
+</ul>
+<p>对于我的应用，此处还要设置一个socket端口的取值范围</p>
+<ul>
+<li>net.ipv4.ip_local_port_range = 1024 65535</li>
+</ul>
+<p>当然对于非socket应用是不需要设置该值的</p>
+<blockquote>
+<p><strong>最后说明</strong>:上面各个参数的设置，可以去查看linux方面的一些资料。至于值到底多大，得根据你机器的性能来确定。</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>线程</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TCP RST引发的一场血案</title>
+    <url>/2018/04/19/TCP%20RST%E5%BC%95%E5%8F%91%E7%9A%84%E4%B8%80%E5%9C%BA%E8%A1%80%E6%A1%88/</url>
+    <content><![CDATA[<p>最近利用业余时间写了一个简单的分布式对象存储<a href="https://github.com/chengdedeng/yfs" target="_blank" rel="noopener">yfs</a>，分布式一致性构建在<a href="https://github.com/atomix/atomix" target="_blank" rel="noopener">atomix</a>之上。atomix实现了<a href="https://raft.github.io/" target="_blank" rel="noopener">raft</a>，并且提供了更高层次的抽象，例如Map、Set、DistributedLock等。为了详细的阐述遇到问题的来龙去脉，有必要简单阐述下yfs的架构，架构图如下：</p>
+<p><img src="/images/yfs_architecture.jpg" alt="yfs_architecture"></p>
+<a id="more"></a>
+<p>从上图可知yfs由Gateway和分组的Store两部分组成，Gateway主要负责路由、鉴权、流控、安全等非存储功能，Store主要负责存储。每个Group至少由三个Store节点组成，这三个Store所存储的数据一模一样，也就是说每个文件至少有三个备份。Gateway也至少有三个节点，Store节点会自动上报metadata给Gateway，Gateway根据Store节点上报的信息来调整自己的路由策略。Gateway是在我的例外一个开源项目<a href="https://github.com/chengdedeng/waf" target="_blank" rel="noopener">waf</a>的基础上改造的而来的，每个Store节点都运行着一个Springboot服务，用来提供上传和下载服务。</p>
+<h1 id="问题一"><a href="#问题一" class="headerlink" title="问题一"></a>问题一</h1><p>当上传的文件大于Store允许上传的文件size时，发现前端一直在等待响应结果，HTTP请求传递过程是<code>Browser-&gt;Gateway-&gt;Store</code>。</p>
+<h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><ol>
+<li>首先尝试在Store上debug上传接口，发现请求压根就没有进入到controller，一搜发现<a href="https://stackoverflow.com/questions/21089106/converting-multipartfile-to-java-io-file-without-copying-to-local-machine" target="_blank" rel="noopener">https://stackoverflow.com/questions/21089106/converting-multipartfile-to-java-io-file-without-copying-to-local-machine</a>里面已经说的很清楚，原来只有等文件上传完成之后，才会进入到controller中。</li>
+<li>那为什么没有上传完成呢，wireshark一抓包发现，当数据上传部分之后，Tomcat TCP端口突然发送了一个<strong>RST</strong>，为什么会出现这种情况呢？一查原来当Tomcat发现上传的文件大于允许上传的文件时，Tomcat就直接RST TCP链接。其实原因很简单，既然上传的文件不符合规范，后面的数据包即使发送过来也会被扔掉，那与其这样，不如不要上传了，还节省上传宝贵的网络带宽。思路是没有错，但是这样HTTP层面就拿不到任何数据，浏览器最多报一个网络异常，例如Chrome会出现<strong>net::ERR_CONNECTION_RESET</strong>。假如我们允许上传的最大文件是10M，如果上传的文件大于10M小于20M，我们希望返回一个http response告诉前端上传的文件不符合规范，20M以上我们就认为是异常流量或者攻击直接RST TCP。这样的方案既方便测试，又对使用者友好，那该如何实施呢？</li>
+<li>Tomcat的配置参数<strong>MaxSwallowSize</strong>从意思上来说已经非常清晰，由于Store节点运行的是Springboot服务，所以需要重新配置<strong>TomcatEmbeddedServletContainerFactory</strong>。设置之后经测试发现20M以下的，前端会迅速收到响应结果，但是20M以上的还是存在问题，因为20M以上的Tomcat还是会RST TCP。</li>
+<li>通过netstat发现Gateway-&gt;Store之间的链路RST之后，Browser-&gt;Gateway之间的链路并没有断开，看来问题的关键就在这里了。发现问题的关键点之后，改起来就简单，我在Gateway上给Gateway-&gt;Store之间的channel加了一个CloseFuture Listener从而去关闭Browser-&gt;Gateway之间的channel，经测试发现问题解决。</li>
+</ol>
+<h1 id="问题二"><a href="#问题二" class="headerlink" title="问题二"></a>问题二</h1><p>正当我准备逛下论坛庆祝一下的时候，运维部署到了测试环境，结果任何请求Nginx都报<code>upstream prematurely closed connection while reading upstream</code>，顿时我就懵逼了。</p>
+<h1 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h1><p>测试环境HTTP请求传递过程是<code>Browser-&gt;Nginx-&gt;Gateway-&gt;Store</code>，跟我开发环境不太一样，多了一层Nginx，通过错误信息可以知道Nginx的upstream也就是Gateway出现了问题。</p>
+<ol>
+<li>connection close，那么必然会出现TCP关闭，在Nginx服务器上经过抓包一看，发现Gateway主动关闭了Nginx-&gt;Gateway之间的TCP通道。到Gateway服务器上抓包，发现Gateway先关闭了Gateway-&gt;Store之间的通道，然后由于CloseFuture Listener接着关闭Nginx-&gt;Gateway之间的通道。Gateway每次都主动发起关闭，为什么会这样呢？我本地从来没有出现过这样的现象，Gateway和Store之间应该是长连接才对啊。</li>
+<li>仔细分析整个链路，先是Browser-&gt;Nginx，发现走的HTTP1.1，没有任何问题，但是Nginx-&gt;Gateway却走的HTTP1.0，看来问题的关键就出在这个地方了。原来当Store返回响应结果之后，由于HTTP1.0是短链接，所以Gateway主动发起关闭。由于我前面给Gateway-&gt;Store的channel加了关闭的监听，所以Nginx-&gt;Gateway之间的channel也会立即关闭，所以导致Nginx会报上面的错误。</li>
+<li><p>接着检查了Nginx的配置，果然发现Nginx到Gateway之前HTTP1.1的配置不正确，加入如下配置之后问题解决。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">proxy_http_version 1.1;</span><br><span class="line">proxy_set_header Connection &quot;&quot;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>所以<code>CloseFuture Listener</code>方案只能工作在HTTP1.1之上，也就是说Gateway-&gt;Store之间channel的关闭，只可能是由于idle超时或者异常关闭，否者就不应选择上面的方案。</p>
+</li>
+</ol>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>网络问题的定位，通常都不是非常容易，但是如果通过wireshark等抓包工具来配合研究协议和报文，一般会事半功倍。TCP和HTTP是值得投入时间来学习和研究的协议，因为它们就是迷雾中的灯塔，虽然你不知道岸在何处，但是你却知道没有偏离航向，到达彼岸只是时间问题。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Http</tag>
+        <tag>Proxy</tag>
+        <tag>ShadowSocks</tag>
+        <tag>Netty</tag>
+        <tag>LittleProxy</tag>
+        <tag>TCP</tag>
+        <tag>Http1.0</tag>
+        <tag>Http1.1</tag>
+        <tag>YFS</tag>
+        <tag>Atomix</tag>
       </tags>
   </entry>
   <entry>
@@ -587,36 +630,6 @@
       </tags>
   </entry>
   <entry>
-    <title>TCP参数调整</title>
-    <url>/2013/10/30/TCP%E5%8F%82%E6%95%B0%E8%B0%83%E6%95%B4/</url>
-    <content><![CDATA[<blockquote>
-<p>最近一直在进行手机推送服务器的研发，代码采用Java实现。netty作为一个优秀基于NIO的客户、服务器端编程框架，当然是首选的。server的研发必然是充满血与泪的，除了要熟悉Java的NIO，还得对tcp的封包、拆包，协议的设计、对象的序列化；压缩方式的选择等等之外，对Linux内核的调优是一件绝对比前面任何一个都要复杂。由于采用Java开发，由于Java的内存墙等诸多因素的影响，服务器支持的长连接我规划在一个server大概50W左右。可能对于一些C、C++服务器编程的码农来说这个链接数还真算不了什么，但是对于Java来说还是相当不错了。关于Java的内存墙方面的东西此处有一篇好文章推荐给大家，链接如下：<a href="http://ifeve.com/jvm-performance-optimization-java-scalability-5" target="_blank" rel="noopener">http://ifeve.com/jvm-performance-optimization-java-scalability-5</a>。既然一台服务器要支持50W的长连接 ，如果不对Linux内核进行调优，server的支撑的链接数和半链接的回收都会存在较大的问题。</p>
-</blockquote>
-<p>前面YY了很多了，OK那我们下面进入正题。调优，顾名思义那就是碰见问题才调优，下面就是我碰见的<strong>问题</strong>和<strong>解决方案</strong>：</p>
-<p>1.要支持50W的长连接，TCP栈对内存的使用需要调大。tcp_rmem和tcp_wmem我们都采用缺省值8KB，那么一个tcp链接，需要占用的内存大概为16KB。<br>一个简单的计算如下：接近8.0GB TCP内存能容纳的连接数，约为  8000000KB/16KB  = 50万。所以下面我分别配置成3G，8G，12G，一定注意单位是page，大小一般为4KB。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;net.ipv4.tcp_mem = 786432 2097152 3145728</span><br></pre></td></tr></table></figure>
-<a id="more"></a>
-<p>2.由于手机网络不是很稳定，会经常出现网络闪断的情况，server端如何快速回收链接。tcp是可靠的传输协议，链接的关闭也需要4次握手，可能很多人对链接建立的3次握手非常熟悉 ，但是对正常关闭的4次握手却不熟悉。下面我附带一张图:<br><img src="/images/tcp-close.jpg" alt="tcp-close"></p>
-<p>此处我们思考的时候，把server和client的对调。当server端发现client端很久没有心跳，那我就得将该链接回收。由于Client端已经不可达，那server端链接会处在FIN-WAIT-1。这个时候该tcp链接已经是一个孤儿链接，也就是说它已经不属于任何一个进程。在不可达的情况下，它会默认发送9次，重试8次。由于该状态是非常占用资源的最大可占用64KB。所以我们得尽快让这个链接从FIN-WAIT-1中解放出来，所以设置如下：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;net.ipv4.tcp_orphan_retries=1</span><br></pre></td></tr></table></figure>
-<p>3.由于手机网络不是很稳定，可能会出现数据包的乱跳；最主要的是NAT环境如LVS，很多公司都用LVS做负载均衡，通常是前面一台LVS，后面多台后端服务器，以NAT方式构建，当请求到达LVS后，它修改地址数据后便转发给后端服务器，但不会修改时间戳数据，对于后端服务器来说，请求的源地址就是LVS的地址，加上端口会复用，所以从后端服务器的角度看，原本不同客户端的请求经过LVS的转发，就可能会被认为是同一个连接，加之不同客户端的时间可能不一致，所以就会出现时间戳错乱的现象，于是后面的数据包就被丢弃了，具体的表现通常是是客户端明明发送的SYN，但服务端就是不响应ACK。就会出现一部分手机就是链接不上。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#是否启用时间戳选项，该选项会影响net.ipv4.tcp_tw_reuse，默认开启。一般我们为了安全我们不关闭该选项。</span><br><span class="line">net.ipv4.tcp_timestamps = 1</span><br><span class="line"></span><br><span class="line">#是否快速回收处于TIME_WAIT状态下得链接，默认关闭，最好别开启，除非有很懂的人建议。</span><br><span class="line">net.ipv4.tcp_tw_recycle = 0</span><br><span class="line"></span><br><span class="line">4.前面我们说了FIN-WAIT-1，那如何快速释放FIN-WAIT-2呢，虽然该状态没有FIN-WAIT-1那么耗资源。</span><br><span class="line">net.ipv4.tcp_fin_timeout=30</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">其余的都不是很复杂了，最复杂的就是上面几个。我贴一份全的给大家参考：</span><br><span class="line"></span><br><span class="line"># 开启TCP syncookies，防止DDOS攻击</span><br><span class="line">net.ipv4.tcp_syncookies = 1</span><br><span class="line">#syn报文（每个报文都需要排队）队列长度，超过该长度，请求就被丢弃，内存大于128M的默认为1024</span><br><span class="line">net.ipv4.tcp_max_syn_backlog = 65536</span><br><span class="line">#每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目</span><br><span class="line">net.core.netdev_max_backlog = 32768</span><br><span class="line">#定义了系统中每一个端口最大的监听队列的长度,这是个全局的参数</span><br><span class="line">net.core.somaxconn = 32768  </span><br><span class="line">#是否启用时间戳选项，该选项会影响net.ipv4.tcp_tw_reuse，默认开启</span><br><span class="line">net.ipv4.tcp_timestamps = 1</span><br><span class="line">#是否快速回收处于TIME_WAIT状态下的socket，由于手机网络时间戳会出现乱跳，所以必须关闭，这个默认关闭。</span><br><span class="line">net.ipv4.tcp_tw_recycle = 0</span><br><span class="line">#被动接受tcp链接时，第二次握手发送SYNACKs的次数，默认为5，对应的时间大概为180秒，官方说法。</span><br><span class="line">net.ipv4.tcp_synack_retries = 3</span><br><span class="line">#跟上面刚好相反，是主动发起tcp链接，发送SYNs的次数，默认为5，对应的时间大概为180秒，官方时间。</span><br><span class="line">net.ipv4.tcp_syn_retries = 3</span><br><span class="line">#我们关闭了TIME_WAIT快速回收，我们通过tcp_tw_reuse和tcp_max_tw_buckets来控制TIME_WAIT避免吃光机器，该值默认180000.</span><br><span class="line">#如果服务器是作为客户端存在的，因为客户端连接受本地端口数限制，所以最好通过tcp_max_tw_buckets控制一下；如果服务器是作为服务端存在的，那么没有端口数的限制，只要情况允许，最好把tcp_max_tw_buckets设置大一些。纯粹就是防御dos攻击的，最好别认为降低该值。</span><br><span class="line">net.ipv4.tcp_max_tw_buckets=180000</span><br><span class="line">#开启处于TIME_WAIT态的socket重用，默认关闭。这个重用的是TIME_WAIT的端口，不是内存等，这个对客户端有意义。</span><br><span class="line">net.ipv4.tcp_tw_reuse=1</span><br><span class="line">#确定TCP栈如何使用内存，当大于上限是报文将丢弃。一般按照缺省值分配，上面的例子就是读写均为8KB，共16KB</span><br><span class="line">#1.6GB TCP内存能容纳的连接数，约为  1600MB/16KB = 100K = 10万</span><br><span class="line">#4.0GB TCP内存能容纳的连接数，约为  4000MB/16KB = 250K = 25万</span><br><span class="line">net.ipv4.tcp_mem = 786432 2097152 3145728</span><br><span class="line">#表示如果套接字由本端要求关闭，这个参数决定了它保持在FIN-WAIT-2状态的时间，2.2中默认180秒，之后默认为60秒  </span><br><span class="line">net.ipv4.tcp_fin_timeout=30</span><br><span class="line">#丢弃已经建立的tcp链接之前，需要多少次重试，默认15次，根据RTO的值，大概13-30分钟</span><br><span class="line">net.ipv4.tcp_retries2=5</span><br><span class="line">#放弃回应一个tcp连接请求之前，需要多少次重试，默认为3</span><br><span class="line">net.ipv4.tcp_retries1=3</span><br><span class="line">#收包速度大于内核处理包的速度时，输入队列最大报文数</span><br><span class="line">net.core.netdev_max_backlog =  32768</span><br><span class="line">#listen系统调用，最大的accept队列长度，超过该值时，后续请求被丢弃</span><br><span class="line">net.core.somaxconn=32768</span><br><span class="line">#针对孤立的socket（已经从进程上下文中删除，可是还有些清理工作没有完成），我们重试的最大次数。也就是server端close之后发[F.]的次数-1（0会重试一次），重负载服务器建议调小，默认为7。</span><br><span class="line">net.ipv4.tcp_orphan_retries=1</span><br></pre></td></tr></table></figure>
-<hr>
-<p><strong>PS：由于个人理解有限，如果不正确的请大家指正，以免误导他人，如果不明白原理，内核参数最好别动。</strong></p>
-<hr>
-<p>参考文章</p>
-<p><a href="http://www.linuxinsight.com/" target="_blank" rel="noopener">http://www.linuxinsight.com/</a></p>
-<p><a href="http://huoding.com/2012/01/19/142" target="_blank" rel="noopener">http://huoding.com/2012/01/19/142</a></p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>TCP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Tigase Watchdog分析及优化</title>
     <url>/2014/09/10/Tigase_Watchdog%E5%88%86%E6%9E%90%E5%8F%8A%E4%BC%98%E5%8C%96/</url>
     <content><![CDATA[<blockquote>
@@ -644,6 +657,36 @@
       <tags>
         <tag>Java</tag>
         <tag>IM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TCP参数调整</title>
+    <url>/2013/10/30/TCP%E5%8F%82%E6%95%B0%E8%B0%83%E6%95%B4/</url>
+    <content><![CDATA[<blockquote>
+<p>最近一直在进行手机推送服务器的研发，代码采用Java实现。netty作为一个优秀基于NIO的客户、服务器端编程框架，当然是首选的。server的研发必然是充满血与泪的，除了要熟悉Java的NIO，还得对tcp的封包、拆包，协议的设计、对象的序列化；压缩方式的选择等等之外，对Linux内核的调优是一件绝对比前面任何一个都要复杂。由于采用Java开发，由于Java的内存墙等诸多因素的影响，服务器支持的长连接我规划在一个server大概50W左右。可能对于一些C、C++服务器编程的码农来说这个链接数还真算不了什么，但是对于Java来说还是相当不错了。关于Java的内存墙方面的东西此处有一篇好文章推荐给大家，链接如下：<a href="http://ifeve.com/jvm-performance-optimization-java-scalability-5" target="_blank" rel="noopener">http://ifeve.com/jvm-performance-optimization-java-scalability-5</a>。既然一台服务器要支持50W的长连接 ，如果不对Linux内核进行调优，server的支撑的链接数和半链接的回收都会存在较大的问题。</p>
+</blockquote>
+<p>前面YY了很多了，OK那我们下面进入正题。调优，顾名思义那就是碰见问题才调优，下面就是我碰见的<strong>问题</strong>和<strong>解决方案</strong>：</p>
+<p>1.要支持50W的长连接，TCP栈对内存的使用需要调大。tcp_rmem和tcp_wmem我们都采用缺省值8KB，那么一个tcp链接，需要占用的内存大概为16KB。<br>一个简单的计算如下：接近8.0GB TCP内存能容纳的连接数，约为  8000000KB/16KB  = 50万。所以下面我分别配置成3G，8G，12G，一定注意单位是page，大小一般为4KB。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;net.ipv4.tcp_mem = 786432 2097152 3145728</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>2.由于手机网络不是很稳定，会经常出现网络闪断的情况，server端如何快速回收链接。tcp是可靠的传输协议，链接的关闭也需要4次握手，可能很多人对链接建立的3次握手非常熟悉 ，但是对正常关闭的4次握手却不熟悉。下面我附带一张图:<br><img src="/images/tcp-close.jpg" alt="tcp-close"></p>
+<p>此处我们思考的时候，把server和client的对调。当server端发现client端很久没有心跳，那我就得将该链接回收。由于Client端已经不可达，那server端链接会处在FIN-WAIT-1。这个时候该tcp链接已经是一个孤儿链接，也就是说它已经不属于任何一个进程。在不可达的情况下，它会默认发送9次，重试8次。由于该状态是非常占用资源的最大可占用64KB。所以我们得尽快让这个链接从FIN-WAIT-1中解放出来，所以设置如下：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;net.ipv4.tcp_orphan_retries=1</span><br></pre></td></tr></table></figure>
+<p>3.由于手机网络不是很稳定，可能会出现数据包的乱跳；最主要的是NAT环境如LVS，很多公司都用LVS做负载均衡，通常是前面一台LVS，后面多台后端服务器，以NAT方式构建，当请求到达LVS后，它修改地址数据后便转发给后端服务器，但不会修改时间戳数据，对于后端服务器来说，请求的源地址就是LVS的地址，加上端口会复用，所以从后端服务器的角度看，原本不同客户端的请求经过LVS的转发，就可能会被认为是同一个连接，加之不同客户端的时间可能不一致，所以就会出现时间戳错乱的现象，于是后面的数据包就被丢弃了，具体的表现通常是是客户端明明发送的SYN，但服务端就是不响应ACK。就会出现一部分手机就是链接不上。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#是否启用时间戳选项，该选项会影响net.ipv4.tcp_tw_reuse，默认开启。一般我们为了安全我们不关闭该选项。</span><br><span class="line">net.ipv4.tcp_timestamps = 1</span><br><span class="line"></span><br><span class="line">#是否快速回收处于TIME_WAIT状态下得链接，默认关闭，最好别开启，除非有很懂的人建议。</span><br><span class="line">net.ipv4.tcp_tw_recycle = 0</span><br><span class="line"></span><br><span class="line">4.前面我们说了FIN-WAIT-1，那如何快速释放FIN-WAIT-2呢，虽然该状态没有FIN-WAIT-1那么耗资源。</span><br><span class="line">net.ipv4.tcp_fin_timeout=30</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">其余的都不是很复杂了，最复杂的就是上面几个。我贴一份全的给大家参考：</span><br><span class="line"></span><br><span class="line"># 开启TCP syncookies，防止DDOS攻击</span><br><span class="line">net.ipv4.tcp_syncookies = 1</span><br><span class="line">#syn报文（每个报文都需要排队）队列长度，超过该长度，请求就被丢弃，内存大于128M的默认为1024</span><br><span class="line">net.ipv4.tcp_max_syn_backlog = 65536</span><br><span class="line">#每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目</span><br><span class="line">net.core.netdev_max_backlog = 32768</span><br><span class="line">#定义了系统中每一个端口最大的监听队列的长度,这是个全局的参数</span><br><span class="line">net.core.somaxconn = 32768  </span><br><span class="line">#是否启用时间戳选项，该选项会影响net.ipv4.tcp_tw_reuse，默认开启</span><br><span class="line">net.ipv4.tcp_timestamps = 1</span><br><span class="line">#是否快速回收处于TIME_WAIT状态下的socket，由于手机网络时间戳会出现乱跳，所以必须关闭，这个默认关闭。</span><br><span class="line">net.ipv4.tcp_tw_recycle = 0</span><br><span class="line">#被动接受tcp链接时，第二次握手发送SYNACKs的次数，默认为5，对应的时间大概为180秒，官方说法。</span><br><span class="line">net.ipv4.tcp_synack_retries = 3</span><br><span class="line">#跟上面刚好相反，是主动发起tcp链接，发送SYNs的次数，默认为5，对应的时间大概为180秒，官方时间。</span><br><span class="line">net.ipv4.tcp_syn_retries = 3</span><br><span class="line">#我们关闭了TIME_WAIT快速回收，我们通过tcp_tw_reuse和tcp_max_tw_buckets来控制TIME_WAIT避免吃光机器，该值默认180000.</span><br><span class="line">#如果服务器是作为客户端存在的，因为客户端连接受本地端口数限制，所以最好通过tcp_max_tw_buckets控制一下；如果服务器是作为服务端存在的，那么没有端口数的限制，只要情况允许，最好把tcp_max_tw_buckets设置大一些。纯粹就是防御dos攻击的，最好别认为降低该值。</span><br><span class="line">net.ipv4.tcp_max_tw_buckets=180000</span><br><span class="line">#开启处于TIME_WAIT态的socket重用，默认关闭。这个重用的是TIME_WAIT的端口，不是内存等，这个对客户端有意义。</span><br><span class="line">net.ipv4.tcp_tw_reuse=1</span><br><span class="line">#确定TCP栈如何使用内存，当大于上限是报文将丢弃。一般按照缺省值分配，上面的例子就是读写均为8KB，共16KB</span><br><span class="line">#1.6GB TCP内存能容纳的连接数，约为  1600MB/16KB = 100K = 10万</span><br><span class="line">#4.0GB TCP内存能容纳的连接数，约为  4000MB/16KB = 250K = 25万</span><br><span class="line">net.ipv4.tcp_mem = 786432 2097152 3145728</span><br><span class="line">#表示如果套接字由本端要求关闭，这个参数决定了它保持在FIN-WAIT-2状态的时间，2.2中默认180秒，之后默认为60秒  </span><br><span class="line">net.ipv4.tcp_fin_timeout=30</span><br><span class="line">#丢弃已经建立的tcp链接之前，需要多少次重试，默认15次，根据RTO的值，大概13-30分钟</span><br><span class="line">net.ipv4.tcp_retries2=5</span><br><span class="line">#放弃回应一个tcp连接请求之前，需要多少次重试，默认为3</span><br><span class="line">net.ipv4.tcp_retries1=3</span><br><span class="line">#收包速度大于内核处理包的速度时，输入队列最大报文数</span><br><span class="line">net.core.netdev_max_backlog =  32768</span><br><span class="line">#listen系统调用，最大的accept队列长度，超过该值时，后续请求被丢弃</span><br><span class="line">net.core.somaxconn=32768</span><br><span class="line">#针对孤立的socket（已经从进程上下文中删除，可是还有些清理工作没有完成），我们重试的最大次数。也就是server端close之后发[F.]的次数-1（0会重试一次），重负载服务器建议调小，默认为7。</span><br><span class="line">net.ipv4.tcp_orphan_retries=1</span><br></pre></td></tr></table></figure>
+<hr>
+<p><strong>PS：由于个人理解有限，如果不正确的请大家指正，以免误导他人，如果不明白原理，内核参数最好别动。</strong></p>
+<hr>
+<p>参考文章</p>
+<p><a href="http://www.linuxinsight.com/" target="_blank" rel="noopener">http://www.linuxinsight.com/</a></p>
+<p><a href="http://huoding.com/2012/01/19/142" target="_blank" rel="noopener">http://huoding.com/2012/01/19/142</a></p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>TCP</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -701,46 +744,48 @@
       </tags>
   </entry>
   <entry>
-    <title>TCP RST引发的一场血案</title>
-    <url>/2018/04/19/TCP%20RST%E5%BC%95%E5%8F%91%E7%9A%84%E4%B8%80%E5%9C%BA%E8%A1%80%E6%A1%88/</url>
-    <content><![CDATA[<p>最近利用业余时间写了一个简单的分布式对象存储<a href="https://github.com/chengdedeng/yfs" target="_blank" rel="noopener">yfs</a>，分布式一致性构建在<a href="https://github.com/atomix/atomix" target="_blank" rel="noopener">atomix</a>之上。atomix实现了<a href="https://raft.github.io/" target="_blank" rel="noopener">raft</a>，并且提供了更高层次的抽象，例如Map、Set、DistributedLock等。为了详细的阐述遇到问题的来龙去脉，有必要简单阐述下yfs的架构，架构图如下：</p>
-<p><img src="/images/yfs_architecture.jpg" alt="yfs_architecture"></p>
+    <title>Hadoop节点动态管理</title>
+    <url>/2012/11/30/hadoop%E8%8A%82%E7%82%B9%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<blockquote>
+<p>hadoop在线运行已经很长一段时间了，下面就是我在上下线datanode和tasktracker步骤。因为datanode节点不一定是tasktracker，即使datanode和tasktracker在同一节点，你也可能只上下线其中一个，所以我在配置dfs和mr的include和exclude的时候，分开配置。</p>
+</blockquote>
+<h3 id="namenode中hdfs-site-xml配置"><a href="#namenode中hdfs-site-xml配置" class="headerlink" title="namenode中hdfs-site.xml配置"></a>namenode中hdfs-site.xml配置</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.hosts<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/hdfs_include<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.hosts.exclude<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/hdfs_exclude<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>dfs.hosts所对应的文件中列出了所有可以连接到namenode的datanode，如果为空则所有的都可以连入。dfs.hosts.exclude所对应的文件中列出了禁止连接namenode的datanode节点。如果一个节点在这两个文件中都存在，则不允许连入。</p>
 <a id="more"></a>
-<p>从上图可知yfs由Gateway和分组的Store两部分组成，Gateway主要负责路由、鉴权、流控、安全等非存储功能，Store主要负责存储。每个Group至少由三个Store节点组成，这三个Store所存储的数据一模一样，也就是说每个文件至少有三个备份。Gateway也至少有三个节点，Store节点会自动上报metadata给Gateway，Gateway根据Store节点上报的信息来调整自己的路由策略。Gateway是在我的例外一个开源项目<a href="https://github.com/chengdedeng/waf" target="_blank" rel="noopener">waf</a>的基础上改造的而来的，每个Store节点都运行着一个Springboot服务，用来提供上传和下载服务。</p>
-<h1 id="问题一"><a href="#问题一" class="headerlink" title="问题一"></a>问题一</h1><p>当上传的文件大于Store允许上传的文件size时，发现前端一直在等待响应结果，HTTP请求传递过程是<code>Browser-&gt;Gateway-&gt;Store</code>。</p>
-<h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><ol>
-<li>首先尝试在Store上debug上传接口，发现请求压根就没有进入到controller，一搜发现<a href="https://stackoverflow.com/questions/21089106/converting-multipartfile-to-java-io-file-without-copying-to-local-machine" target="_blank" rel="noopener">https://stackoverflow.com/questions/21089106/converting-multipartfile-to-java-io-file-without-copying-to-local-machine</a>里面已经说的很清楚，原来只有等文件上传完成之后，才会进入到controller中。</li>
-<li>那为什么没有上传完成呢，wireshark一抓包发现，当数据上传部分之后，Tomcat TCP端口突然发送了一个<strong>RST</strong>，为什么会出现这种情况呢？一查原来当Tomcat发现上传的文件大于允许上传的文件时，Tomcat就直接RST TCP链接。其实原因很简单，既然上传的文件不符合规范，后面的数据包即使发送过来也会被扔掉，那与其这样，不如不要上传了，还节省上传宝贵的网络带宽。思路是没有错，但是这样HTTP层面就拿不到任何数据，浏览器最多报一个网络异常，例如Chrome会出现<strong>net::ERR_CONNECTION_RESET</strong>。假如我们允许上传的最大文件是10M，如果上传的文件大于10M小于20M，我们希望返回一个http response告诉前端上传的文件不符合规范，20M以上我们就认为是异常流量或者攻击直接RST TCP。这样的方案既方便测试，又对使用者友好，那该如何实施呢？</li>
-<li>Tomcat的配置参数<strong>MaxSwallowSize</strong>从意思上来说已经非常清晰，由于Store节点运行的是Springboot服务，所以需要重新配置<strong>TomcatEmbeddedServletContainerFactory</strong>。设置之后经测试发现20M以下的，前端会迅速收到响应结果，但是20M以上的还是存在问题，因为20M以上的Tomcat还是会RST TCP。</li>
-<li>通过netstat发现Gateway-&gt;Store之间的链路RST之后，Browser-&gt;Gateway之间的链路并没有断开，看来问题的关键就在这里了。发现问题的关键点之后，改起来就简单，我在Gateway上给Gateway-&gt;Store之间的channel加了一个CloseFuture Listener从而去关闭Browser-&gt;Gateway之间的channel，经测试发现问题解决。</li>
+<hr>
+<h3 id="下线datanode步骤"><a href="#下线datanode步骤" class="headerlink" title="下线datanode步骤"></a>下线datanode步骤</h3><ol>
+<li>将要下线的机器加入到dfs.hosts.exclude指定的文件中（使用主机名，ip基本不靠谱），然后刷新配置hadoop dfsadmin -refreshNodes。</li>
+<li>通过hadoop dfsadmin -report或者web界面，可以看到，该datanode状态转为Decommission In Progress。</li>
+<li>当decommission进程完成数据移动，datanode状态会转变为Decommissioned，然后datanode会自动停止datnode进程。然后你可以看见dead nodes下多了一个你想要下线的节点。</li>
+<li>然后删除include和exclude中该节点的hosts，重新刷新hadoop dfsadmin -refreshNodes。</li>
+<li>最后别忘了删除slaves中该节点的配置，防止下次整个集群重启时，该节点不能通过namenode自动启动。</li>
 </ol>
-<h1 id="问题二"><a href="#问题二" class="headerlink" title="问题二"></a>问题二</h1><p>正当我准备逛下论坛庆祝一下的时候，运维部署到了测试环境，结果任何请求Nginx都报<code>upstream prematurely closed connection while reading upstream</code>，顿时我就懵逼了。</p>
-<h1 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h1><p>测试环境HTTP请求传递过程是<code>Browser-&gt;Nginx-&gt;Gateway-&gt;Store</code>，跟我开发环境不太一样，多了一层Nginx，通过错误信息可以知道Nginx的upstream也就是Gateway出现了问题。</p>
-<ol>
-<li>connection close，那么必然会出现TCP关闭，在Nginx服务器上经过抓包一看，发现Gateway主动关闭了Nginx-&gt;Gateway之间的TCP通道。到Gateway服务器上抓包，发现Gateway先关闭了Gateway-&gt;Store之间的通道，然后由于CloseFuture Listener接着关闭Nginx-&gt;Gateway之间的通道。Gateway每次都主动发起关闭，为什么会这样呢？我本地从来没有出现过这样的现象，Gateway和Store之间应该是长连接才对啊。</li>
-<li>仔细分析整个链路，先是Browser-&gt;Nginx，发现走的HTTP1.1，没有任何问题，但是Nginx-&gt;Gateway却走的HTTP1.0，看来问题的关键就出在这个地方了。原来当Store返回响应结果之后，由于HTTP1.0是短链接，所以Gateway主动发起关闭。由于我前面给Gateway-&gt;Store的channel加了关闭的监听，所以Nginx-&gt;Gateway之间的channel也会立即关闭，所以导致Nginx会报上面的错误。</li>
-<li><p>接着检查了Nginx的配置，果然发现Nginx到Gateway之前HTTP1.1的配置不正确，加入如下配置之后问题解决。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">proxy_http_version 1.1;</span><br><span class="line">proxy_set_header Connection &quot;&quot;;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>所以<code>CloseFuture Listener</code>方案只能工作在HTTP1.1之上，也就是说Gateway-&gt;Store之间channel的关闭，只可能是由于idle超时或者异常关闭，否者就不应选择上面的方案。</p>
-</li>
+<p><strong>注意</strong>:当你下线一个datanode节点，有可能该节点长时间处于Decommission In Progress状态，一直不能转变为Decommissioned。请你用hadoop fsck /检查下是否有些块少于指定的块数，特别注意那些mapreduce的临时文件。将这些删除，并且从垃圾箱移除，该节点就可以顺利下线。这是我解决该问题的办法。</p>
+<hr>
+<h3 id="上线一个节点的步骤"><a href="#上线一个节点的步骤" class="headerlink" title="上线一个节点的步骤"></a>上线一个节点的步骤</h3><ol>
+<li>保证将要上线的机器不存在于dfs.hosts.exclude所对应的的文件中，并且存在于dfs.hosts所对应的文件中。</li>
+<li>在namenode上刷新配置：hadoop dfsadmin -refreshNodes。</li>
+<li>在要上线的节点重启datanode,hadoop-daemon.sh start datanode。</li>
+<li>通过hadoop dfsadmin -report或者web界面，可以看到，节点已经上线。</li>
+<li>还是老话最后别忘了修改slaves。</li>
 </ol>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>网络问题的定位，通常都不是非常容易，但是如果通过wireshark等抓包工具来配合研究协议和报文，一般会事半功倍。TCP和HTTP是值得投入时间来学习和研究的协议，因为它们就是迷雾中的灯塔，虽然你不知道岸在何处，但是你却知道没有偏离航向，到达彼岸只是时间问题。</p>
+<hr>
+<h3 id="jobtracker中mapred-site-xml的配置"><a href="#jobtracker中mapred-site-xml的配置" class="headerlink" title="jobtracker中mapred-site.xml的配置"></a>jobtracker中mapred-site.xml的配置</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapred.hosts<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/mr_include<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapred.hosts.exclude<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/mr_exclude<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>tasktracker上下线基本同上。mapred.hosts中的文件是允许连接到jobtracker的机器，mapred.hosts.exclude则刚好相反，如果一台机器在两个配置中都存在，则不允许连接到jobtracker。</p>
+<hr>
+<h3 id="下线tasktracker步骤"><a href="#下线tasktracker步骤" class="headerlink" title="下线tasktracker步骤"></a>下线tasktracker步骤</h3><ol>
+<li>将要下线的机器加入到mapred.hosts.exclude指定的文件中（使用主机名，ip基本不靠谱）。</li>
+<li>刷新配置：hadoop mradmin -refreshNodes，你可以看见web界面Excluded Nodes中多出了一个节点，该节点就是你要下线的节点，最后到你要下线的节点上运行hadoop-daemon.sh stop tasktracker。</li>
+<li>最后将mr_exclude和mr_include中该节点的hosts删除，并在jobtracker上再次刷新该配置，hadoop mradmin -refreshNodes。</li>
+<li>再次提醒别忘了修改slaves。</li>
+</ol>
+<p>tasktracker上线基本上和datnode上线原理和步骤都差不多，此处就不说了。<br>tasktracker上下线问题不是很大，最多就是任务失败，我想这个对于很多人来说都是可以忍受的，但是datanode上下线需要注意，因为datanode上下线如果不得当，可能导致数据丢失，特别是同事操作2个以上的节点。如果集群不是非常大，最好的每次下线一至两台，通过检查发现数据没有问题的时候再下线别的。这样虽然麻烦，但是是最安全的。</p>
 ]]></content>
       <categories>
         <category>技术</category>
       </categories>
       <tags>
-        <tag>Http</tag>
-        <tag>Proxy</tag>
-        <tag>ShadowSocks</tag>
-        <tag>Netty</tag>
-        <tag>LittleProxy</tag>
-        <tag>TCP</tag>
-        <tag>Http1.0</tag>
-        <tag>Http1.1</tag>
-        <tag>YFS</tag>
-        <tag>Atomix</tag>
+        <tag>BigData</tag>
       </tags>
   </entry>
   <entry>
@@ -983,6 +1028,51 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       <tags>
         <tag>Java</tag>
         <tag>状态机</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TOP100案例分享</title>
+    <url>/2016/12/15/%E4%BC%A0%E7%BB%9F%E4%BC%81%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E8%BD%AC%E5%9E%8B%E7%9A%84%E6%9E%B6%E6%9E%84%E4%B9%8B%E9%81%93/</url>
+    <content><![CDATA[<blockquote>
+<p>受MSUP TOP100组委会的邀请，12月12号在国际会议中心分享了《传统互联网转型的架构之道》，会后也和一些业界的朋友做了更深层的探讨，收货很多。下面是我分享内容的PPT，供感兴趣的朋友参考。由于图片经过压缩之后不是很清晰，如果阅读清晰版，可以下载<a href="/images/top100.pdf">PDF</a>查看。</p>
+</blockquote>
+<hr>
+<p><img src="/images/top100/幻灯片01.jpg" alt="幻灯片01.jpg"></p>
+<a id="more"></a>
+<p><img src="/images/top100/幻灯片02.jpg" alt="幻灯片02.jpg"></p>
+<p><img src="/images/top100/幻灯片03.jpg" alt="幻灯片03.jpg"></p>
+<p><img src="/images/top100/幻灯片04.jpg" alt="幻灯片04.jpg"></p>
+<p><img src="/images/top100/幻灯片05.jpg" alt="幻灯片05.jpg"></p>
+<p><img src="/images/top100/幻灯片06.jpg" alt="幻灯片06.jpg"></p>
+<p><img src="/images/top100/幻灯片07.jpg" alt="幻灯片07.jpg"></p>
+<p><img src="/images/top100/幻灯片08.jpg" alt="幻灯片08.jpg"></p>
+<p><img src="/images/top100/幻灯片09.jpg" alt="幻灯片09.jpg"></p>
+<p><img src="/images/top100/幻灯片10.jpg" alt="幻灯片10.jpg"></p>
+<p><img src="/images/top100/幻灯片11.jpg" alt="幻灯片11.jpg"></p>
+<p><img src="/images/top100/幻灯片12.jpg" alt="幻灯片12.jpg"></p>
+<p><img src="/images/top100/幻灯片13.jpg" alt="幻灯片13.jpg"></p>
+<p><img src="/images/top100/幻灯片14.jpg" alt="幻灯片14.jpg"></p>
+<p><img src="/images/top100/幻灯片15.jpg" alt="幻灯片15.jpg"></p>
+<p><img src="/images/top100/幻灯片16.jpg" alt="幻灯片16.jpg"></p>
+<p><img src="/images/top100/幻灯片17.jpg" alt="幻灯片17.jpg"></p>
+<p><img src="/images/top100/幻灯片18.jpg" alt="幻灯片18.jpg"></p>
+<p><img src="/images/top100/幻灯片19.jpg" alt="幻灯片19.jpg"></p>
+<p><img src="/images/top100/幻灯片20.jpg" alt="幻灯片20.jpg"></p>
+<p><img src="/images/top100/幻灯片21.jpg" alt="幻灯片21.jpg"></p>
+<p><img src="/images/top100/幻灯片22.jpg" alt="幻灯片22.jpg"></p>
+<p><img src="/images/top100/幻灯片23.jpg" alt="幻灯片23.jpg"></p>
+<p><img src="/images/top100/幻灯片24.jpg" alt="幻灯片24.jpg"></p>
+<p><img src="/images/top100/幻灯片25.jpg" alt="幻灯片25.jpg"></p>
+<p><img src="/images/top100/幻灯片26.jpg" alt="幻灯片26.jpg"></p>
+<p><img src="/images/top100/幻灯片27.jpg" alt="幻灯片27.jpg"></p>
+<p><img src="/images/top100/幻灯片28.jpg" alt="幻灯片28.jpg"></p>
+<p><img src="/images/top100/幻灯片29.jpg" alt="幻灯片29.jpg"></p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>管理、架构</tag>
       </tags>
   </entry>
   <entry>
@@ -1708,164 +1798,64 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </tags>
   </entry>
   <entry>
-    <title>Hadoop节点动态管理</title>
-    <url>/2012/11/30/hadoop%E8%8A%82%E7%82%B9%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<blockquote>
-<p>hadoop在线运行已经很长一段时间了，下面就是我在上下线datanode和tasktracker步骤。因为datanode节点不一定是tasktracker，即使datanode和tasktracker在同一节点，你也可能只上下线其中一个，所以我在配置dfs和mr的include和exclude的时候，分开配置。</p>
-</blockquote>
-<h3 id="namenode中hdfs-site-xml配置"><a href="#namenode中hdfs-site-xml配置" class="headerlink" title="namenode中hdfs-site.xml配置"></a>namenode中hdfs-site.xml配置</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.hosts<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/hdfs_include<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.hosts.exclude<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/hdfs_exclude<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p>dfs.hosts所对应的文件中列出了所有可以连接到namenode的datanode，如果为空则所有的都可以连入。dfs.hosts.exclude所对应的文件中列出了禁止连接namenode的datanode节点。如果一个节点在这两个文件中都存在，则不允许连入。</p>
+    <title>分布式事务笔记</title>
+    <url>/2016/05/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>最近研究避免分布式事务，有幸读到<a href="https://twitter.com/david_syer" target="_blank" rel="noopener">David Syer</a>于09年发布在JavaWorld的<a href="http://www.javaworld.com/article/2077963/open-source-tools/distributed-transactions-in-spring--with-and-without-xa.html" target="_blank" rel="noopener">HOW-TO<br>Distributed transactions in Spring, with and without XA</a>，虽然文章和测试代码都老了点，但是思想不变。</p>
+<h3 id="Full-XA-with-2PC"><a href="#Full-XA-with-2PC" class="headerlink" title="Full XA with 2PC"></a>Full XA with 2PC</h3><p>如果需要近乎完美的防护，2PC绝对是不二之选，但是它的性能损耗是显而易见的，这也是为什么大家谈分布式事务而闻之色变的原因。此处我们不谈性能，只谈Spring是如何支持2PC XA的。Spring为我们提供了JtaTransactionManager和声明式事务，将复杂的同步细节进行了托管。我们只需要关注DataSource的配置，例如通过开源的JTA实现<a href="https://www.atomikos.com/" target="_blank" rel="noopener">Atomikos</a>来配置DataSource。</p>
+<h3 id="XA-with-1PC-Optimization"><a href="#XA-with-1PC-Optimization" class="headerlink" title="XA with 1PC Optimization"></a>XA with 1PC Optimization</h3><p>1PC可以看做是单一事务资源下2PC的的优化版本，许多的事务管理器通过这种模式来优化2PC的过度开销。但是并不是单一事务资源，就表示一定走的是1PC，因为XA事务管理器会根据通讯时间的长度，来判断网络通讯的危险期，即使连接一个数据库也应该使用两阶段提交，如果通讯危险期很短，多个事务资源也有可能使用一阶段提交。</p>
 <a id="more"></a>
-<hr>
-<h3 id="下线datanode步骤"><a href="#下线datanode步骤" class="headerlink" title="下线datanode步骤"></a>下线datanode步骤</h3><ol>
-<li>将要下线的机器加入到dfs.hosts.exclude指定的文件中（使用主机名，ip基本不靠谱），然后刷新配置hadoop dfsadmin -refreshNodes。</li>
-<li>通过hadoop dfsadmin -report或者web界面，可以看到，该datanode状态转为Decommission In Progress。</li>
-<li>当decommission进程完成数据移动，datanode状态会转变为Decommissioned，然后datanode会自动停止datnode进程。然后你可以看见dead nodes下多了一个你想要下线的节点。</li>
-<li>然后删除include和exclude中该节点的hosts，重新刷新hadoop dfsadmin -refreshNodes。</li>
-<li>最后别忘了删除slaves中该节点的配置，防止下次整个集群重启时，该节点不能通过namenode自动启动。</li>
-</ol>
-<p><strong>注意</strong>:当你下线一个datanode节点，有可能该节点长时间处于Decommission In Progress状态，一直不能转变为Decommissioned。请你用hadoop fsck /检查下是否有些块少于指定的块数，特别注意那些mapreduce的临时文件。将这些删除，并且从垃圾箱移除，该节点就可以顺利下线。这是我解决该问题的办法。</p>
-<hr>
-<h3 id="上线一个节点的步骤"><a href="#上线一个节点的步骤" class="headerlink" title="上线一个节点的步骤"></a>上线一个节点的步骤</h3><ol>
-<li>保证将要上线的机器不存在于dfs.hosts.exclude所对应的的文件中，并且存在于dfs.hosts所对应的文件中。</li>
-<li>在namenode上刷新配置：hadoop dfsadmin -refreshNodes。</li>
-<li>在要上线的节点重启datanode,hadoop-daemon.sh start datanode。</li>
-<li>通过hadoop dfsadmin -report或者web界面，可以看到，节点已经上线。</li>
-<li>还是老话最后别忘了修改slaves。</li>
-</ol>
-<hr>
-<h3 id="jobtracker中mapred-site-xml的配置"><a href="#jobtracker中mapred-site-xml的配置" class="headerlink" title="jobtracker中mapred-site.xml的配置"></a>jobtracker中mapred-site.xml的配置</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapred.hosts<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/mr_include<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapred.hosts.exclude<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">value</span>&gt;</span>/ddmap/hadoop-1.0.4/conf/mr_exclude<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p>tasktracker上下线基本同上。mapred.hosts中的文件是允许连接到jobtracker的机器，mapred.hosts.exclude则刚好相反，如果一台机器在两个配置中都存在，则不允许连接到jobtracker。</p>
-<hr>
-<h3 id="下线tasktracker步骤"><a href="#下线tasktracker步骤" class="headerlink" title="下线tasktracker步骤"></a>下线tasktracker步骤</h3><ol>
-<li>将要下线的机器加入到mapred.hosts.exclude指定的文件中（使用主机名，ip基本不靠谱）。</li>
-<li>刷新配置：hadoop mradmin -refreshNodes，你可以看见web界面Excluded Nodes中多出了一个节点，该节点就是你要下线的节点，最后到你要下线的节点上运行hadoop-daemon.sh stop tasktracker。</li>
-<li>最后将mr_exclude和mr_include中该节点的hosts删除，并在jobtracker上再次刷新该配置，hadoop mradmin -refreshNodes。</li>
-<li>再次提醒别忘了修改slaves。</li>
-</ol>
-<p>tasktracker上线基本上和datnode上线原理和步骤都差不多，此处就不说了。<br>tasktracker上下线问题不是很大，最多就是任务失败，我想这个对于很多人来说都是可以忍受的，但是datanode上下线需要注意，因为datanode上下线如果不得当，可能导致数据丢失，特别是同事操作2个以上的节点。如果集群不是非常大，最好的每次下线一至两台，通过检查发现数据没有问题的时候再下线别的。这样虽然麻烦，但是是最安全的。</p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>BigData</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>分布式系统研发心得</title>
-    <url>/2017/01/25/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%A0%94%E5%8F%91%E5%BF%83%E5%BE%97/</url>
-    <content><![CDATA[<blockquote>
-<p>随着SOA、微服务等诸多概念的炒作，再加上Dubbo、Spring Cloud、Netflix OSS等诸多开源软件的支撑，要构建一套大型的分布式系统的技术门槛已经变得非常之低。但是这并不意味着构建一套大型分布式系统就是很容易的，因为任何系统都是领域知识的体现。所以笔者将这些年系统研发过程中的一点感悟记录下来，仅供参考。</p>
-</blockquote>
-<hr>
-<h2 id="统一内部通用语言"><a href="#统一内部通用语言" class="headerlink" title="统一内部通用语言"></a>统一内部通用语言</h2><p>Question:</p>
+<h3 id="XA-and-the-Last-Resource-Gambit"><a href="#XA-and-the-Last-Resource-Gambit" class="headerlink" title="XA and the Last Resource Gambit"></a>XA and the Last Resource Gambit</h3><p>目前市面上绝大多数的XA事务管理都有一个特点，那就是不论资源是部分XA兼容还是所有的都XA兼容，事务管理器都能够提供相同的事务保障。当资源经过排序，并且非XA资源通过投票机制，可以保证事务失败时所有的资源都能回滚。它对事务的保证是可以完全放心的，但是如果事务失败不会留下太多信息，如果想获取这些信息，就需要一些高级实现了。</p>
+<h3 id="XA模式总结"><a href="#XA模式总结" class="headerlink" title="XA模式总结"></a>XA模式总结</h3><p>前面介绍了三种基于XA协议的模式，不过从性能的方面来考虑，这些模式可能不能让我们满意，尤其是特别关注并发的互联网业务。我们可以了解并学习它，知道何时、如何避免使用XA，何时又必须使用。当然也有开发能力很强的团队，自己研发了两阶段提交事务框架，例如支付宝。</p>
+<h3 id="Shared-Transaction-Resource-pattern"><a href="#Shared-Transaction-Resource-pattern" class="headerlink" title="Shared Transaction Resource pattern"></a>Shared Transaction Resource pattern</h3><p>这个模式就是将所有的事务资源绑定到一个相同的资源，从而实现分布式事务，提升系统吞吐量。该模式的使用场景是受限制的，不能拿来处理所有的用例，但是它如XA一样坚固可靠。为了详细说明该模式，我通过两个案例来阐述。</p>
+<h4 id="共享数据库Connection"><a href="#共享数据库Connection" class="headerlink" title="共享数据库Connection"></a>共享数据库Connection</h4><p>我们在使用spring的声明式事务的时候，通常都是由service层来控制的，这点是基础共识。这样不论我们是使用ORM还是JDBC抽象框架，只要底层的Connection是共享的，那么我们即使配置了多个上层的模板(Mybatis or JdbcTemplate)，事务的安全就能够得到保证。这便是共享资源模式最简单最直接的体现，只是我们平时没有关注而已。</p>
+<h4 id="消息驱动的单Database更新"><a href="#消息驱动的单Database更新" class="headerlink" title="消息驱动的单Database更新"></a>消息驱动的单Database更新</h4><p>这种模式就是将消息中间件的Connection和数据库的Connection交给一个代理，这个代理依赖于消息中间厂商的存储策略细节，并且不是所有的供应商都提供这种模式。这种模式的使用并不常见，因为我们更喜欢用<code>Best Efforts 1PC pattern</code>中消息驱动模式，因为它更简单。下面的配置可以让我们窥一斑而见全豹，如果想更清晰的了解消息驱动的单Database的更新，请下载原文的代码研究。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"brokerService"</span> <span class="attr">class</span>=<span class="string">"org.apache.activemq.broker.BrokerService"</span></span></span><br><span class="line"><span class="tag">		<span class="attr">init-method</span>=<span class="string">"start"</span> <span class="attr">destroy-method</span>=<span class="string">"stop"</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"brokerName"</span> <span class="attr">value</span>=<span class="string">"broker"</span> /&gt;</span></span><br><span class="line">		<span class="comment">&lt;!-- Enable this if you need to inspect with JMX --&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useJmx"</span> <span class="attr">value</span>=<span class="string">"false"</span> /&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"transportConnectorURIs"</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">list</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">value</span>&gt;</span>vm://localhost<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"persistenceAdapter"</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.apache.activemq.store.jdbc.JDBCPersistenceAdapter"</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span>&gt;</span></span><br><span class="line">					<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"com.springsource.open.jms.JmsTransactionAwareDataSourceProxy"</span>&gt;</span></span><br><span class="line">						<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"targetDataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span>/&gt;</span></span><br><span class="line">						<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jmsTemplate"</span> <span class="attr">ref</span>=<span class="string">"jmsTemplate"</span>/&gt;</span></span><br><span class="line">					<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"createTablesOnStartup"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="Best-Efforts-1PC-pattern"><a href="#Best-Efforts-1PC-pattern" class="headerlink" title="Best Efforts 1PC pattern"></a>Best Efforts 1PC pattern</h3><p>该模式应用相当广泛，这也是我最喜欢的模式之一。虽然在安全性上不如XA，但是在大数据、高并发等性能上却得到了极大的提升。那我们如何判断我们的系统是否可以使用该模式，建议参考下面的两点：</p>
 <ol>
-<li><p><code>SPU=SKU</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A:把类目X下的SPU给我。</span><br><span class="line">B:把类目X下的SKU给了A。</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><code>ID=CODE</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A:我给你商场ID，你给我商场信息。</span><br><span class="line">B:A给我商场CODE，我用商场CODE去查询。</span><br></pre></td></tr></table></figure>
-</li>
+<li>各个事务资源基础组件出错概率非常小。</li>
+<li>业务可以设计为幂等性。</li>
 </ol>
-<p>为了解决这个问题，所有的团队成员都应该意识到需要创建一种通用的语言，并且时常提醒大家对基本的内容保持专注，在任何需要的时候都使用这种语言。我们应该尽量少地在这些场合使用我们自己的行话，应该使用通用语言，因为它能帮助我们更清晰、更精确地交流。</p>
-<a id="more"></a>
-<p>通用语言连接起设计中的所有的部分，为设计团队今后顺利开展工作建立了前提。 完成一个大规模项目的设计可能需要花费数周乃至数月的时间。团队成员会发现一些初始的概念是不正确的或者不合时宜，或者发现一些需要考虑并放进总体设计中的新的设计元素。没有一种公共的语言，所有的这一切都是不可能的。</p>
-<p>这种语言的形成可不是一日之功，需要开展艰难的工作，重点在于确保发现语言的那些关键元素。我们需要发现定义领域和模型的那些关键概念，发现描述它们的适当用词，并开始使用它们。它们当中的一些概念可能很容易被发现，但另一些则不然。</p>
-<p>通用语言的重要性，不言而喻，但是我们很多时候却并没有把它提升到一个非常重要的高度，这样导致了内部的沟通效率非常低下。在各种场合、组织内部强化约束这些通用语言的抽象和使用，它并不会立马提升效率，但是你得坚信这样做是值得的。</p>
-<h2 id="模型驱动设计（MDD）"><a href="#模型驱动设计（MDD）" class="headerlink" title="模型驱动设计（MDD）"></a>模型驱动设计（MDD）</h2><p>产品经理（软件分析人员）和业务领域专家（老板 or 甲方）在一起工作了一段时间，一起找出来了领域的基础元素，理清了元素之间的关系，创建了一个正确的模型，这个模型的确正确捕获了领域知识。然后模型交给软件工程师。开发人员看模型时可能会发现模型中的有些概念或者关系无法使用代码来正确地表达。所以他们使用模型作为灵感的源泉，创建了自己的设计，虽然其设计借鉴了模型的某些思想，但是他们还增加了一些自己的东西。开发过程继续进行，更多的类被添加到代码中，进一步加大了原始模型和最终实现的差距。在这种情况下，很难保证产生好的结果。优秀的开发人员可能会做出一个能够工作的产品，但它能经得起时间的考验吗?它能被很容易地扩展吗?它能被容易地维护吗?当然还有更差的就是设计反推需求，工程师在设计系统的时候，发现流程走不下去，需要提新的需求，而这些需求软件分析人员根本就没有考虑到。这些问题从软件诞生以来就存在，只是在大型分布式系统被成倍的放大。</p>
-<p>如果开发人员能够参加需求讨论会议，并在开始做编码设计之前对领域 知识和模型获得一个清晰完整的视图，他们后面的设计工作将会更有效率。最好的方法是将领域建模和系统设计紧密关联起来，领域模型在构建时就考虑到软件实现和设计，如果有问题及时调整和修正方向。这样就能获得一个有效的领域模型，程序员就能非常方便的将这种模型转化为代码。当然并不是这样做就能够保证沟通是没有任何障碍的，很多软件分析人员（产品经理）总以为程序员在刁难他们，因为他们不能理解建模中的难点和技术问题，这也是我坚持认为一个好的软件分析人员一定要写过几年代码。在我们目前的职业生涯中遇见过好几个工程师出身的产品经理，我经常拿他们跟非工程师出身的比较，不论跟程序员的讨论实现细节还是领域模型的抽象，他们的确具有一定优势。</p>
-<p>当我们创建一个软件应用时，这个应用的很大一部分并没有直接与领域关联，但它们是基础设施的一部分或者是为软件本身提供服务的。最好能让应用中的领域部分与其余部分相比保持尽可能小(而不是和其余部分掺杂在一起)，因为一个典型的应用包含了大量访问数据库、访问文件或网络、用户界面等相关的代码。</p>
-<p>因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础设施代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识， 并且能够正常工作。</p>
-<p>常用的分层架构方案如下：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:center">层</th>
-<th style="text-align:center">说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center">展示层</td>
-<td style="text-align:center">向用户展示软件的功能和信息</td>
-</tr>
-<tr>
-<td style="text-align:center">应用层</td>
-<td style="text-align:center">应用的逻辑的协调，不包含业务逻辑和业务对象的状态，包含会话的上下文</td>
-</tr>
-<tr>
-<td style="text-align:center">领域层</td>
-<td style="text-align:center">核心业务逻辑，业务对象状态保持，包含完整的领域信息</td>
-</tr>
-<tr>
-<td style="text-align:center">基础层</td>
-<td style="text-align:center">实体对象的持久化，公用库，基础服务</td>
-</tr>
-</tbody>
-</table>
-<p>分层就必然面临着边界的划分问题，因为对于一个大型的分布式应用，每一层都是极其庞杂的，所以是先按领域划分模块然后再分层。各个模块清晰的被划分出来，各层被清晰的定义出来，这样就可以有效的避免代码混乱和降低管理成本。因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识，并且能够正常工作。因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础设施代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识，并且能够正常工作。当实体、值对象、服务被清晰无误的定义出来，领域知识的落地就基本完成。</p>
-<p>虽然内聚始于类和方法，它也可以用在模块级别。模块内聚一般分为两种，通信性内聚和功能性内聚，把操作相同数据的服务放在一个模块叫做通信性内聚，把具有强关联性的业务逻辑放在一个模块叫功能性内聚，功能性内聚被认为是最佳实践。不论如何聚合，我们还是会看到很多对象会跟其他的对象发生关联，形成了一个复杂的关系网，不论是一对一、一对多还是多对多。来自模型的挑战常常不是让它们尽量完整，而是让它们尽量地简单和容易理解。这意味着，除非直到模型中嵌入了对领域的深层理解，否则大多数时候需要对模型中的关系进行消减和简化。 首先，要删除模型中非基本的关联关系。它们可能在领域中是存在的，但它们在我们的模型中不是必要的，所以我们要删除它们。其次，可以通过添加约束的方式来减少多重性。如果很多对象满足一种关系，那么在这个关系上加入正确的约束之后，很有可能只有一个对象会继续满足这种关系。第三，很多时候双向关联可以被转换成非双向的关联。</p>
-<h2 id="接口设计原则"><a href="#接口设计原则" class="headerlink" title="接口设计原则"></a>接口设计原则</h2><ol>
-<li>尽可能保证接口幂等性，不论是读还是写。读不需要多解释，写的并发问题，所以乐观锁等不错的思路。</li>
-<li>接口要尽可能可以降级</li>
-<li>需求确定之后，接口和数据模型先行，协议和字段需要在Java Doc和Swagger API Docs中详细描述</li>
-<li>领域层的接口先从一个比较大的服务边界开始，然后随着时间推移基于业务需求来重构成更小的。我们应该关注微服务的范围，而不是一味的把服务做小。一个服务的（正确的）大小应该等于满足某个特定业务能力所需要的大小。他们应该是内聚而完整的。</li>
-<li>接口需要向下兼容，所以接口都需要带上版本号，如果底层的数据结构发生了颠覆性变化，要充分考虑老版本接口问题，特别是C端产品。</li>
-<li>接口要尽量保证无状态，如果的确有状态，可以按状态划分为多个接口。</li>
-<li>不能过度抽象接口，例如public Map query(Map map)这类接口，维护和使用都非常困难。但是也不能不抽象，否者接口数会暴增，随着业务的稳定，有必要抽象合并。</li>
-</ol>
+<p>只要满足以上两点，事务发生错误的可能性就非常小了。为了简单的说明此模式，我结合Rabbitmq和Mysql来说明，先简单的来一段配置。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jsonMessageConverter"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">class</span>=<span class="string">"org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">rabbit:connection-factory</span> <span class="attr">id</span>=<span class="string">"rabbitConnectionFactory"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">addresses</span>=<span class="string">"10.11.25.222"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">username</span>=<span class="string">"yangguo"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">password</span>=<span class="string">"yangguo"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">rabbit:template</span> <span class="attr">id</span>=<span class="string">"rabbitTemplate"</span> <span class="attr">connection-factory</span>=<span class="string">"rabbitConnectionFactory"</span></span></span><br><span class="line"><span class="tag">                   <span class="attr">message-converter</span>=<span class="string">"jsonMessageConverter"</span> <span class="attr">channel-transacted</span>=<span class="string">"true"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<p>再来两段Java代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"> <span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">provierSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     User user = <span class="keyword">new</span> User();</span><br><span class="line">     user.setUserName(<span class="string">"yangguo"</span>);</span><br><span class="line">     user.setPassword(<span class="string">"yangguo"</span>);</span><br><span class="line">     userMapper.insert(user);</span><br><span class="line"></span><br><span class="line">     rabbitTemplate.convertAndSend(<span class="string">"amq.topic"</span>, <span class="keyword">null</span>, user);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>上面代码处理的业务逻辑是将用户插入到用户表的同时向消息队列发一条消息，插入DB和发送消息到MQ是包在一个事务中。下面的代码则是消费消息，也是包在一个事务中。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">consumeSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    User user= (User) rabbitTemplate.receiveAndConvert(<span class="string">"test-queue"</span>);</span><br><span class="line">    friendMapper.update(user);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码其实很简单，首先配置一个支持事务的RabbitTemplate，主要设置<code>channel-transacted=&quot;true&quot;</code>，当然Mysql DataSource和Mybatis的配置，我就省略了，然后剩下的事情就交给Spring的Transaction吧。不过原文是使用ActiveMQ来讲解的，不过思想都是一样的。当然作者在原文中还解释了一种链式事务管理器，其实上面的例子也是一种链式思路，链式事务管理器非常注重顺序性，因为回滚和业务顺序正好相反。现阶段的spring事务处理，默认就是一种链式思路，只要你在service上面加了@Transaction或者在XML里面配置了切面，那么处于切面中的方法中的分布式资源就会受到spring事务管理器的托管。这也是最大努力一次提交模式流行的真正原因，因为它就是Spring事务管理器的核心。当然如果我们使用消息队列的Topic模式，是可以绕过<code>消息驱动的单Database更新</code>的，因为我们只要能够实现最终一致性就OK了。</p>
+<h3 id="Nontransactional-Access-pattern"><a href="#Nontransactional-Access-pattern" class="headerlink" title="Nontransactional Access pattern"></a>Nontransactional Access pattern</h3><p>这个模式是需要特殊的业务场景，理想情况是非事务或者本地事务的逻辑是边缘业务，该业务具备幂等性或者从逻辑的角度来说具备幂等性。当然该模式可以是分布式事务和非事务的组合，也可以全部都是非事务逻辑，还可以是分布式事务和本地事务的组合。这种模式需要细致的分析，只有对业务充分了解，才能确定哪些可以走非事务或者本地事务。当然业务出错，你可以使用补偿机制，不过请注意通用的事务补偿通常都很麻烦。</p>
+<h3 id="HALF消息-本地事务表-消息回查"><a href="#HALF消息-本地事务表-消息回查" class="headerlink" title="HALF消息+本地事务表+消息回查"></a>HALF消息+本地事务表+消息回查</h3><p>这种模式并不是David Syer文章中所提到的模式，不过该模式我认为是最简单和安全的模式，不过需要中间件支持，该类型中间件的代表就是<a href="https://rocketmq.apache.org/" target="_blank" rel="noopener">RocketMQ</a>。为了简单阐述该模式的，我就直接拿RocketMQ的交互流程。</p>
+<p><img src="/images/rocketmq_flow.png" alt="rocketmq_flow"></p>
+<p>该模式在性能和易用性上都有非常好的表现，不过就是需要自己消息回查逻辑，这种模式也是我使用最多的模式。该模式通过本地事务表和消息中间件的状态管理，将复杂的分布式问题简单化，唯一牺牲的就是时效性，因为它只能保证最终一致性。</p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.ibm.com/developerworks/cn/java/j-lo-spring-ts1/" target="_blank" rel="noopener">Spring 事务管理高级应用难点剖析: 第 1 部分</a></p>
+<p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-spring-ts2/" target="_blank" rel="noopener">Spring 事务管理高级应用难点剖析: 第 2 部分</a></p>
+<p><a href="http://www.ibm.com/developerworks/cn/java/j-ts1.html" target="_blank" rel="noopener">事务策略: 了解事务陷阱</a></p>
 ]]></content>
       <categories>
         <category>技术</category>
       </categories>
       <tags>
-        <tag>管理、架构、DDD</tag>
+        <tag>Spring</tag>
+        <tag>事务</tag>
+        <tag>分布式事务</tag>
       </tags>
   </entry>
   <entry>
-    <title>TOP100案例分享</title>
-    <url>/2016/12/15/%E4%BC%A0%E7%BB%9F%E4%BC%81%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E8%BD%AC%E5%9E%8B%E7%9A%84%E6%9E%B6%E6%9E%84%E4%B9%8B%E9%81%93/</url>
-    <content><![CDATA[<blockquote>
-<p>受MSUP TOP100组委会的邀请，12月12号在国际会议中心分享了《传统互联网转型的架构之道》，会后也和一些业界的朋友做了更深层的探讨，收货很多。下面是我分享内容的PPT，供感兴趣的朋友参考。由于图片经过压缩之后不是很清晰，如果阅读清晰版，可以下载<a href="/images/top100.pdf">PDF</a>查看。</p>
-</blockquote>
-<hr>
-<p><img src="/images/top100/幻灯片01.jpg" alt="幻灯片01.jpg"></p>
+    <title>实验平台研发笔记</title>
+    <url>/2022/06/18/%E5%AE%9E%E9%AA%8C%E5%B9%B3%E5%8F%B0%E7%A0%94%E5%8F%91%E7%9A%84%E4%B8%80%E4%BA%9B%E6%83%B3%E6%B3%95/</url>
+    <content><![CDATA[<p>A/B Test广泛应用在各个行业和领域，过去的工作中也经常会采用该方法来评估新的策略/方案是否可行。虽然过去有相关使用经验，但最近笔者最近开始真正参与设计、研发实验平台才发现A/B实验体系非常庞杂，涉及到领域知识、工程研发、数据科学等多个方面。鉴于过去的理解过于狭隘，笔者将设计/研发中学习到的各种知识和思考记录在本文，供后续回顾和反思。</p>
 <a id="more"></a>
-<p><img src="/images/top100/幻灯片02.jpg" alt="幻灯片02.jpg"></p>
-<p><img src="/images/top100/幻灯片03.jpg" alt="幻灯片03.jpg"></p>
-<p><img src="/images/top100/幻灯片04.jpg" alt="幻灯片04.jpg"></p>
-<p><img src="/images/top100/幻灯片05.jpg" alt="幻灯片05.jpg"></p>
-<p><img src="/images/top100/幻灯片06.jpg" alt="幻灯片06.jpg"></p>
-<p><img src="/images/top100/幻灯片07.jpg" alt="幻灯片07.jpg"></p>
-<p><img src="/images/top100/幻灯片08.jpg" alt="幻灯片08.jpg"></p>
-<p><img src="/images/top100/幻灯片09.jpg" alt="幻灯片09.jpg"></p>
-<p><img src="/images/top100/幻灯片10.jpg" alt="幻灯片10.jpg"></p>
-<p><img src="/images/top100/幻灯片11.jpg" alt="幻灯片11.jpg"></p>
-<p><img src="/images/top100/幻灯片12.jpg" alt="幻灯片12.jpg"></p>
-<p><img src="/images/top100/幻灯片13.jpg" alt="幻灯片13.jpg"></p>
-<p><img src="/images/top100/幻灯片14.jpg" alt="幻灯片14.jpg"></p>
-<p><img src="/images/top100/幻灯片15.jpg" alt="幻灯片15.jpg"></p>
-<p><img src="/images/top100/幻灯片16.jpg" alt="幻灯片16.jpg"></p>
-<p><img src="/images/top100/幻灯片17.jpg" alt="幻灯片17.jpg"></p>
-<p><img src="/images/top100/幻灯片18.jpg" alt="幻灯片18.jpg"></p>
-<p><img src="/images/top100/幻灯片19.jpg" alt="幻灯片19.jpg"></p>
-<p><img src="/images/top100/幻灯片20.jpg" alt="幻灯片20.jpg"></p>
-<p><img src="/images/top100/幻灯片21.jpg" alt="幻灯片21.jpg"></p>
-<p><img src="/images/top100/幻灯片22.jpg" alt="幻灯片22.jpg"></p>
-<p><img src="/images/top100/幻灯片23.jpg" alt="幻灯片23.jpg"></p>
-<p><img src="/images/top100/幻灯片24.jpg" alt="幻灯片24.jpg"></p>
-<p><img src="/images/top100/幻灯片25.jpg" alt="幻灯片25.jpg"></p>
-<p><img src="/images/top100/幻灯片26.jpg" alt="幻灯片26.jpg"></p>
-<p><img src="/images/top100/幻灯片27.jpg" alt="幻灯片27.jpg"></p>
-<p><img src="/images/top100/幻灯片28.jpg" alt="幻灯片28.jpg"></p>
-<p><img src="/images/top100/幻灯片29.jpg" alt="幻灯片29.jpg"></p>
-]]></content>
+<h3 id="实验的基本思想"><a href="#实验的基本思想" class="headerlink" title="实验的基本思想"></a>实验的基本思想</h3><p>实验的目的就是为了<strong>验证假设</strong>是否成立，所以实验就是为了<strong>验证假设</strong>而添加人为干预的过程。验证假设那么必然离不开统计学上的<strong>假设检验</strong>方法，假设检验的基本思想是否定“小概率事件”，如果通过抽样发现假设成立是一个小概率事件，那么就应该拒绝该假设。通过先提出假设，再用适当的统计方法，利用小概率原理来判定假设是否成立的方法就是反证法。为了检验一个假设H0是否正确，首先假定该假设H0正确，然后根据样本对假设H0做出接受或拒绝的决策。如果样本观察值导致了“小概率事件”发生，就应拒绝假设H0，否则应接受假设H0。常用的假设检验方法有Z检验、检验、卡方检验、F检验等。</p>
+<h3 id="抽样方法"><a href="#抽样方法" class="headerlink" title="抽样方法"></a>抽样方法</h3><h3 id="因果推导"><a href="#因果推导" class="headerlink" title="因果推导"></a>因果推导</h3><p>因果科学是研究因果关系或回答因果问题的学科。现代因果定义为在保证其他因素不变，改变X引起Y的改变，则X为Y的一个原因。</p>
+<h3 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h3><p><img src="/images/2022-06-19/2022-06-19_20.37.10.png" alt="img1"><br><img src="/images/2022-06-19/2022-06-19_20.37.55.png" alt="img2"><br><img src="/images/2022-06-19/2022-06-19_20.38.23.png" alt="img3"><br><img src="/images/2022-06-19/2022-06-19_20.38.49.png" alt="img4"></p>
+<h3 id="大规模随机实验"><a href="#大规模随机实验" class="headerlink" title="大规模随机实验"></a>大规模随机实验</h3><p>在医药研发领域，测试一款新药是否有效（结果变量），通常需要通过大规模（大样本）随机双盲分组对照实验来验证，实验组（新药）与对照组（安慰剂）中样本除了服用的药物（干预变量）有所不同之外，其他因素（协变量）如身高、体重、基础病、饮食习惯、运动习惯等在大样本随机机制下，可以理解为两组均衡无显著性差异。大规模下的随机可以规避选择偏误从而控制住协变量，根据中心极限定理可知样本越多那么样本均值越趋近于总体均值<br>双盲实验非常科学严谨但是实验成本（人力/物力）也高，。一是虽然在互联网场景下流量并不是非常稀缺，为大规模随机实验提供了可能，但以用户作为样本并不能覆盖所有场景；二是同层大量实验并行，流量也会变的稀缺。例如：在物流企业中很多策略是基于城市/商圈/站点的，那么可用于实验的城市/商圈/站点必然不会太多；新的用户页面底色和字体展示方案有20中组合，也就是流量被分为21份（+原方案），那么势必造成每组流量的减少。从数据科学的角度来看，通过大规模随机样本估计总体虽然是有偏的，但这种偏差相较于别的实验方式是最优的。</p>
+<h3 id="小样本实验"><a href="#小样本实验" class="headerlink" title="小样本实验"></a>小样本实验</h3><p>总体的量就不大且能够参与实验的样本数更少的场景，</p>
+<p>因为协变量被控制，变化的只有干预变量，那么干预变量对结果变量的处理效应的推导会容易很多。<br>上述实验最理想环境是存在两个平行时空，同一组样本在时空A（实验组）中服用了新药，在时空B（对照组）里面服用安慰剂，因为样本是同一份，所以协变量能够完全被控制住。虽然理想并不能照进现实，但却为我们指明了前进的方向；首先要有一套合理的评估方法，能够验证两个样本是否相似（倾向性得分）；其次要有一套配对的方法能够为每个实验样本找到近似的对照样本（倾向性得分配对）；未配对成功的样本会被丢弃，当实验组的每个样本在对照组有相似的唯一配对样本时，那么我们就可以简单的理解为在现实环境模拟了平行时空。<br>倾向性得分匹配（PSM）不仅提供了相似度衡量的标准，而且提供了配对的方法（卡池内最近邻匹配/半径匹配等），所以PSM从众多技术方案中脱颖而出，成为智能分组/配对的的首选技术方案。通过PSM配对之后，为了验证实验组和对照组在每个协变量上没有显著差异（均衡性检验），会进一步运用统计学假设检验方法验证原假设（H0：实验组和对照组在每一个协变量上没有显著差异）是否成立，如果成立则智能分组/配对此次的结果可用。</p>
+<h3 id="分流"><a href="#分流" class="headerlink" title="分流"></a>分流</h3>]]></content>
       <categories>
         <category>技术</category>
       </categories>
       <tags>
-        <tag>管理、架构</tag>
+        <tag>A/B实验、数据科学</tag>
       </tags>
   </entry>
   <entry>
@@ -1940,6 +1930,77 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </tags>
   </entry>
   <entry>
+    <title>分布式系统研发心得</title>
+    <url>/2017/01/25/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%A0%94%E5%8F%91%E5%BF%83%E5%BE%97/</url>
+    <content><![CDATA[<blockquote>
+<p>随着SOA、微服务等诸多概念的炒作，再加上Dubbo、Spring Cloud、Netflix OSS等诸多开源软件的支撑，要构建一套大型的分布式系统的技术门槛已经变得非常之低。但是这并不意味着构建一套大型分布式系统就是很容易的，因为任何系统都是领域知识的体现。所以笔者将这些年系统研发过程中的一点感悟记录下来，仅供参考。</p>
+</blockquote>
+<hr>
+<h2 id="统一内部通用语言"><a href="#统一内部通用语言" class="headerlink" title="统一内部通用语言"></a>统一内部通用语言</h2><p>Question:</p>
+<ol>
+<li><p><code>SPU=SKU</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A:把类目X下的SPU给我。</span><br><span class="line">B:把类目X下的SKU给了A。</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>ID=CODE</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A:我给你商场ID，你给我商场信息。</span><br><span class="line">B:A给我商场CODE，我用商场CODE去查询。</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>为了解决这个问题，所有的团队成员都应该意识到需要创建一种通用的语言，并且时常提醒大家对基本的内容保持专注，在任何需要的时候都使用这种语言。我们应该尽量少地在这些场合使用我们自己的行话，应该使用通用语言，因为它能帮助我们更清晰、更精确地交流。</p>
+<a id="more"></a>
+<p>通用语言连接起设计中的所有的部分，为设计团队今后顺利开展工作建立了前提。 完成一个大规模项目的设计可能需要花费数周乃至数月的时间。团队成员会发现一些初始的概念是不正确的或者不合时宜，或者发现一些需要考虑并放进总体设计中的新的设计元素。没有一种公共的语言，所有的这一切都是不可能的。</p>
+<p>这种语言的形成可不是一日之功，需要开展艰难的工作，重点在于确保发现语言的那些关键元素。我们需要发现定义领域和模型的那些关键概念，发现描述它们的适当用词，并开始使用它们。它们当中的一些概念可能很容易被发现，但另一些则不然。</p>
+<p>通用语言的重要性，不言而喻，但是我们很多时候却并没有把它提升到一个非常重要的高度，这样导致了内部的沟通效率非常低下。在各种场合、组织内部强化约束这些通用语言的抽象和使用，它并不会立马提升效率，但是你得坚信这样做是值得的。</p>
+<h2 id="模型驱动设计（MDD）"><a href="#模型驱动设计（MDD）" class="headerlink" title="模型驱动设计（MDD）"></a>模型驱动设计（MDD）</h2><p>产品经理（软件分析人员）和业务领域专家（老板 or 甲方）在一起工作了一段时间，一起找出来了领域的基础元素，理清了元素之间的关系，创建了一个正确的模型，这个模型的确正确捕获了领域知识。然后模型交给软件工程师。开发人员看模型时可能会发现模型中的有些概念或者关系无法使用代码来正确地表达。所以他们使用模型作为灵感的源泉，创建了自己的设计，虽然其设计借鉴了模型的某些思想，但是他们还增加了一些自己的东西。开发过程继续进行，更多的类被添加到代码中，进一步加大了原始模型和最终实现的差距。在这种情况下，很难保证产生好的结果。优秀的开发人员可能会做出一个能够工作的产品，但它能经得起时间的考验吗?它能被很容易地扩展吗?它能被容易地维护吗?当然还有更差的就是设计反推需求，工程师在设计系统的时候，发现流程走不下去，需要提新的需求，而这些需求软件分析人员根本就没有考虑到。这些问题从软件诞生以来就存在，只是在大型分布式系统被成倍的放大。</p>
+<p>如果开发人员能够参加需求讨论会议，并在开始做编码设计之前对领域 知识和模型获得一个清晰完整的视图，他们后面的设计工作将会更有效率。最好的方法是将领域建模和系统设计紧密关联起来，领域模型在构建时就考虑到软件实现和设计，如果有问题及时调整和修正方向。这样就能获得一个有效的领域模型，程序员就能非常方便的将这种模型转化为代码。当然并不是这样做就能够保证沟通是没有任何障碍的，很多软件分析人员（产品经理）总以为程序员在刁难他们，因为他们不能理解建模中的难点和技术问题，这也是我坚持认为一个好的软件分析人员一定要写过几年代码。在我们目前的职业生涯中遇见过好几个工程师出身的产品经理，我经常拿他们跟非工程师出身的比较，不论跟程序员的讨论实现细节还是领域模型的抽象，他们的确具有一定优势。</p>
+<p>当我们创建一个软件应用时，这个应用的很大一部分并没有直接与领域关联，但它们是基础设施的一部分或者是为软件本身提供服务的。最好能让应用中的领域部分与其余部分相比保持尽可能小(而不是和其余部分掺杂在一起)，因为一个典型的应用包含了大量访问数据库、访问文件或网络、用户界面等相关的代码。</p>
+<p>因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础设施代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识， 并且能够正常工作。</p>
+<p>常用的分层架构方案如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">层</th>
+<th style="text-align:center">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">展示层</td>
+<td style="text-align:center">向用户展示软件的功能和信息</td>
+</tr>
+<tr>
+<td style="text-align:center">应用层</td>
+<td style="text-align:center">应用的逻辑的协调，不包含业务逻辑和业务对象的状态，包含会话的上下文</td>
+</tr>
+<tr>
+<td style="text-align:center">领域层</td>
+<td style="text-align:center">核心业务逻辑，业务对象状态保持，包含完整的领域信息</td>
+</tr>
+<tr>
+<td style="text-align:center">基础层</td>
+<td style="text-align:center">实体对象的持久化，公用库，基础服务</td>
+</tr>
+</tbody>
+</table>
+<p>分层就必然面临着边界的划分问题，因为对于一个大型的分布式应用，每一层都是极其庞杂的，所以是先按领域划分模块然后再分层。各个模块清晰的被划分出来，各层被清晰的定义出来，这样就可以有效的避免代码混乱和降低管理成本。因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识，并且能够正常工作。因此，将一个复杂的程序划分成多个层。为每一个层开发一个内聚的设计，让每个层仅依赖于它底下的那些层。遵照标准的架构模式实现与其上面的那些层的低耦合。将领域模型相关的代码集中到一个层中，把它从用户界面、应用和基础设施代码中隔离开来。领域对象不必再承担显示自己、保存自己、管理应用任务的职责，而是专注于表达领域模型。这会让一个模型逐渐进化得足够丰满、足够清晰，以便捕获基本的业务知识，并且能够正常工作。当实体、值对象、服务被清晰无误的定义出来，领域知识的落地就基本完成。</p>
+<p>虽然内聚始于类和方法，它也可以用在模块级别。模块内聚一般分为两种，通信性内聚和功能性内聚，把操作相同数据的服务放在一个模块叫做通信性内聚，把具有强关联性的业务逻辑放在一个模块叫功能性内聚，功能性内聚被认为是最佳实践。不论如何聚合，我们还是会看到很多对象会跟其他的对象发生关联，形成了一个复杂的关系网，不论是一对一、一对多还是多对多。来自模型的挑战常常不是让它们尽量完整，而是让它们尽量地简单和容易理解。这意味着，除非直到模型中嵌入了对领域的深层理解，否则大多数时候需要对模型中的关系进行消减和简化。 首先，要删除模型中非基本的关联关系。它们可能在领域中是存在的，但它们在我们的模型中不是必要的，所以我们要删除它们。其次，可以通过添加约束的方式来减少多重性。如果很多对象满足一种关系，那么在这个关系上加入正确的约束之后，很有可能只有一个对象会继续满足这种关系。第三，很多时候双向关联可以被转换成非双向的关联。</p>
+<h2 id="接口设计原则"><a href="#接口设计原则" class="headerlink" title="接口设计原则"></a>接口设计原则</h2><ol>
+<li>尽可能保证接口幂等性，不论是读还是写。读不需要多解释，写的并发问题，所以乐观锁等不错的思路。</li>
+<li>接口要尽可能可以降级</li>
+<li>需求确定之后，接口和数据模型先行，协议和字段需要在Java Doc和Swagger API Docs中详细描述</li>
+<li>领域层的接口先从一个比较大的服务边界开始，然后随着时间推移基于业务需求来重构成更小的。我们应该关注微服务的范围，而不是一味的把服务做小。一个服务的（正确的）大小应该等于满足某个特定业务能力所需要的大小。他们应该是内聚而完整的。</li>
+<li>接口需要向下兼容，所以接口都需要带上版本号，如果底层的数据结构发生了颠覆性变化，要充分考虑老版本接口问题，特别是C端产品。</li>
+<li>接口要尽量保证无状态，如果的确有状态，可以按状态划分为多个接口。</li>
+<li>不能过度抽象接口，例如public Map query(Map map)这类接口，维护和使用都非常困难。但是也不能不抽象，否者接口数会暴增，随着业务的稳定，有必要抽象合并。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>管理、架构、DDD</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>外部HTTP服务访问慢的Case</title>
     <url>/2015/06/30/%E5%A4%96%E9%83%A8HTTP%E6%9C%8D%E5%8A%A1%E8%AE%BF%E9%97%AE%E6%85%A2%E7%9A%84Case/</url>
     <content><![CDATA[<h3 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h3><p>最近由于业务需求，重写了一套访问中航信IBE+的代理层。由于机票业务分为国内和国际两部分，这两部分都需要访问IBE+，之前是各自为战，各自都有一套访问逻辑。这样做的后果就是在流控(<code>IBE+对QPS有一定的限制</code>)和接口管理方面得不到很好的控制，因此才写了这样的一个代理层。这样的设计其实没有任何问题，在微服务和SOA大行其道的今天这都是主流设计思路。该系统很快便上线了，但是很快我就发现IBE+的服务访问都非常慢，因为之前我没有涉及到这块，我就问了下之前负责这块的同事，他们说的确比较慢，我也就没有太上心。突然有天我打开生产环境的监控，我便发现了问题，大概30秒左右便有一次非常慢的操作。关于30秒的问题，之前我通过tcpdump抓包分析过，以为是Http Basic鉴权导致的，在新写的代理层中已经对此处进行了优化，但是结果看来不是很理想，然后便有了这个Case。</p>
@@ -1994,6 +2055,60 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </categories>
       <tags>
         <tag>HTTP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>海量数据下的精准营销工程实践</title>
+    <url>/2020/08/22/%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E4%B8%8B%E7%9A%84%E7%B2%BE%E5%87%86%E8%90%A5%E9%94%80%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>精准营销从被提出到广泛运用，伴随着互联网技术飞速发展，尤其是大数据和人工智能技术的日趋成熟。精准营销也成为每一家互联网企业必然绕不开的课题，围绕它展开的业务不胜枚举。通常营销过程包含如下三部分：<br>① 营销活动前：确定营销的目标，<br>② 营销活动中：效果监控和跟踪，<br>③ 营销活动后：效果评估和优化。<br>本文主要分享笔者在精准营销工程化方面做的一些尝试和实践，侧重点在营销目标的确定。</p>
+<hr>
+<h3 id="现状"><a href="#现状" class="headerlink" title="现状"></a>现状</h3><p>营销目标就是我们传统意义的圈人，筛选出一批跟营销计划匹配的人。最初圈人逻辑是通过标签圈人，后续又加入了算法圈人，这两种模式的数据核心都基于离线数仓，按天更新。这两种方式在初期能够满足业务需求，但是随着业务发展及精细化运营的需求，该模式短板越来越明显，例如转化率的提升越来越难、实时性不高、灵活度不够等。希望有一套既能兼容现有离线链路，同时又能引入实时特征的方案。</p>
+<hr>
+<h3 id="挑战"><a href="#挑战" class="headerlink" title="挑战"></a>挑战</h3><p>离线链路侧，每个签约品牌每天会基于MaxCompute，通过协同过滤的方式从经济体的数亿用户中召回和品牌群像具有相似度的人，粗召回人数大品牌数亿中小品牌数千万。通过粗召回的数据量乘以签约品牌数，就可以很轻易的预估出离线召回的数据量在百亿级别，并且随着签约品牌的新增该数据量还会增加。实时链路侧，用户的实时特征，例如交易特征、LBS特征、商品加购特征、店铺点击特征等，每天特征总量也维持在几十亿级别，并且特征会随着业务的发展越来越多。<br>面对如此庞大的数据量，每条数据多耗时一毫秒，那么在百亿量级下就会放大到数千小时；一条数据多1bit，百亿就会放大到1G。所以特征数据如何传递、处理、存储都需要精心设计，否则带来的不但是程序性能上的急剧下降，而且还会导致计算和存储成本的飞速飙升，这便是我们在整个系统建设过程中遇到最大挑战。<br><a id="more"></a></p>
+<hr>
+<h3 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h3><p>通常召回策略有很多种，但是最常用的是基于内容匹配的召回和基于协同过滤的召回。基于内容配置的召回通常分为基于特征匹配和基于知识匹配，通常这种召回率较高，准确率低，适合冷启动环境。基于协同过滤的召回通常分为基于人、物、模型三种，通常这种召回准确度较高，但是存在冷启动问题。<br>我们的定位是离线协同过滤(模型)+离线特征+实时特征的多维度圈人，这样既整合了已有的成果，又引入了在线实时特征。由于离线协同过滤已经完成了基于品牌维度人的粗召回，再结合离线特征和实时特征便可以实现在线精召回。如果遇到冷启动问题，我们也可以利用已有的离线特征&amp;实时特征并结合品牌信息通过知识匹配来解决。<br>整体的方案详见下图：<br><img src="/images/promodws.png" alt="promodws"><br>上图不但描述了整个数据流程，而且也包含了部分技术选型，每个部分的职责如下。<br><code>离线模块</code>基于MaxCompute，绝大部分算法逻辑和所有的模型训练都在此完成，所有的离线特征都在此产出，数据通过OSS文件传递给上游。<code>实时模块</code>基于BLink，负责过滤和粗加工流式数据，数据分为平台数据和私域数据，所有的实时特征都在此产出，数据通过Kafka消息传递给上游。<code>数据服务模块</code>基于Java工程，其一是将离线和实时产出的特征写入Elasticsearch，其二是根据召回策略从Elasticsearch中查出符合规则的人再经过逻辑处理（算法二次打分/排序过滤）之后返回以供投放。<code>效果分析模块</code>复用底层的离线和实时能力，不仅仅是对投放效果跟踪分析，而且还为上层的投放决策和A/B Test提供数据支撑。<code>决策服务</code>是一个虚拟层，投放平台将营销活动的召回策略和投放策略告诉给数据服务，数据服务将召回的人按照投放决策来进行投放，可能会先试投一批人，如果转化率不够理想，投放决策就会停止后续的投放，从而调整召回决策或者算法逻辑然后再次尝试，直至达到预期目标。<code>投放平台</code>是整个产品的门面，商户运营人员都工作在此。</p>
+<hr>
+<h3 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h3><h4 id="多租户"><a href="#多租户" class="headerlink" title="多租户"></a>多租户</h4><p>SaaS离不开租户（品牌）的概念，不论是资源的分配、数据的安全，还是技术层面的分库分表。营销是需要成本的，特别是精准营销，需要大量的算力和存储来支撑；其次特定租户的营销具有低频、周期性的特点，让租户按需申请和结算，这样就降低了使用成本。如果租户没有营销活动时，我们还占用大量的资源去计算和存储，那么肯定会增加租户的沉没成本。当某一个品牌确定好营销时间段，我们会在营销活动前两天开始预热数据，Elasticsearch、Lindorm、Redis、MaxCompute、OSS、BLink等资源才开始真正被使用，这样就能做到按算力和存储的实际使用情况来收费。</p>
+<h4 id="OLAP引擎"><a href="#OLAP引擎" class="headerlink" title="OLAP引擎"></a>OLAP引擎</h4><p>OLAP引擎我们选择了ES（Elasticsearch），Elastic Stack在大数据领域的优异表现大家有目共睹，选择Elasticsearch作为我们多维OLAP引擎最主要的原因分如下几点。</p>
+<h5 id="Index-templates"><a href="#Index-templates" class="headerlink" title="Index templates"></a><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html" target="_blank" rel="noopener">Index templates</a></h5><p>由于多租户的特性，商户营销前系统会为其分配好ES，这个可以理解为分配库。库分配好之后还需要表，表对应的就是ES的索引，这个时候就需要有一套自动建表逻辑，这个自动建表逻辑就可以通过Index templates来实现。Template一般会包含如下信息，表分多少张（shards）、数据保存几份（replicas）、表的生命周期（lifecycle）、表中字段以及字段类型等诸多信息（dynamic field mapping）。有了Index templates就将索引创建逻辑简化到一行代码，创建索引的时候ES会自动根据需要创建的索引名称选择匹配template来创建索引。</p>
+<h5 id="Dynamic-field-mapping"><a href="#Dynamic-field-mapping" class="headerlink" title="Dynamic field mapping"></a><a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.8/dynamic-mapping.html" target="_blank" rel="noopener">Dynamic field mapping</a></h5><p>Schema-free的爽，大家或多或少都应该感受过。随着业务发展，表需要加字段这种情况估计大家都已经麻木了，尤其在数据分析领域，加字段不是一个两个的加而是几十几十的加。ES原生支持字段的自动创建及类型映射，字段类型是通过字段名来完成匹配。通过Dynamic field mapping + Index templates，便可以完全动态化的实现建表和加字段，极大提升了生产力和灵活度。</p>
+<h5 id="Nested-datatype"><a href="#Nested-datatype" class="headerlink" title="Nested datatype"></a><a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.8/nested.html" target="_blank" rel="noopener">Nested datatype</a></h5><p>传统的数据库里面，数据关系无外乎就三种，一对一、一对多和多对多。如果有数据有关联关系，通常通过主外键来建立数据联系，查询的时候通过join来获取完整信息。传统的关系型数据库中，很难做到一行记录中存储某个实体以及附属的信息。但是ES通过Nested数据类型提供了这种能力，它是NoSQL的一种高级特性。不但可以查询实体的时候直接带出附属信息，而是还可以在多个附属信息中查询满足条件的附属信息然后带出实体信息。例如用户（实体）一天内会有多个不同时间点的Geo Point（附属信息），一个签约品牌需要针对旗下的某几个门店做一场营销活动，需要选出最近3小时活跃在这些门店周边N公里的用户，不同的门店的筛选距离可能还不一样，nested type就能很完满的解决该问题。</p>
+<hr>
+<h4 id="特征存储"><a href="#特征存储" class="headerlink" title="特征存储"></a>特征存储</h4><h5 id="离线特征为什么不直接通过数据集成输出到ES？"><a href="#离线特征为什么不直接通过数据集成输出到ES？" class="headerlink" title="离线特征为什么不直接通过数据集成输出到ES？"></a>离线特征为什么不直接通过数据集成输出到ES？</h5><p>首先是算法产出特征名具有业务意义所以很长，特征字段名需要映射为正确类型的短字段名；其次是字段值也需要转化，需要转化为符合字段类型的值；最后是复杂的索引管理，数据处理完成之后还有各种针对索引的操作（alias管理、index切换、replica设置等）。这样做可以以最低成本来存储及传输，因为任何小的优化在海量数据下都会被放大，而且通过代码可以更加灵活的控制处理逻辑。</p>
+<h4 id="离线特征产出存储我们选择了OSS，而不是输出到Lindorm-ADB等？"><a href="#离线特征产出存储我们选择了OSS，而不是输出到Lindorm-ADB等？" class="headerlink" title="离线特征产出存储我们选择了OSS，而不是输出到Lindorm/ADB等？"></a>离线特征产出存储我们选择了OSS，而不是输出到Lindorm/ADB等？</h4><p>不选择Lindorm和ADB等DB的原因，首先是不论写入还是读取所付出的性能损耗还是存储成本都要比OSS大的多，毕竟数据库需要维护自己特有的一套数据结构来支持数据管理；其次是业务并不需要查询，需要的是每一个Brand前一个周期算好的全量离线特征。所以我们直接通过MaxCompute的输出到外表（OSS），BrandId+DateTime作为分区输出即可。需要注意的是品牌太多可能会导致分区数超过MaxCompute的分区限制，可以通过每次跑一部分品牌，多次输出来解决。MaxCompute在输出OSS的时候，数据格式建议使用orc/parquet，tsv/csv半结构化数据膨胀非常厉害，它们之间存储大小的差异是数量级的。如果业务需要用tsv/csv，可以采用gzip压缩，从而来优化文件大小。</p>
+<h5 id="实时特征为什么需要输出到Kafka？"><a href="#实时特征为什么需要输出到Kafka？" class="headerlink" title="实时特征为什么需要输出到Kafka？"></a>实时特征为什么需要输出到Kafka？</h5><p>主要原因就是Kafka相比RocketMQ/RabbbitMQ更适合大批量数据的写入，在大批量数据写入方面RocketMQ/RabbitMQ性能是不及Kafka的，RocketMQ/RabbitMQ更多的是关注在消息的安全/事务等特性。</p>
+<hr>
+<h3 id="数据服务"><a href="#数据服务" class="headerlink" title="数据服务"></a>数据服务</h3><h4 id="存储服务"><a href="#存储服务" class="headerlink" title="存储服务"></a>存储服务</h4><h5 id="职责"><a href="#职责" class="headerlink" title="职责"></a>职责</h5><ul>
+<li>将离线/实时特征索引到ES</li>
+<li>存储最近24小时的实时特征</li>
+</ul>
+<h5 id="索引切换流程"><a href="#索引切换流程" class="headerlink" title="索引切换流程"></a>索引切换流程</h5><p>为了简化索引生命周期管理以及提升索引性能，每当新的离线特征生成之时，我们会用新的离线特征生成一份新的索引，最后当新索引完成之后替换掉老索引。为了实现整个数据处理过程和索引切换过程业务方式无感知，ES别名（Alias）起到了关键性的作用，正是由于它的存在才让这一切变的成本低廉。为了清晰的阐述整个数据索引流程，我们拿某一个品牌的分片索引切换来说明，见下图：<br><img src="/images/index_switch_flow.png" alt="index_switch_flow"><br><code>user_feature_brand1</code> 业务查询所用别名<br><code>user_feature_brandId1_partition1_u</code> 实时特征更新更新所用别名<br><code>user_feature_brandId1_partition1_i</code> 离线特征写入和备份实时特征更新所用别名</p>
+<h5 id="流程如何编排？"><a href="#流程如何编排？" class="headerlink" title="流程如何编排？"></a>流程如何编排？</h5><p>MaxCompute离线特征生成之后，存储服务会查询出每个ES集群所支持的品牌，并根据其优先级排好序。然后每个ES集群只为优先级最高的品牌开启一个ScheduleX网格计算任务，每个ScheduleX任务会根据品牌的OSS文件来划分子任务，上一个做完再做下一个。一个集群只跑一个品牌，主要是防止ES压力过大导致在线服务的不可用。使用ScheduleX作为计算框架是为了简化子任务的分发、重试、并发控制等逻辑，这样不但可以充分利用分布式的算力而且还让我们从复杂的状态管理中抽身而出，聚焦在主任务的编排上。</p>
+<h5 id="为什么要保存最近24小时的实时特征？"><a href="#为什么要保存最近24小时的实时特征？" class="headerlink" title="为什么要保存最近24小时的实时特征？"></a>为什么要保存最近24小时的实时特征？</h5><p>虽然实时特征会实时写入到了ES之中，但是每次新的离线特征产出之后会触发新索引创建，新的索引中是没有实时特征的，所以我们需要使用备份的实时特征来更新到新的索引中。</p>
+<h5 id="为什么需要每次都重建索引？"><a href="#为什么需要每次都重建索引？" class="headerlink" title="为什么需要每次都重建索引？"></a>为什么需要每次都重建索引？</h5><p>不拿新的离线特征直接去更新已有的索引呢，其一是因为更新索引比重建新索引的要慢很多；其二要更新就需要对比新老数据，从而知道哪些数据变化了、哪些数据删除了、哪些数据新增了，会让MaxCompute任务逻辑非常复杂。</p>
+<h5 id="如何控制实时特征如何保存-如何控制生命周期？"><a href="#如何控制实时特征如何保存-如何控制生命周期？" class="headerlink" title="如何控制实时特征如何保存/如何控制生命周期？"></a>如何控制实时特征如何保存/如何控制生命周期？</h5><p>海量实时特征的存储，Lindorm是最佳的存储介质。它相较于传统DB，一是存储/扩容成本的优势，二是宽表/动态列的支持，三是数据精细的生命周期控制。任何事情都不是完美的，使用时特别要注意rowkey的设计，否则会产生数据倾斜、数据热点和查询受限等诸多问题。</p>
+<h5 id="如何实现新旧实时特征融合及乐观锁控制？"><a href="#如何实现新旧实时特征融合及乐观锁控制？" class="headerlink" title="如何实现新旧实时特征融合及乐观锁控制？"></a>如何实现新旧实时特征融合及乐观锁控制？</h5><p>用备份的旧实时特征去更新新索引，但新的实时特征却还在不断的流入；其次消息乱序，新数据先到老数据后到；如何保证老数据不会覆盖新数据？该问题分两个维度来讨论，首先是ES层面的乐观锁控制，其实是Lindorm层面的乐观锁控制。ES层面，在开始读取备份实时特征之前，首先通过ES的Alias来开启新时特征新老索引的双写，然后再读取备份的实时特征去更新新的索引，也就是说此时新老数据都在同时更新新的索引。非时间型的实时特征在ES中会保存为两个字段，一个是特征值一个是特征时间，通过特征时间来做乐观锁控制，通过ES的Update By Query API来更新。Lindorm层面的乐观锁控制也比较简单，通过指定时间戳写入便可以实现乐观锁控制，老的时间戳是不能覆盖新的时间戳数据的。</p>
+<h5 id="Update-By-Query命中率不高，很多无效的Query如何解决？"><a href="#Update-By-Query命中率不高，很多无效的Query如何解决？" class="headerlink" title="Update By Query命中率不高，很多无效的Query如何解决？"></a>Update By Query命中率不高，很多无效的Query如何解决？</h5><p>为了高效的插入，我们没有做_id层面的去重，所以更新的时候需要先查再更新。Update By Query相较于纯Update会多一次查询，别小看多的这一次查询，因为哪怕每条记录更新一毫秒，当乘以十亿的时候这就是相当恐怖的一个延迟了，并且这还是不考虑到一个人属于多个品牌的情况。这还不是问题的关键，问题的关键是不知道某个用户是否在某个品牌下，只有做一次查询才知道，如果存在就更新，如果不在就忽略，忽略的这次查询就是无效成本。例如当某个用户的经纬度发生了变化时，需要更新所有品牌下该用户的经纬度特征。<br>由于我们并不知道该用户是否在某个品牌下，所以对于中小品牌Update By Query会发现大量的Query少量的Update，出现这种情况是由于用户被算法粗筛排除在该品牌之外。大量无效的查询加重了ES的负载，是否存在成本更为低廉、性能更优的方式来替代ES查询，在更新之前就知道该用户是否存在于该品牌之下呢？布隆过滤器理所当然的成为了首选方案，为了解决分布式的需求，我们选择了阿里云的Redis布隆过滤器实现，不过需要注意的是受限于Redis单机4G内存的限制，如果存在空间需求大于2G的布隆过滤器，最好提前做好分片逻辑规划。有了布隆过滤器，在用品牌的离线数据创建索引的时候将用户的ID写入到品牌的布隆过滤器中，在后续的更新时，先去布隆过滤器中判断该用户是否存在，存在的话我们再去做Update By Query。</p>
+<h5 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h5><p>存储服务是整个设计中难点所在。存储服务最大的瓶颈又在ES，为了获得极致的性能，当然离不开ES常规的性能优化，例如调大refresh_interval/translog .flush_threshold_size/translog.sync_interval、调低number_of_replicas、translog.durability同步改异步、bulk操作（client版本需大于7.5.0，否则死锁）等。性能只是众多技术细节中的一小部分，还有品牌优先级控制、索引模板设计、索引管理、布隆过滤器管理、Lindorm表结构设计、ES算力水位控制、数据生命周期管理等，都需要细致的考虑和设计。</p>
+<h4 id="召回-amp-排序"><a href="#召回-amp-排序" class="headerlink" title="召回&amp;排序"></a>召回&amp;排序</h4><p>该服务主要分为查询场景管理和查询结果算法排序两部分。不同的查询场景就是不同的Query DSL，通过JEXL/Java Template来提供动态DSL能力。算法排序算子是通过一套规范的接口设计，让算法可以通过plugin的形式集成到业务逻辑中。</p>
+<h5 id="为什么不用ES默认的JSON动态模板？"><a href="#为什么不用ES默认的JSON动态模板？" class="headerlink" title="为什么不用ES默认的JSON动态模板？"></a>为什么不用ES默认的JSON动态模板？</h5><p>JSON格式的DSL动态模板，只能支持简单的参数动态化，没有条件表达式（可选条件）及循环表达式（动态参数），而JEXL/Java Template却能完美的解决该问题。根据业务层传递的搜索条件，执行条件判断及动态参数赋值从而最终生成用于ES搜索用的DSL脚本。</p>
+<h5 id="为什么还需要过滤-排序算子？"><a href="#为什么还需要过滤-排序算子？" class="headerlink" title="为什么还需要过滤/排序算子？"></a>为什么还需要过滤/排序算子？</h5><p>特殊情况下，通过ES召回的还需要再进行一次过滤/精排，这个时候需要跟算法同学共建，让算法同学的算法能够运行在工程代码之上，所以抽象出了一套过滤排序算子规范。</p>
+<hr>
+<h3 id="效果分析"><a href="#效果分析" class="headerlink" title="效果分析"></a>效果分析</h3><p>效果分析也分为实时和离线两条链路，实时链路主要用来做A/B Test和投放决策，离线链路主要负责产出投放效果报表所需的各种数据。好的效果分析离不开完善的埋点策略和数据采集工具支撑，否则就会出现数据映射偏差。</p>
+<hr>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>上述所讲还是偏一些技术细节，为什么花大量的篇幅来阐述这些细节，因为任何一个小的缺陷在海量数据下都会放大。当然还有很多没有说到或者说明白，例如资源如何实现动态分配，效果分析如何影响投放决策等，后续有机会会一一补上。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Elasticsearch</tag>
+        <tag>精准营销</tag>
+        <tag>BLink</tag>
+        <tag>MaxCompute</tag>
+        <tag>Lindorm</tag>
+        <tag>OSS</tag>
+        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -2144,56 +2259,6 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </tags>
   </entry>
   <entry>
-    <title>生产环境难题解决方案</title>
-    <url>/2015/06/25/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%B0%83%E8%AF%95%E9%9A%BE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/</url>
-    <content><![CDATA[<h3 id="生产环境调试难题"><a href="#生产环境调试难题" class="headerlink" title="生产环境调试难题"></a>生产环境调试难题</h3><p>当我们的代码运行在生产环境时，各种千奇百怪的事情都有可能发生，而此时我们已经离开了舒服的开发环境，不能使用自己习惯的IDE来单步调试。当我们生产环境出现问题时，我们需要第一时间知道问题出在哪里。因此我们需要未雨绸缪做好准备，否者等问题发生时才通过漫无目的的查找日志，不但时间成本太高，并且不见得有效。</p>
-<p>SOA，分布式，微服务….虽然带来了高可用和可扩展，但是同时也将系统架构的复杂度提升了好几个等级。经常我们会发现一个服务的不可用，是由于例外一个它依赖的服务导致的。持续交付和代码的不断更改，生产环境错误被找到的速度越来越快。然而如今，我们面对更大的困难是当错误发生时，我们如何提取错误的状态，比如变量值，错误，甚至逻辑代码块。</p>
-<p>目前主流的解决方案有如下几种:</p>
-<ol>
-<li>分布式日志</li>
-<li>高级的jstack</li>
-<li>Btrack</li>
-<li>定制的JVM代理</li>
-</ol>
-<a id="more"></a>
-<hr>
-<h3 id="分布式日志"><a href="#分布式日志" class="headerlink" title="分布式日志"></a>分布式日志</h3><p>分布式日志，就是我们每行日志都有清楚的上下文，我们只需要通过这行日志就能知道整个RPC调用链上发生的整个情况。对于分布式日志系统，业界成熟的产品有<strong>淘宝的鹰眼</strong>和<strong>点评的cat</strong>。原理就是RPC的第一跳，就生成一个全局唯一的UUID，该UUID会在整个RPC调用链中传递，并在需要打印日志的地方表现出来。很多日志库可以修改<strong>MDC(Mapped Diagnostic Context)</strong>来实现，如果没有也可以通过ThreadLocal来实现。至于该UUID如何在RPC调用链上传递，就需要自己在协议层面完善了。于此同时我们还可以结合<a href="https://www.elastic.co/products/logstash" target="_blank" rel="noopener">Logstash</a>或者<a href="https://www.loggly.com/" target="_blank" rel="noopener">Loggly</a>等日志管理工具，来简化日志管理。当然也有很多公司，通过<strong>rsyslog</strong>和<strong>syslog-ng</strong>甚至通过<strong>rsync</strong>来实现日志的集中化管理。</p>
-<p>导致线程终结的未捕获异常点，通常包含许多有用信息。绝大多数的框架能够将这些异常信息打印出来，如果要自己实现，可以通过一个全局的<strong>Exception Handler</strong>来实现。在未捕获的异常发生时，我们在打印日志时，注意以下的3点。</p>
-<ol>
-<li>线程名字：根据你请求的参数来修改线程名，比如RPCID或者事务ID，这样我们查找日志时，便能一眼知道该线程在干嘛。</li>
-<li>ThreadLocal(TLS)：在未捕获异常发生时，我们最好将ThreadLocal中的数据打印出来。因为除了数据和线程的名字，没有太多的程序能够到达异常点来记录TLS中的数据。这些现场数据保留的越多越好，当你追查问题时，便会从中受益。</li>
-<li>MDC：它类似与TLS，MDC是Log4j或者Logback日志框架的一部分。它就是在指定的日志级别上创建了一个静态Map，相比TLS，它的功能更高级些。</li>
-</ol>
-<h3 id="先发制人的Jstack"><a href="#先发制人的Jstack" class="headerlink" title="先发制人的Jstack"></a>先发制人的Jstack</h3><p>jstack作为一款jdk自带的强大工具，被大多数的程序员所熟悉。它能够hook进正在运行的程序和输出被hook程序的堆栈，数据帧，Java虚拟机或者native，锁以及其它各种各样的元数据，它还能分析已经dump出来的堆栈信息。</p>
-<p>虽然它很强大，但是我们都主要用在问题已出的事后，通过它来寻找蛛丝马迹定位问题所在。如果说能够在问题发生前或者问题发生中，我们就能够知道，并且将现场给保存下来，那么这无疑会降低问题的定位难度。下面给出一个当吞吐量达到一定阀值，自动jstack的例子。具体代码详见<a href="https://github.com/chengdedeng/jstack" target="_blank" rel="noopener">链接</a></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startScheduleTask</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   scheduler.scheduleAtFixedRate(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">           checkThroughput();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;, APP_WARMUP, POLLING_CYCLE, TimeUnit.SECONDS);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkThroughput</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> throughput = adder.intValue(); <span class="comment">//the adder is inc’d when a message is processed</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (throughput &lt; MIN_THROUGHPUT) &#123;</span><br><span class="line"></span><br><span class="line">       Thread.currentThread().setName(<span class="string">"Throughput jstack thread: "</span> + throughput);</span><br><span class="line"></span><br><span class="line">       System.err.println(<span class="string">"Minimal throughput failed: executing jstack"</span>);</span><br><span class="line"></span><br><span class="line">       executeJstack();  <span class="comment">// See the code on GitHub to learn how this is done</span></span><br><span class="line"></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   adder.reset();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<hr>
-<h3 id="有状态的Jstack"><a href="#有状态的Jstack" class="headerlink" title="有状态的Jstack"></a>有状态的Jstack</h3><p>Jstack存在的例外一个问题就是，虽然他提供了非常丰富的元数据，但是我们缺乏导致错误的实际状态。我们可以设置线程名称来解决。为了能够找到错误的根源，我们需要的不仅仅是一个堆栈追踪信息。我们以数据库查询为例，我们在程序中加入这样一行代码：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Thread.currentThread().setName(Context + TID + Params + current Time, ...);</span><br></pre></td></tr></table></figure>
-<p>没有设置前，数据的元数据如下：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">“ pool-1-thread-1 ″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
-<p>现在看起来是这样的：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">”Queue Processing Thread, MessageID: AB5CAD, <span class="built_in">type</span>: AnalyzeGraph, queue: ACTIVE_PROD, Transaction_ID: 5678956, Start Time: 10/8/2014 18:34″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
-<p>现在的输出可以帮助我们更好的了解程序到底发生了什么。现在我们可以知道线程接收的参数，事务ID，消息ID。有了这些参数，我们就可以追溯问题，发现错误和解决问题。</p>
-<h3 id="BTrace"><a href="#BTrace" class="headerlink" title="BTrace"></a>BTrace</h3><p>不论是日志还是jstack都不能对JVM的运行状态进行很好的可视化，BTrace使用Java的<strong>Attach</strong>技术，可以让我们无缝的将我们BTrace脚本挂到JVM上。通过脚本你可以获取到任何你想拿到的数据，在侵入性和安全性上都非常可靠，特别是定位线上问题的神器。BTrace的详细使用，可以见我的例外<a href="/2015/06/08/btrace笔记">一篇文章</a>。</p>
-<p>让我们简单的看一段<strong>BTrace</strong>脚本：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Profiling</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Property</span></span><br><span class="line">    Profiler profiler = BTraceUtils.Profiling.newProfiler();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">entry</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordEntry(profiler, probeMethod);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>, location = <span class="meta">@Location</span>(value = Kind.RETURN))</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod, @Duration <span class="keyword">long</span> duration) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordExit(profiler, probeMethod, duration);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnTimer</span>(<span class="number">5000</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">timer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.printSnapshot(<span class="string">"Performance profile"</span>, profiler);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>BTrace是定位具体问题的有效工具，但是它的开销是非常显著的，使用的时候要小心，避免过高的开销影响重要业务。</p>
-<h3 id="自定义代理"><a href="#自定义代理" class="headerlink" title="自定义代理"></a>自定义代理</h3><p>跟BTrace一样，我们也可以自己定义Java代理。在Java SE5中，Instrument就已经被加入，Java SE6中，更是实现了动态Instrument。Instrument功能从本地代码中解放出来，使之可以使用使用Java代码在不改变现有代码的前提下，在不重启应用的前提下实现对JVM的监测甚至替换和修改某些类的定义。它有点类似于虚拟机级别的AOP，使开发者不用对jdk做任何改动，就可以实现AOP功能。BTrace的实现就是依靠该功能实现的。</p>
-<p>“java.lang.instrument”包的具体实现，依赖于 JVMTI。JVMTI（Java Virtual Machine Tool Interface）是一套由 Java 虚拟机提供的，为 JVM 相关的工具提供的本地编程接口集合。JVMTI 是从 Java SE 5 开始引入，整合和取代了以前使用的 Java Virtual Machine Profiler Interface (JVMPI) 和 the Java Virtual Machine Debug Interface (JVMDI)，而在 Java SE 6 中，JVMPI 和 JVMDI 已经消失了。JVMTI 提供了一套”代理”程序机制，可以支持第三方工具程序以代理的方式连接和访问 JVM，并利用 JVMTI 提供的丰富的编程接口，完成很多跟 JVM 相关的功能。</p>
-<p>另外，对 native 的 Instrumentation 也是 Java SE 6 的一个崭新的功能，这使以前无法完成的功能 —— 对 native 接口的 instrumentation 可以在 Java SE 6 中，通过一个或者一系列的 prefix 添加而得以完成。</p>
-<p>测试代码可以具体参考<a href="https://github.com/chengdedeng/demo" target="_blank" rel="noopener">该项目</a>中的<strong>attch_api</strong>包下面的代码。</p>
-<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>很多时候个人价值的体现就是当有问题发生时，看谁能够更快速的解决问题。今天对于一个需要提供7*24小时服务的应用来说，别说停机，就是部分服务出现问题都是不可容忍的。谁能在最短的时间修复问题，并且快速部署，谁就更能创造价值。</p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>Thread</tag>
-        <tag>BTrace</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>漫谈IM通信架构</title>
     <url>/2015/08/17/%E6%BC%AB%E8%B0%88%E9%80%9A%E8%AE%AF%E6%9E%B6%E6%9E%84/</url>
     <content><![CDATA[<blockquote>
@@ -2264,48 +2329,6 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </tags>
   </entry>
   <entry>
-    <title>分布式事务笔记</title>
-    <url>/2016/05/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>最近研究避免分布式事务，有幸读到<a href="https://twitter.com/david_syer" target="_blank" rel="noopener">David Syer</a>于09年发布在JavaWorld的<a href="http://www.javaworld.com/article/2077963/open-source-tools/distributed-transactions-in-spring--with-and-without-xa.html" target="_blank" rel="noopener">HOW-TO<br>Distributed transactions in Spring, with and without XA</a>，虽然文章和测试代码都老了点，但是思想不变。</p>
-<h3 id="Full-XA-with-2PC"><a href="#Full-XA-with-2PC" class="headerlink" title="Full XA with 2PC"></a>Full XA with 2PC</h3><p>如果需要近乎完美的防护，2PC绝对是不二之选，但是它的性能损耗是显而易见的，这也是为什么大家谈分布式事务而闻之色变的原因。此处我们不谈性能，只谈Spring是如何支持2PC XA的。Spring为我们提供了JtaTransactionManager和声明式事务，将复杂的同步细节进行了托管。我们只需要关注DataSource的配置，例如通过开源的JTA实现<a href="https://www.atomikos.com/" target="_blank" rel="noopener">Atomikos</a>来配置DataSource。</p>
-<h3 id="XA-with-1PC-Optimization"><a href="#XA-with-1PC-Optimization" class="headerlink" title="XA with 1PC Optimization"></a>XA with 1PC Optimization</h3><p>1PC可以看做是单一事务资源下2PC的的优化版本，许多的事务管理器通过这种模式来优化2PC的过度开销。但是并不是单一事务资源，就表示一定走的是1PC，因为XA事务管理器会根据通讯时间的长度，来判断网络通讯的危险期，即使连接一个数据库也应该使用两阶段提交，如果通讯危险期很短，多个事务资源也有可能使用一阶段提交。</p>
-<a id="more"></a>
-<h3 id="XA-and-the-Last-Resource-Gambit"><a href="#XA-and-the-Last-Resource-Gambit" class="headerlink" title="XA and the Last Resource Gambit"></a>XA and the Last Resource Gambit</h3><p>目前市面上绝大多数的XA事务管理都有一个特点，那就是不论资源是部分XA兼容还是所有的都XA兼容，事务管理器都能够提供相同的事务保障。当资源经过排序，并且非XA资源通过投票机制，可以保证事务失败时所有的资源都能回滚。它对事务的保证是可以完全放心的，但是如果事务失败不会留下太多信息，如果想获取这些信息，就需要一些高级实现了。</p>
-<h3 id="XA模式总结"><a href="#XA模式总结" class="headerlink" title="XA模式总结"></a>XA模式总结</h3><p>前面介绍了三种基于XA协议的模式，不过从性能的方面来考虑，这些模式可能不能让我们满意，尤其是特别关注并发的互联网业务。我们可以了解并学习它，知道何时、如何避免使用XA，何时又必须使用。当然也有开发能力很强的团队，自己研发了两阶段提交事务框架，例如支付宝。</p>
-<h3 id="Shared-Transaction-Resource-pattern"><a href="#Shared-Transaction-Resource-pattern" class="headerlink" title="Shared Transaction Resource pattern"></a>Shared Transaction Resource pattern</h3><p>这个模式就是将所有的事务资源绑定到一个相同的资源，从而实现分布式事务，提升系统吞吐量。该模式的使用场景是受限制的，不能拿来处理所有的用例，但是它如XA一样坚固可靠。为了详细说明该模式，我通过两个案例来阐述。</p>
-<h4 id="共享数据库Connection"><a href="#共享数据库Connection" class="headerlink" title="共享数据库Connection"></a>共享数据库Connection</h4><p>我们在使用spring的声明式事务的时候，通常都是由service层来控制的，这点是基础共识。这样不论我们是使用ORM还是JDBC抽象框架，只要底层的Connection是共享的，那么我们即使配置了多个上层的模板(Mybatis or JdbcTemplate)，事务的安全就能够得到保证。这便是共享资源模式最简单最直接的体现，只是我们平时没有关注而已。</p>
-<h4 id="消息驱动的单Database更新"><a href="#消息驱动的单Database更新" class="headerlink" title="消息驱动的单Database更新"></a>消息驱动的单Database更新</h4><p>这种模式就是将消息中间件的Connection和数据库的Connection交给一个代理，这个代理依赖于消息中间厂商的存储策略细节，并且不是所有的供应商都提供这种模式。这种模式的使用并不常见，因为我们更喜欢用<code>Best Efforts 1PC pattern</code>中消息驱动模式，因为它更简单。下面的配置可以让我们窥一斑而见全豹，如果想更清晰的了解消息驱动的单Database的更新，请下载原文的代码研究。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"brokerService"</span> <span class="attr">class</span>=<span class="string">"org.apache.activemq.broker.BrokerService"</span></span></span><br><span class="line"><span class="tag">		<span class="attr">init-method</span>=<span class="string">"start"</span> <span class="attr">destroy-method</span>=<span class="string">"stop"</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"brokerName"</span> <span class="attr">value</span>=<span class="string">"broker"</span> /&gt;</span></span><br><span class="line">		<span class="comment">&lt;!-- Enable this if you need to inspect with JMX --&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useJmx"</span> <span class="attr">value</span>=<span class="string">"false"</span> /&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"transportConnectorURIs"</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">list</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">value</span>&gt;</span>vm://localhost<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"persistenceAdapter"</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.apache.activemq.store.jdbc.JDBCPersistenceAdapter"</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span>&gt;</span></span><br><span class="line">					<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"com.springsource.open.jms.JmsTransactionAwareDataSourceProxy"</span>&gt;</span></span><br><span class="line">						<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"targetDataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span>/&gt;</span></span><br><span class="line">						<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jmsTemplate"</span> <span class="attr">ref</span>=<span class="string">"jmsTemplate"</span>/&gt;</span></span><br><span class="line">					<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"createTablesOnStartup"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<h3 id="Best-Efforts-1PC-pattern"><a href="#Best-Efforts-1PC-pattern" class="headerlink" title="Best Efforts 1PC pattern"></a>Best Efforts 1PC pattern</h3><p>该模式应用相当广泛，这也是我最喜欢的模式之一。虽然在安全性上不如XA，但是在大数据、高并发等性能上却得到了极大的提升。那我们如何判断我们的系统是否可以使用该模式，建议参考下面的两点：</p>
-<ol>
-<li>各个事务资源基础组件出错概率非常小。</li>
-<li>业务可以设计为幂等性。</li>
-</ol>
-<p>只要满足以上两点，事务发生错误的可能性就非常小了。为了简单的说明此模式，我结合Rabbitmq和Mysql来说明，先简单的来一段配置。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jsonMessageConverter"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">class</span>=<span class="string">"org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">rabbit:connection-factory</span> <span class="attr">id</span>=<span class="string">"rabbitConnectionFactory"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">addresses</span>=<span class="string">"10.11.25.222"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">username</span>=<span class="string">"yangguo"</span></span></span><br><span class="line"><span class="tag">                             <span class="attr">password</span>=<span class="string">"yangguo"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">rabbit:template</span> <span class="attr">id</span>=<span class="string">"rabbitTemplate"</span> <span class="attr">connection-factory</span>=<span class="string">"rabbitConnectionFactory"</span></span></span><br><span class="line"><span class="tag">                   <span class="attr">message-converter</span>=<span class="string">"jsonMessageConverter"</span> <span class="attr">channel-transacted</span>=<span class="string">"true"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
-<p>再来两段Java代码</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"> <span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">provierSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     User user = <span class="keyword">new</span> User();</span><br><span class="line">     user.setUserName(<span class="string">"yangguo"</span>);</span><br><span class="line">     user.setPassword(<span class="string">"yangguo"</span>);</span><br><span class="line">     userMapper.insert(user);</span><br><span class="line"></span><br><span class="line">     rabbitTemplate.convertAndSend(<span class="string">"amq.topic"</span>, <span class="keyword">null</span>, user);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-<p>上面代码处理的业务逻辑是将用户插入到用户表的同时向消息队列发一条消息，插入DB和发送消息到MQ是包在一个事务中。下面的代码则是消费消息，也是包在一个事务中。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Transactional</span>(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">consumeSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    User user= (User) rabbitTemplate.receiveAndConvert(<span class="string">"test-queue"</span>);</span><br><span class="line">    friendMapper.update(user);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码其实很简单，首先配置一个支持事务的RabbitTemplate，主要设置<code>channel-transacted=&quot;true&quot;</code>，当然Mysql DataSource和Mybatis的配置，我就省略了，然后剩下的事情就交给Spring的Transaction吧。不过原文是使用ActiveMQ来讲解的，不过思想都是一样的。当然作者在原文中还解释了一种链式事务管理器，其实上面的例子也是一种链式思路，链式事务管理器非常注重顺序性，因为回滚和业务顺序正好相反。现阶段的spring事务处理，默认就是一种链式思路，只要你在service上面加了@Transaction或者在XML里面配置了切面，那么处于切面中的方法中的分布式资源就会受到spring事务管理器的托管。这也是最大努力一次提交模式流行的真正原因，因为它就是Spring事务管理器的核心。当然如果我们使用消息队列的Topic模式，是可以绕过<code>消息驱动的单Database更新</code>的，因为我们只要能够实现最终一致性就OK了。</p>
-<h3 id="Nontransactional-Access-pattern"><a href="#Nontransactional-Access-pattern" class="headerlink" title="Nontransactional Access pattern"></a>Nontransactional Access pattern</h3><p>这个模式是需要特殊的业务场景，理想情况是非事务或者本地事务的逻辑是边缘业务，该业务具备幂等性或者从逻辑的角度来说具备幂等性。当然该模式可以是分布式事务和非事务的组合，也可以全部都是非事务逻辑，还可以是分布式事务和本地事务的组合。这种模式需要细致的分析，只有对业务充分了解，才能确定哪些可以走非事务或者本地事务。当然业务出错，你可以使用补偿机制，不过请注意通用的事务补偿通常都很麻烦。</p>
-<h3 id="HALF消息-本地事务表-消息回查"><a href="#HALF消息-本地事务表-消息回查" class="headerlink" title="HALF消息+本地事务表+消息回查"></a>HALF消息+本地事务表+消息回查</h3><p>这种模式并不是David Syer文章中所提到的模式，不过该模式我认为是最简单和安全的模式，不过需要中间件支持，该类型中间件的代表就是<a href="https://rocketmq.apache.org/" target="_blank" rel="noopener">RocketMQ</a>。为了简单阐述该模式的，我就直接拿RocketMQ的交互流程。</p>
-<p><img src="/images/rocketmq_flow.png" alt="rocketmq_flow"></p>
-<p>该模式在性能和易用性上都有非常好的表现，不过就是需要自己消息回查逻辑，这种模式也是我使用最多的模式。该模式通过本地事务表和消息中间件的状态管理，将复杂的分布式问题简单化，唯一牺牲的就是时效性，因为它只能保证最终一致性。</p>
-<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.ibm.com/developerworks/cn/java/j-lo-spring-ts1/" target="_blank" rel="noopener">Spring 事务管理高级应用难点剖析: 第 1 部分</a></p>
-<p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-spring-ts2/" target="_blank" rel="noopener">Spring 事务管理高级应用难点剖析: 第 2 部分</a></p>
-<p><a href="http://www.ibm.com/developerworks/cn/java/j-ts1.html" target="_blank" rel="noopener">事务策略: 了解事务陷阱</a></p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>Spring</tag>
-        <tag>事务</tag>
-        <tag>分布式事务</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>红星悦家技术研发心得</title>
     <url>/2017/03/17/%E7%BA%A2%E6%98%9F%E4%BA%92%E8%81%94%E7%BD%91%E8%BD%AC%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E5%BF%83%E5%BE%97/</url>
     <content><![CDATA[<blockquote>
@@ -2339,6 +2362,56 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </categories>
       <tags>
         <tag>架构</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>生产环境难题解决方案</title>
+    <url>/2015/06/25/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%B0%83%E8%AF%95%E9%9A%BE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/</url>
+    <content><![CDATA[<h3 id="生产环境调试难题"><a href="#生产环境调试难题" class="headerlink" title="生产环境调试难题"></a>生产环境调试难题</h3><p>当我们的代码运行在生产环境时，各种千奇百怪的事情都有可能发生，而此时我们已经离开了舒服的开发环境，不能使用自己习惯的IDE来单步调试。当我们生产环境出现问题时，我们需要第一时间知道问题出在哪里。因此我们需要未雨绸缪做好准备，否者等问题发生时才通过漫无目的的查找日志，不但时间成本太高，并且不见得有效。</p>
+<p>SOA，分布式，微服务….虽然带来了高可用和可扩展，但是同时也将系统架构的复杂度提升了好几个等级。经常我们会发现一个服务的不可用，是由于例外一个它依赖的服务导致的。持续交付和代码的不断更改，生产环境错误被找到的速度越来越快。然而如今，我们面对更大的困难是当错误发生时，我们如何提取错误的状态，比如变量值，错误，甚至逻辑代码块。</p>
+<p>目前主流的解决方案有如下几种:</p>
+<ol>
+<li>分布式日志</li>
+<li>高级的jstack</li>
+<li>Btrack</li>
+<li>定制的JVM代理</li>
+</ol>
+<a id="more"></a>
+<hr>
+<h3 id="分布式日志"><a href="#分布式日志" class="headerlink" title="分布式日志"></a>分布式日志</h3><p>分布式日志，就是我们每行日志都有清楚的上下文，我们只需要通过这行日志就能知道整个RPC调用链上发生的整个情况。对于分布式日志系统，业界成熟的产品有<strong>淘宝的鹰眼</strong>和<strong>点评的cat</strong>。原理就是RPC的第一跳，就生成一个全局唯一的UUID，该UUID会在整个RPC调用链中传递，并在需要打印日志的地方表现出来。很多日志库可以修改<strong>MDC(Mapped Diagnostic Context)</strong>来实现，如果没有也可以通过ThreadLocal来实现。至于该UUID如何在RPC调用链上传递，就需要自己在协议层面完善了。于此同时我们还可以结合<a href="https://www.elastic.co/products/logstash" target="_blank" rel="noopener">Logstash</a>或者<a href="https://www.loggly.com/" target="_blank" rel="noopener">Loggly</a>等日志管理工具，来简化日志管理。当然也有很多公司，通过<strong>rsyslog</strong>和<strong>syslog-ng</strong>甚至通过<strong>rsync</strong>来实现日志的集中化管理。</p>
+<p>导致线程终结的未捕获异常点，通常包含许多有用信息。绝大多数的框架能够将这些异常信息打印出来，如果要自己实现，可以通过一个全局的<strong>Exception Handler</strong>来实现。在未捕获的异常发生时，我们在打印日志时，注意以下的3点。</p>
+<ol>
+<li>线程名字：根据你请求的参数来修改线程名，比如RPCID或者事务ID，这样我们查找日志时，便能一眼知道该线程在干嘛。</li>
+<li>ThreadLocal(TLS)：在未捕获异常发生时，我们最好将ThreadLocal中的数据打印出来。因为除了数据和线程的名字，没有太多的程序能够到达异常点来记录TLS中的数据。这些现场数据保留的越多越好，当你追查问题时，便会从中受益。</li>
+<li>MDC：它类似与TLS，MDC是Log4j或者Logback日志框架的一部分。它就是在指定的日志级别上创建了一个静态Map，相比TLS，它的功能更高级些。</li>
+</ol>
+<h3 id="先发制人的Jstack"><a href="#先发制人的Jstack" class="headerlink" title="先发制人的Jstack"></a>先发制人的Jstack</h3><p>jstack作为一款jdk自带的强大工具，被大多数的程序员所熟悉。它能够hook进正在运行的程序和输出被hook程序的堆栈，数据帧，Java虚拟机或者native，锁以及其它各种各样的元数据，它还能分析已经dump出来的堆栈信息。</p>
+<p>虽然它很强大，但是我们都主要用在问题已出的事后，通过它来寻找蛛丝马迹定位问题所在。如果说能够在问题发生前或者问题发生中，我们就能够知道，并且将现场给保存下来，那么这无疑会降低问题的定位难度。下面给出一个当吞吐量达到一定阀值，自动jstack的例子。具体代码详见<a href="https://github.com/chengdedeng/jstack" target="_blank" rel="noopener">链接</a></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startScheduleTask</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   scheduler.scheduleAtFixedRate(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">           checkThroughput();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;, APP_WARMUP, POLLING_CYCLE, TimeUnit.SECONDS);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkThroughput</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> throughput = adder.intValue(); <span class="comment">//the adder is inc’d when a message is processed</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (throughput &lt; MIN_THROUGHPUT) &#123;</span><br><span class="line"></span><br><span class="line">       Thread.currentThread().setName(<span class="string">"Throughput jstack thread: "</span> + throughput);</span><br><span class="line"></span><br><span class="line">       System.err.println(<span class="string">"Minimal throughput failed: executing jstack"</span>);</span><br><span class="line"></span><br><span class="line">       executeJstack();  <span class="comment">// See the code on GitHub to learn how this is done</span></span><br><span class="line"></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   adder.reset();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="有状态的Jstack"><a href="#有状态的Jstack" class="headerlink" title="有状态的Jstack"></a>有状态的Jstack</h3><p>Jstack存在的例外一个问题就是，虽然他提供了非常丰富的元数据，但是我们缺乏导致错误的实际状态。我们可以设置线程名称来解决。为了能够找到错误的根源，我们需要的不仅仅是一个堆栈追踪信息。我们以数据库查询为例，我们在程序中加入这样一行代码：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Thread.currentThread().setName(Context + TID + Params + current Time, ...);</span><br></pre></td></tr></table></figure>
+<p>没有设置前，数据的元数据如下：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">“ pool-1-thread-1 ″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
+<p>现在看起来是这样的：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">”Queue Processing Thread, MessageID: AB5CAD, <span class="built_in">type</span>: AnalyzeGraph, queue: ACTIVE_PROD, Transaction_ID: 5678956, Start Time: 10/8/2014 18:34″ <span class="comment">#17 prio=5 os_prio=31 tid=0x00007f9d620c9800 nid=0x6d03 in Object.wait() [0x000000013ebcc000]</span></span><br></pre></td></tr></table></figure>
+<p>现在的输出可以帮助我们更好的了解程序到底发生了什么。现在我们可以知道线程接收的参数，事务ID，消息ID。有了这些参数，我们就可以追溯问题，发现错误和解决问题。</p>
+<h3 id="BTrace"><a href="#BTrace" class="headerlink" title="BTrace"></a>BTrace</h3><p>不论是日志还是jstack都不能对JVM的运行状态进行很好的可视化，BTrace使用Java的<strong>Attach</strong>技术，可以让我们无缝的将我们BTrace脚本挂到JVM上。通过脚本你可以获取到任何你想拿到的数据，在侵入性和安全性上都非常可靠，特别是定位线上问题的神器。BTrace的详细使用，可以见我的例外<a href="/2015/06/08/btrace笔记">一篇文章</a>。</p>
+<p>让我们简单的看一段<strong>BTrace</strong>脚本：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@BTrace</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Profiling</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Property</span></span><br><span class="line">    Profiler profiler = BTraceUtils.Profiling.newProfiler();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">entry</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordEntry(profiler, probeMethod);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnMethod</span>(clazz = <span class="string">"/info\\.yangguo\\..*/"</span>, method = <span class="string">"/.*/"</span>, location = <span class="meta">@Location</span>(value = Kind.RETURN))</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(@ProbeMethodName(fqn = <span class="keyword">true</span>)</span> String probeMethod, @Duration <span class="keyword">long</span> duration) </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.recordExit(profiler, probeMethod, duration);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnTimer</span>(<span class="number">5000</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">timer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        BTraceUtils.Profiling.printSnapshot(<span class="string">"Performance profile"</span>, profiler);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>BTrace是定位具体问题的有效工具，但是它的开销是非常显著的，使用的时候要小心，避免过高的开销影响重要业务。</p>
+<h3 id="自定义代理"><a href="#自定义代理" class="headerlink" title="自定义代理"></a>自定义代理</h3><p>跟BTrace一样，我们也可以自己定义Java代理。在Java SE5中，Instrument就已经被加入，Java SE6中，更是实现了动态Instrument。Instrument功能从本地代码中解放出来，使之可以使用使用Java代码在不改变现有代码的前提下，在不重启应用的前提下实现对JVM的监测甚至替换和修改某些类的定义。它有点类似于虚拟机级别的AOP，使开发者不用对jdk做任何改动，就可以实现AOP功能。BTrace的实现就是依靠该功能实现的。</p>
+<p>“java.lang.instrument”包的具体实现，依赖于 JVMTI。JVMTI（Java Virtual Machine Tool Interface）是一套由 Java 虚拟机提供的，为 JVM 相关的工具提供的本地编程接口集合。JVMTI 是从 Java SE 5 开始引入，整合和取代了以前使用的 Java Virtual Machine Profiler Interface (JVMPI) 和 the Java Virtual Machine Debug Interface (JVMDI)，而在 Java SE 6 中，JVMPI 和 JVMDI 已经消失了。JVMTI 提供了一套”代理”程序机制，可以支持第三方工具程序以代理的方式连接和访问 JVM，并利用 JVMTI 提供的丰富的编程接口，完成很多跟 JVM 相关的功能。</p>
+<p>另外，对 native 的 Instrumentation 也是 Java SE 6 的一个崭新的功能，这使以前无法完成的功能 —— 对 native 接口的 instrumentation 可以在 Java SE 6 中，通过一个或者一系列的 prefix 添加而得以完成。</p>
+<p>测试代码可以具体参考<a href="https://github.com/chengdedeng/demo" target="_blank" rel="noopener">该项目</a>中的<strong>attch_api</strong>包下面的代码。</p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>很多时候个人价值的体现就是当有问题发生时，看谁能够更快速的解决问题。今天对于一个需要提供7*24小时服务的应用来说，别说停机，就是部分服务出现问题都是不可容忍的。谁能在最短的时间修复问题，并且快速部署，谁就更能创造价值。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Thread</tag>
+        <tag>BTrace</tag>
       </tags>
   </entry>
   <entry>
@@ -2785,60 +2858,6 @@ ii. extraParams:创建状态机时需要的额外参数。如果不需要额外�
       </categories>
       <tags>
         <tag>Thread</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>海量数据下的精准营销工程实践</title>
-    <url>/2020/08/22/%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E4%B8%8B%E7%9A%84%E7%B2%BE%E5%87%86%E8%90%A5%E9%94%80%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</url>
-    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>精准营销从被提出到广泛运用，伴随着互联网技术飞速发展，尤其是大数据和人工智能技术的日趋成熟。精准营销也成为每一家互联网企业必然绕不开的课题，围绕它展开的业务不胜枚举。通常营销过程包含如下三部分：<br>① 营销活动前：确定营销的目标，<br>② 营销活动中：效果监控和跟踪，<br>③ 营销活动后：效果评估和优化。<br>本文主要分享笔者在精准营销工程化方面做的一些尝试和实践，侧重点在营销目标的确定。</p>
-<hr>
-<h3 id="现状"><a href="#现状" class="headerlink" title="现状"></a>现状</h3><p>营销目标就是我们传统意义的圈人，筛选出一批跟营销计划匹配的人。最初圈人逻辑是通过标签圈人，后续又加入了算法圈人，这两种模式的数据核心都基于离线数仓，按天更新。这两种方式在初期能够满足业务需求，但是随着业务发展及精细化运营的需求，该模式短板越来越明显，例如转化率的提升越来越难、实时性不高、灵活度不够等。希望有一套既能兼容现有离线链路，同时又能引入实时特征的方案。</p>
-<hr>
-<h3 id="挑战"><a href="#挑战" class="headerlink" title="挑战"></a>挑战</h3><p>离线链路侧，每个签约品牌每天会基于MaxCompute，通过协同过滤的方式从经济体的数亿用户中召回和品牌群像具有相似度的人，粗召回人数大品牌数亿中小品牌数千万。通过粗召回的数据量乘以签约品牌数，就可以很轻易的预估出离线召回的数据量在百亿级别，并且随着签约品牌的新增该数据量还会增加。实时链路侧，用户的实时特征，例如交易特征、LBS特征、商品加购特征、店铺点击特征等，每天特征总量也维持在几十亿级别，并且特征会随着业务的发展越来越多。<br>面对如此庞大的数据量，每条数据多耗时一毫秒，那么在百亿量级下就会放大到数千小时；一条数据多1bit，百亿就会放大到1G。所以特征数据如何传递、处理、存储都需要精心设计，否则带来的不但是程序性能上的急剧下降，而且还会导致计算和存储成本的飞速飙升，这便是我们在整个系统建设过程中遇到最大挑战。<br><a id="more"></a></p>
-<hr>
-<h3 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h3><p>通常召回策略有很多种，但是最常用的是基于内容匹配的召回和基于协同过滤的召回。基于内容配置的召回通常分为基于特征匹配和基于知识匹配，通常这种召回率较高，准确率低，适合冷启动环境。基于协同过滤的召回通常分为基于人、物、模型三种，通常这种召回准确度较高，但是存在冷启动问题。<br>我们的定位是离线协同过滤(模型)+离线特征+实时特征的多维度圈人，这样既整合了已有的成果，又引入了在线实时特征。由于离线协同过滤已经完成了基于品牌维度人的粗召回，再结合离线特征和实时特征便可以实现在线精召回。如果遇到冷启动问题，我们也可以利用已有的离线特征&amp;实时特征并结合品牌信息通过知识匹配来解决。<br>整体的方案详见下图：<br><img src="/images/promodws.png" alt="promodws"><br>上图不但描述了整个数据流程，而且也包含了部分技术选型，每个部分的职责如下。<br><code>离线模块</code>基于MaxCompute，绝大部分算法逻辑和所有的模型训练都在此完成，所有的离线特征都在此产出，数据通过OSS文件传递给上游。<code>实时模块</code>基于BLink，负责过滤和粗加工流式数据，数据分为平台数据和私域数据，所有的实时特征都在此产出，数据通过Kafka消息传递给上游。<code>数据服务模块</code>基于Java工程，其一是将离线和实时产出的特征写入Elasticsearch，其二是根据召回策略从Elasticsearch中查出符合规则的人再经过逻辑处理（算法二次打分/排序过滤）之后返回以供投放。<code>效果分析模块</code>复用底层的离线和实时能力，不仅仅是对投放效果跟踪分析，而且还为上层的投放决策和A/B Test提供数据支撑。<code>决策服务</code>是一个虚拟层，投放平台将营销活动的召回策略和投放策略告诉给数据服务，数据服务将召回的人按照投放决策来进行投放，可能会先试投一批人，如果转化率不够理想，投放决策就会停止后续的投放，从而调整召回决策或者算法逻辑然后再次尝试，直至达到预期目标。<code>投放平台</code>是整个产品的门面，商户运营人员都工作在此。</p>
-<hr>
-<h3 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h3><h4 id="多租户"><a href="#多租户" class="headerlink" title="多租户"></a>多租户</h4><p>SaaS离不开租户（品牌）的概念，不论是资源的分配、数据的安全，还是技术层面的分库分表。营销是需要成本的，特别是精准营销，需要大量的算力和存储来支撑；其次特定租户的营销具有低频、周期性的特点，让租户按需申请和结算，这样就降低了使用成本。如果租户没有营销活动时，我们还占用大量的资源去计算和存储，那么肯定会增加租户的沉没成本。当某一个品牌确定好营销时间段，我们会在营销活动前两天开始预热数据，Elasticsearch、Lindorm、Redis、MaxCompute、OSS、BLink等资源才开始真正被使用，这样就能做到按算力和存储的实际使用情况来收费。</p>
-<h4 id="OLAP引擎"><a href="#OLAP引擎" class="headerlink" title="OLAP引擎"></a>OLAP引擎</h4><p>OLAP引擎我们选择了ES（Elasticsearch），Elastic Stack在大数据领域的优异表现大家有目共睹，选择Elasticsearch作为我们多维OLAP引擎最主要的原因分如下几点。</p>
-<h5 id="Index-templates"><a href="#Index-templates" class="headerlink" title="Index templates"></a><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html" target="_blank" rel="noopener">Index templates</a></h5><p>由于多租户的特性，商户营销前系统会为其分配好ES，这个可以理解为分配库。库分配好之后还需要表，表对应的就是ES的索引，这个时候就需要有一套自动建表逻辑，这个自动建表逻辑就可以通过Index templates来实现。Template一般会包含如下信息，表分多少张（shards）、数据保存几份（replicas）、表的生命周期（lifecycle）、表中字段以及字段类型等诸多信息（dynamic field mapping）。有了Index templates就将索引创建逻辑简化到一行代码，创建索引的时候ES会自动根据需要创建的索引名称选择匹配template来创建索引。</p>
-<h5 id="Dynamic-field-mapping"><a href="#Dynamic-field-mapping" class="headerlink" title="Dynamic field mapping"></a><a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.8/dynamic-mapping.html" target="_blank" rel="noopener">Dynamic field mapping</a></h5><p>Schema-free的爽，大家或多或少都应该感受过。随着业务发展，表需要加字段这种情况估计大家都已经麻木了，尤其在数据分析领域，加字段不是一个两个的加而是几十几十的加。ES原生支持字段的自动创建及类型映射，字段类型是通过字段名来完成匹配。通过Dynamic field mapping + Index templates，便可以完全动态化的实现建表和加字段，极大提升了生产力和灵活度。</p>
-<h5 id="Nested-datatype"><a href="#Nested-datatype" class="headerlink" title="Nested datatype"></a><a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.8/nested.html" target="_blank" rel="noopener">Nested datatype</a></h5><p>传统的数据库里面，数据关系无外乎就三种，一对一、一对多和多对多。如果有数据有关联关系，通常通过主外键来建立数据联系，查询的时候通过join来获取完整信息。传统的关系型数据库中，很难做到一行记录中存储某个实体以及附属的信息。但是ES通过Nested数据类型提供了这种能力，它是NoSQL的一种高级特性。不但可以查询实体的时候直接带出附属信息，而是还可以在多个附属信息中查询满足条件的附属信息然后带出实体信息。例如用户（实体）一天内会有多个不同时间点的Geo Point（附属信息），一个签约品牌需要针对旗下的某几个门店做一场营销活动，需要选出最近3小时活跃在这些门店周边N公里的用户，不同的门店的筛选距离可能还不一样，nested type就能很完满的解决该问题。</p>
-<hr>
-<h4 id="特征存储"><a href="#特征存储" class="headerlink" title="特征存储"></a>特征存储</h4><h5 id="离线特征为什么不直接通过数据集成输出到ES？"><a href="#离线特征为什么不直接通过数据集成输出到ES？" class="headerlink" title="离线特征为什么不直接通过数据集成输出到ES？"></a>离线特征为什么不直接通过数据集成输出到ES？</h5><p>首先是算法产出特征名具有业务意义所以很长，特征字段名需要映射为正确类型的短字段名；其次是字段值也需要转化，需要转化为符合字段类型的值；最后是复杂的索引管理，数据处理完成之后还有各种针对索引的操作（alias管理、index切换、replica设置等）。这样做可以以最低成本来存储及传输，因为任何小的优化在海量数据下都会被放大，而且通过代码可以更加灵活的控制处理逻辑。</p>
-<h4 id="离线特征产出存储我们选择了OSS，而不是输出到Lindorm-ADB等？"><a href="#离线特征产出存储我们选择了OSS，而不是输出到Lindorm-ADB等？" class="headerlink" title="离线特征产出存储我们选择了OSS，而不是输出到Lindorm/ADB等？"></a>离线特征产出存储我们选择了OSS，而不是输出到Lindorm/ADB等？</h4><p>不选择Lindorm和ADB等DB的原因，首先是不论写入还是读取所付出的性能损耗还是存储成本都要比OSS大的多，毕竟数据库需要维护自己特有的一套数据结构来支持数据管理；其次是业务并不需要查询，需要的是每一个Brand前一个周期算好的全量离线特征。所以我们直接通过MaxCompute的输出到外表（OSS），BrandId+DateTime作为分区输出即可。需要注意的是品牌太多可能会导致分区数超过MaxCompute的分区限制，可以通过每次跑一部分品牌，多次输出来解决。MaxCompute在输出OSS的时候，数据格式建议使用orc/parquet，tsv/csv半结构化数据膨胀非常厉害，它们之间存储大小的差异是数量级的。如果业务需要用tsv/csv，可以采用gzip压缩，从而来优化文件大小。</p>
-<h5 id="实时特征为什么需要输出到Kafka？"><a href="#实时特征为什么需要输出到Kafka？" class="headerlink" title="实时特征为什么需要输出到Kafka？"></a>实时特征为什么需要输出到Kafka？</h5><p>主要原因就是Kafka相比RocketMQ/RabbbitMQ更适合大批量数据的写入，在大批量数据写入方面RocketMQ/RabbitMQ性能是不及Kafka的，RocketMQ/RabbitMQ更多的是关注在消息的安全/事务等特性。</p>
-<hr>
-<h3 id="数据服务"><a href="#数据服务" class="headerlink" title="数据服务"></a>数据服务</h3><h4 id="存储服务"><a href="#存储服务" class="headerlink" title="存储服务"></a>存储服务</h4><h5 id="职责"><a href="#职责" class="headerlink" title="职责"></a>职责</h5><ul>
-<li>将离线/实时特征索引到ES</li>
-<li>存储最近24小时的实时特征</li>
-</ul>
-<h5 id="索引切换流程"><a href="#索引切换流程" class="headerlink" title="索引切换流程"></a>索引切换流程</h5><p>为了简化索引生命周期管理以及提升索引性能，每当新的离线特征生成之时，我们会用新的离线特征生成一份新的索引，最后当新索引完成之后替换掉老索引。为了实现整个数据处理过程和索引切换过程业务方式无感知，ES别名（Alias）起到了关键性的作用，正是由于它的存在才让这一切变的成本低廉。为了清晰的阐述整个数据索引流程，我们拿某一个品牌的分片索引切换来说明，见下图：<br><img src="/images/index_switch_flow.png" alt="index_switch_flow"><br><code>user_feature_brand1</code> 业务查询所用别名<br><code>user_feature_brandId1_partition1_u</code> 实时特征更新更新所用别名<br><code>user_feature_brandId1_partition1_i</code> 离线特征写入和备份实时特征更新所用别名</p>
-<h5 id="流程如何编排？"><a href="#流程如何编排？" class="headerlink" title="流程如何编排？"></a>流程如何编排？</h5><p>MaxCompute离线特征生成之后，存储服务会查询出每个ES集群所支持的品牌，并根据其优先级排好序。然后每个ES集群只为优先级最高的品牌开启一个ScheduleX网格计算任务，每个ScheduleX任务会根据品牌的OSS文件来划分子任务，上一个做完再做下一个。一个集群只跑一个品牌，主要是防止ES压力过大导致在线服务的不可用。使用ScheduleX作为计算框架是为了简化子任务的分发、重试、并发控制等逻辑，这样不但可以充分利用分布式的算力而且还让我们从复杂的状态管理中抽身而出，聚焦在主任务的编排上。</p>
-<h5 id="为什么要保存最近24小时的实时特征？"><a href="#为什么要保存最近24小时的实时特征？" class="headerlink" title="为什么要保存最近24小时的实时特征？"></a>为什么要保存最近24小时的实时特征？</h5><p>虽然实时特征会实时写入到了ES之中，但是每次新的离线特征产出之后会触发新索引创建，新的索引中是没有实时特征的，所以我们需要使用备份的实时特征来更新到新的索引中。</p>
-<h5 id="为什么需要每次都重建索引？"><a href="#为什么需要每次都重建索引？" class="headerlink" title="为什么需要每次都重建索引？"></a>为什么需要每次都重建索引？</h5><p>不拿新的离线特征直接去更新已有的索引呢，其一是因为更新索引比重建新索引的要慢很多；其二要更新就需要对比新老数据，从而知道哪些数据变化了、哪些数据删除了、哪些数据新增了，会让MaxCompute任务逻辑非常复杂。</p>
-<h5 id="如何控制实时特征如何保存-如何控制生命周期？"><a href="#如何控制实时特征如何保存-如何控制生命周期？" class="headerlink" title="如何控制实时特征如何保存/如何控制生命周期？"></a>如何控制实时特征如何保存/如何控制生命周期？</h5><p>海量实时特征的存储，Lindorm是最佳的存储介质。它相较于传统DB，一是存储/扩容成本的优势，二是宽表/动态列的支持，三是数据精细的生命周期控制。任何事情都不是完美的，使用时特别要注意rowkey的设计，否则会产生数据倾斜、数据热点和查询受限等诸多问题。</p>
-<h5 id="如何实现新旧实时特征融合及乐观锁控制？"><a href="#如何实现新旧实时特征融合及乐观锁控制？" class="headerlink" title="如何实现新旧实时特征融合及乐观锁控制？"></a>如何实现新旧实时特征融合及乐观锁控制？</h5><p>用备份的旧实时特征去更新新索引，但新的实时特征却还在不断的流入；其次消息乱序，新数据先到老数据后到；如何保证老数据不会覆盖新数据？该问题分两个维度来讨论，首先是ES层面的乐观锁控制，其实是Lindorm层面的乐观锁控制。ES层面，在开始读取备份实时特征之前，首先通过ES的Alias来开启新时特征新老索引的双写，然后再读取备份的实时特征去更新新的索引，也就是说此时新老数据都在同时更新新的索引。非时间型的实时特征在ES中会保存为两个字段，一个是特征值一个是特征时间，通过特征时间来做乐观锁控制，通过ES的Update By Query API来更新。Lindorm层面的乐观锁控制也比较简单，通过指定时间戳写入便可以实现乐观锁控制，老的时间戳是不能覆盖新的时间戳数据的。</p>
-<h5 id="Update-By-Query命中率不高，很多无效的Query如何解决？"><a href="#Update-By-Query命中率不高，很多无效的Query如何解决？" class="headerlink" title="Update By Query命中率不高，很多无效的Query如何解决？"></a>Update By Query命中率不高，很多无效的Query如何解决？</h5><p>为了高效的插入，我们没有做_id层面的去重，所以更新的时候需要先查再更新。Update By Query相较于纯Update会多一次查询，别小看多的这一次查询，因为哪怕每条记录更新一毫秒，当乘以十亿的时候这就是相当恐怖的一个延迟了，并且这还是不考虑到一个人属于多个品牌的情况。这还不是问题的关键，问题的关键是不知道某个用户是否在某个品牌下，只有做一次查询才知道，如果存在就更新，如果不在就忽略，忽略的这次查询就是无效成本。例如当某个用户的经纬度发生了变化时，需要更新所有品牌下该用户的经纬度特征。<br>由于我们并不知道该用户是否在某个品牌下，所以对于中小品牌Update By Query会发现大量的Query少量的Update，出现这种情况是由于用户被算法粗筛排除在该品牌之外。大量无效的查询加重了ES的负载，是否存在成本更为低廉、性能更优的方式来替代ES查询，在更新之前就知道该用户是否存在于该品牌之下呢？布隆过滤器理所当然的成为了首选方案，为了解决分布式的需求，我们选择了阿里云的Redis布隆过滤器实现，不过需要注意的是受限于Redis单机4G内存的限制，如果存在空间需求大于2G的布隆过滤器，最好提前做好分片逻辑规划。有了布隆过滤器，在用品牌的离线数据创建索引的时候将用户的ID写入到品牌的布隆过滤器中，在后续的更新时，先去布隆过滤器中判断该用户是否存在，存在的话我们再去做Update By Query。</p>
-<h5 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h5><p>存储服务是整个设计中难点所在。存储服务最大的瓶颈又在ES，为了获得极致的性能，当然离不开ES常规的性能优化，例如调大refresh_interval/translog .flush_threshold_size/translog.sync_interval、调低number_of_replicas、translog.durability同步改异步、bulk操作（client版本需大于7.5.0，否则死锁）等。性能只是众多技术细节中的一小部分，还有品牌优先级控制、索引模板设计、索引管理、布隆过滤器管理、Lindorm表结构设计、ES算力水位控制、数据生命周期管理等，都需要细致的考虑和设计。</p>
-<h4 id="召回-amp-排序"><a href="#召回-amp-排序" class="headerlink" title="召回&amp;排序"></a>召回&amp;排序</h4><p>该服务主要分为查询场景管理和查询结果算法排序两部分。不同的查询场景就是不同的Query DSL，通过JEXL/Java Template来提供动态DSL能力。算法排序算子是通过一套规范的接口设计，让算法可以通过plugin的形式集成到业务逻辑中。</p>
-<h5 id="为什么不用ES默认的JSON动态模板？"><a href="#为什么不用ES默认的JSON动态模板？" class="headerlink" title="为什么不用ES默认的JSON动态模板？"></a>为什么不用ES默认的JSON动态模板？</h5><p>JSON格式的DSL动态模板，只能支持简单的参数动态化，没有条件表达式（可选条件）及循环表达式（动态参数），而JEXL/Java Template却能完美的解决该问题。根据业务层传递的搜索条件，执行条件判断及动态参数赋值从而最终生成用于ES搜索用的DSL脚本。</p>
-<h5 id="为什么还需要过滤-排序算子？"><a href="#为什么还需要过滤-排序算子？" class="headerlink" title="为什么还需要过滤/排序算子？"></a>为什么还需要过滤/排序算子？</h5><p>特殊情况下，通过ES召回的还需要再进行一次过滤/精排，这个时候需要跟算法同学共建，让算法同学的算法能够运行在工程代码之上，所以抽象出了一套过滤排序算子规范。</p>
-<hr>
-<h3 id="效果分析"><a href="#效果分析" class="headerlink" title="效果分析"></a>效果分析</h3><p>效果分析也分为实时和离线两条链路，实时链路主要用来做A/B Test和投放决策，离线链路主要负责产出投放效果报表所需的各种数据。好的效果分析离不开完善的埋点策略和数据采集工具支撑，否则就会出现数据映射偏差。</p>
-<hr>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>上述所讲还是偏一些技术细节，为什么花大量的篇幅来阐述这些细节，因为任何一个小的缺陷在海量数据下都会放大。当然还有很多没有说到或者说明白，例如资源如何实现动态分配，效果分析如何影响投放决策等，后续有机会会一一补上。</p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>Elasticsearch</tag>
-        <tag>精准营销</tag>
-        <tag>BLink</tag>
-        <tag>MaxCompute</tag>
-        <tag>Lindorm</tag>
-        <tag>OSS</tag>
-        <tag>Redis</tag>
       </tags>
   </entry>
 </search>

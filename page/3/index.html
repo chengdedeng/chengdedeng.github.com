@@ -322,6 +322,172 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/06/08/btrace笔记/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="杨果">
+    <meta itemprop="description" content>
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="城的灯">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="城的灯" src>
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2015/06/08/btrace笔记/" itemprop="url">
+                  BTrace笔记
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-06-08T19:31:29+08:00">
+                2015-06-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/technique/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/2015/06/08/btrace笔记/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2015/06/08/btrace笔记/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <blockquote>
+<p>BTrace作为线上问题定位神器，它在侵入、安全、资源占用等方面表现的都非常出色。本文记录了作者平时工作中使用Btrace的场景，以供大家参考。</p>
+</blockquote>
+<h3 id="BTrace限制"><a href="#BTrace限制" class="headerlink" title="BTrace限制"></a>BTrace限制</h3><p>关于BTrace的安装配置使用，网络上有太多的教程了，本文就不再重复造轮子了，但是还是非常有必要再次重申BTrace的限制。因为不正当的使用Btrace可能根本拿不到自己想要的结果，甚至导致JVM崩溃，建议脚本使用之前先经过验证，然后再使用到线上环境。</p>
+<p>使用Btrace时，需要确保追踪的行动是只读的（即：追踪行动不能修改程序的状态）和有限的（即：追踪行动需要在有限的时间内终止），一个追踪行为需要满足如下的限制：</p>
+<ul>
+<li>不能创建新的对象</li>
+<li>不能创建新的数组</li>
+<li>不能抛出异常</li>
+<li>不能捕获异常</li>
+<li>不能对实例和静态方法随意调用，只有<strong>com.sun.btrace.BTraceUtils</strong>中的public static方法或者当前脚本中申明的方法，可以被BTrace程序调用。</li>
+<li>(1.2之前)不能存在实例字段和方法。BTrace类只允许静态公共void返回方法，并且所有字段必须是静态的。</li>
+<li>不能将目标程序中的类和对象中的静态或者实例字段指派给BTrace程序。但是，可以将BTrace类自己的静态字段（“trace state”是可以改变的）指派给自己。因为引用的传递可能导致目标程序别修改，而BTrace自身的跟踪字段只有BTrace自己在使用，所以不怕修改。</li>
+<li>不能有外部，内部，嵌套或者本地的类。</li>
+<li>不能有<strong>synchronized</strong>块和方法。</li>
+<li>不能有循环（for，while，do…..while）。</li>
+<li>不能继承抽象类（父类只能为java.lang.Object）。</li>
+<li>不能实现接口。</li>
+<li>不能有断言语句。</li>
+<li>不能使用<strong>class</strong>保留字。</li>
+</ul>
+          <!--noindex-->
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2015/06/08/btrace笔记/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
   <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2015/04/01/线程转储/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1710,158 +1876,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="https://www.yangguo.info/2013/11/03/论技术选型/">
-
-  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <meta itemprop="name" content="杨果">
-    <meta itemprop="description" content>
-    <meta itemprop="image" content="/images/avatar.jpg">
-  </span>
-
-  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-    <meta itemprop="name" content="城的灯">
-    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
-      <img style="display:none;" itemprop="url image" alt="城的灯" src>
-    </span>
-  </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2013/11/03/论技术选型/" itemprop="url">
-                  论技术选型
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-11-03T23:58:30+08:00">
-                2013-11-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-              <span class="post-meta-divider">|</span>
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/technique/" itemprop="url" rel="index">
-                    <span itemprop="name">技术</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <a href="/2013/11/03/论技术选型/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2013/11/03/论技术选型/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <blockquote>
-<p>人生就是一道选择题，对于码农来说更是如此。</p>
-</blockquote>
-<p>谁都不想做<strong>“起来一个大早，却赶了一个晚集”</strong>的人，如果人生的命运你不能掌握，至少在技术这条崎岖的道路上，我们也要努力避免这种悲剧的发生。</p>
-<p>风起云涌的新技术，喧闹浮华背后的各大社区，各种榨取码农血汗钱的会议，当然还有各种很久不编码的人生导师，这些会对你每一次技术选型的抉择起到多大作用，我不得而知。我曾经流连于各大技术社区，听各路布道师的成功学，并将很多时髦的技术运用到我的工作中。我一度自我膨胀，认为自己是块材料，至少不是一块废材。陶醉在各种新技术的研究与布道上，直到有一天我离职的时候，我的大老板对我说<strong>“你们研究的那些非常好，但是跟业务有点脱钩”</strong>。我当时没有在意，因为谁会在意一个不懂技术的Boss的建议呢！但是有一天我在地铁上突然想起那句话，突然思绪就开始飞扬，所以就有了下面的文字。附带一句，本人坐地铁很少玩手机，一般我就做三件事情。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1.思考人生</span><br><span class="line">2.思考技术</span><br><span class="line">3.看美女</span><br></pre></td></tr></table></figure>
-<p>正式由于第一件事情，让我对码农这个行业产生了新的认识。如果你不赞成我的观点，没有关系，因为我不企图改变任何人；如果你赞成，那我至少没有白忙活。</p>
-          <!--noindex-->
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2013/11/03/论技术选型/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1905,7 +1919,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-count">38</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -1922,7 +1936,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">59</span>
+                <span class="site-state-item-count">60</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -1998,7 +2012,7 @@
         <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2020</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
